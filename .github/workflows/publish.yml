@@ -1,0 +1,50 @@
+name: Publish Python Package
+
+on:
+  release:
+    types: [created]
+  # Optionally allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      # This permission is needed for private packages
+      contents: read
+      id-token: write  # This is required for OIDC publishing
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: pip
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+
+    - name: Build package
+      run: |
+        python -m build
+
+    - name: Verify package
+      run: |
+        python -m twine check dist/*
+
+    - name: Publish package to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      # Uploads to PyPI by default using trusted publishing
+
+    # Optional: Create GitHub Release with assets
+    - name: Upload assets to GitHub Release
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          dist/*.tar.gz
+          dist/*.whl

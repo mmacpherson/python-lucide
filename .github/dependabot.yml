@@ -1,0 +1,31 @@
+version: 2
+updates:
+  # Maintain dependencies for GitHub Actions
+- package-ecosystem: github-actions
+  directory: /
+  schedule:
+    interval: weekly
+  commit-message:
+    prefix: ci
+    include: scope
+  labels:
+  - ci
+  - dependencies
+  open-pull-requests-limit: 10
+
+  # Maintain dependencies for Python
+- package-ecosystem: pip
+  directory: /
+  schedule:
+    interval: monthly
+  commit-message:
+    prefix: deps
+    include: scope
+  labels:
+  - dependencies
+  - python
+  open-pull-requests-limit: 10
+  ignore:
+      # For major updates, let's review them manually
+  - dependency-name: '*'
+    update-types: [version-update:semver-major]
