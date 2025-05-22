@@ -1,3 +1,4 @@
+# ruff: noqa: ARG001, PLR0913
 import contextlib
 import sqlite3
 import xml.etree.ElementTree as ET
@@ -10,10 +11,12 @@ from lucide import core, db  # Import db to patch its members
 SVG_NAMESPACE = "{http://www.w3.org/2000/svg}"
 
 # Constants for magic numbers
-NUM_CLASSES_EXPECTED = 2
+NUM_CLASSES_EXPECTED_TWO = 2
 NUM_CLASSES_EXPECTED_THREE = 3
 NUM_CLASSES_EXPECTED_FOUR = 4
 NUM_CLASSES_EXPECTED_FIVE = 5
+NUM_CLASSES_EXPECTED_SIX = 6
+NUM_CLASSES_EXPECTED_EIGHT = 8
 
 
 # --- Fixture for Mock Database ---
@@ -65,7 +68,7 @@ def get_svg_root(svg_string: str) -> ET.Element:
 # --- Test Cases ---
 
 
-def test_lucide_icon_existing_no_modification(mock_db_path_fixture):  # noqa: ARG001
+def test_lucide_icon_existing_no_modification(mock_db_path_fixture):
     """Test retrieving an existing icon without modifications."""
     core.lucide_icon.cache_clear()
     icon_str = core.lucide_icon("circle")
@@ -78,8 +81,14 @@ def test_lucide_icon_existing_no_modification(mock_db_path_fixture):  # noqa: AR
     # Check for child element (specific check for the circle icon)
     assert any(child.tag.endswith("circle") for child in root), "<circle> tag not found"
 
+    # Check for automatic classes
+    classes = root.get("class", "").split()
+    assert "lucide" in classes
+    assert "lucide-circle" in classes
+    assert "lucide-circle-icon" in classes
 
-def test_lucide_icon_with_simple_class(mock_db_path_fixture):  # noqa: ARG001
+
+def test_lucide_icon_with_simple_class(mock_db_path_fixture):
     """Test retrieving an icon and adding a simple CSS class."""
     core.lucide_icon.cache_clear()
     icon_str = core.lucide_icon("circle", cls="my-class")
@@ -87,10 +96,13 @@ def test_lucide_icon_with_simple_class(mock_db_path_fixture):  # noqa: ARG001
 
     classes = root.get("class", "").split()
     assert "my-class" in classes
+    assert "lucide" in classes
+    assert "lucide-circle" in classes
+    assert "lucide-circle-icon" in classes
     assert root.get("width") == "24"  # Original attribute preserved
 
 
-def test_lucide_icon_with_multiple_classes_in_cls(mock_db_path_fixture):  # noqa: ARG001
+def test_lucide_icon_with_multiple_classes_in_cls(mock_db_path_fixture):
     """Test adding multiple space-separated classes via cls."""
     core.lucide_icon.cache_clear()
     icon_str = core.lucide_icon("circle", cls="class1 class2 another-class")
@@ -99,10 +111,13 @@ def test_lucide_icon_with_multiple_classes_in_cls(mock_db_path_fixture):  # noqa
     assert "class1" in classes
     assert "class2" in classes
     assert "another-class" in classes
-    assert len(classes) == NUM_CLASSES_EXPECTED_THREE
+    assert "lucide" in classes
+    assert "lucide-circle" in classes
+    assert "lucide-circle-icon" in classes
+    assert len(classes) == NUM_CLASSES_EXPECTED_SIX
 
 
-def test_lucide_icon_with_namespace_handling(mock_db_path_fixture):  # noqa: ARG001
+def test_lucide_icon_with_namespace_handling(mock_db_path_fixture):
     """Test retrieving an icon with focus on namespace and serialization."""
     core.lucide_icon.cache_clear()
     icon_str = core.lucide_icon("circle", cls="my-class")
@@ -138,7 +153,7 @@ def test_lucide_icon_with_namespace_handling(mock_db_path_fixture):  # noqa: ARG
 
 
 def test_lucide_icon_add_existing_class_is_idempotent(
-    mock_db_path_fixture,  # noqa: ARG001
+    mock_db_path_fixture,
 ):
     """Test adding a class that is already present (should be idempotent)."""
     core.lucide_icon.cache_clear()
@@ -151,112 +166,174 @@ def test_lucide_icon_add_existing_class_is_idempotent(
     class_set = set(classes)
     assert "existing-class" in class_set
     assert "lucide" in class_set
-    assert len(class_set) == NUM_CLASSES_EXPECTED  # No new classes added, no duplicates
+    assert "lucide-square" in class_set
+    assert "lucide-square-icon" in class_set
+    assert (
+        len(class_set) == NUM_CLASSES_EXPECTED_FOUR
+    )  # No new classes added, no duplicates
 
 
-def test_lucide_icon_with_attrs_basic(mock_db_path_fixture):  # noqa: ARG001
+def test_lucide_icon_with_attrs_basic(mock_db_path_fixture):
     """Test retrieving an icon with custom attributes."""
     core.lucide_icon.cache_clear()
-    attrs_to_add = {
-        "data-testid": "test-icon",
-        "aria-hidden": "true",
-        "width": "32",  # Override existing width
-    }
-    icon_str = core.lucide_icon("circle", attrs=attrs_to_add)
+    # Test overriding an existing attribute (width) and adding a new one (stroke)
+    icon_str = core.lucide_icon("circle", width="32", stroke="red")
     root = get_svg_root(icon_str)
 
-    assert root.get("data-testid") == "test-icon"
-    assert root.get("aria-hidden") == "true"
     assert root.get("width") == "32"  # Overridden
     assert root.get("height") == "24"  # Original height preserved
+    assert root.get("stroke") == "red"  # New attribute added
 
 
-def test_lucide_icon_attrs_can_add_class_to_svg_without_class(
-    mock_db_path_fixture,  # noqa: ARG001
+def test_lucide_icon_cls_can_add_class_to_svg_without_class(
+    mock_db_path_fixture,
 ):
-    """Test adding class via attrs dictionary to an SVG without an initial class."""
+    """Test adding class via cls param to an SVG without an initial class."""
     core.lucide_icon.cache_clear()
-    attrs_with_class = {"class": "attr-class1 attr-class2"}
-    icon_str = core.lucide_icon(
-        "circle", attrs=attrs_with_class
-    )  # circle has no initial class
+    class_str_to_add = "new-class1 new-class2"
+    # "circle" icon is defined in fixture without a class attribute initially
+    icon_str = core.lucide_icon("circle", cls=class_str_to_add)
     root = get_svg_root(icon_str)
 
     classes = root.get("class", "").split()
-    assert "attr-class1" in classes
-    assert "attr-class2" in classes
-    assert len(set(classes)) == NUM_CLASSES_EXPECTED
+    assert "new-class1" in classes
+    assert "new-class2" in classes
+    assert len(set(classes)) == NUM_CLASSES_EXPECTED_FIVE
 
 
-def test_lucide_icon_attrs_replaces_existing_class(
-    mock_db_path_fixture,  # noqa: ARG001
+def test_lucide_icon_cls_appends_to_existing_class(
+    mock_db_path_fixture,
 ):
-    """Test attrs dictionary REPLACES existing class if 'class' is in attrs."""
+    """Test cls parameter APPENDS to existing classes on the SVG."""
     core.lucide_icon.cache_clear()
-    # square has "lucide existing-class"
-    attrs_replacing_class = {"class": "replacement-class other-replacement"}
-    icon_str = core.lucide_icon("square", attrs=attrs_replacing_class)
+    # "square" icon fixture has "lucide existing-class"
+    cls_to_append = "appended-class another-appended"
+    icon_str = core.lucide_icon("square", cls=cls_to_append)
     root = get_svg_root(icon_str)
 
     classes = root.get("class", "").split()
     class_set = set(classes)
-    assert "replacement-class" in class_set
-    assert "other-replacement" in class_set
-    assert "lucide" not in class_set
-    assert "existing-class" not in class_set
-    assert len(class_set) == NUM_CLASSES_EXPECTED
+    assert "lucide" in class_set  # Original class preserved
+    assert "existing-class" in class_set  # Original class preserved
+    assert "appended-class" in class_set  # New class appended
+    assert "another-appended" in class_set  # New class appended
+    assert "lucide-square" in class_set  # Automatic class added
+    # Expected: "lucide", "existing-class", "appended-class",
+    #           "another-appended", "lucide-square"
+    assert len(class_set) == NUM_CLASSES_EXPECTED_SIX
     assert root.get("id") == "square-icon"  # Other original attributes preserved
 
 
-def test_lucide_icon_with_cls_and_attrs_class_merging(
-    mock_db_path_fixture,  # noqa: ARG001
-):
-    """Test merging classes: attrs['class'] provides base, then cls param appends."""
+def test_lucide_icon_automatic_class_generation(mock_db_path_fixture):
+    """Test that automatic Lucide classes are added to SVGs based on icon name."""
     core.lucide_icon.cache_clear()
-    # square's original class: "lucide existing-class"
-    # attrs['class'] will replace this with "attr-class another-attr"
-    # cls param "cls-provided-class dupe-cls" will append unique classes
-    attrs_complex = {
-        "class": "attr-class another-attr dupe-cls",
-        "data-value": "foo",
-        "width": "100",
-    }
+
+    # Test with different icon names
+    icon_names = ["circle", "square"]
+
+    for icon_name in icon_names:
+        # Test without cls parameter
+        icon_str = core.lucide_icon(icon_name)
+        root = get_svg_root(icon_str)
+        classes = root.get("class", "").split()
+        class_set = set(classes)
+
+        # Verify automatic classes
+        assert "lucide" in class_set
+        assert f"lucide-{icon_name}" in class_set
+
+        # Test with cls parameter
+        icon_str_with_cls = core.lucide_icon(icon_name, cls="custom-class")
+        root_with_cls = get_svg_root(icon_str_with_cls)
+        classes_with_cls = root_with_cls.get("class", "").split()
+        class_set_with_cls = set(classes_with_cls)
+
+        # Verify automatic classes are still there
+        assert "lucide" in class_set_with_cls
+        assert f"lucide-{icon_name}" in class_set_with_cls
+        assert "custom-class" in class_set_with_cls
+
+    # Test with an icon that already has the automatic classes
+    # The "square" fixture already has "lucide" class
+    icon_str = core.lucide_icon("square")
+    root = get_svg_root(icon_str)
+    classes = root.get("class", "").split()
+
+    # Count occurrences to make sure classes aren't duplicated
+    class_counts = {}
+    for cls in classes:
+        class_counts[cls] = class_counts.get(cls, 0) + 1
+
+    # Each class should appear exactly once
+    assert class_counts.get("lucide", 0) == 1
+    assert class_counts.get("lucide-square", 0) == 1
+
+
+def test_lucide_icon_cls_merging_with_existing_and_param_classes(
+    mock_db_path_fixture,
+):
+    """Test cls parameter appends unique classes to existing SVG classes."""
+    core.lucide_icon.cache_clear()
+    # "square" icon's original class from fixture: "lucide existing-class"
+    # `cls` param will append "cls-provided-class", "new-attr-class",
+    #                         "another-new-attr", "dupe-cls"
+    # Note: "dupe-cls" is in `cls_param_str` twice, but should only appear once.
+    # "existing-class" is also in `cls_param_str` to test idempotency of adding existing
+    cls_param_str = (
+        "cls-provided-class new-attr-class another-new-attr "
+        "dupe-cls dupe-cls existing-class"
+    )
+
     icon_str = core.lucide_icon(
-        "square", cls="cls-provided-class dupe-cls", attrs=attrs_complex
+        "square",
+        cls=cls_param_str,
+        width="100",  # Test an explicit attribute as well
     )
     root = get_svg_root(icon_str)
 
     classes = root.get("class", "").split()
     class_set = set(classes)
 
-    assert "attr-class" in class_set
-    assert "another-attr" in class_set
-    assert "cls-provided-class" in class_set
-    assert "dupe-cls" in class_set  # Should appear once
-    assert "lucide" not in class_set  # Original class replaced by attrs['class']
-    assert (
-        "existing-class" not in class_set
-    )  # Original class replaced by attrs['class']
-    assert len(class_set) == NUM_CLASSES_EXPECTED_FOUR
+    # Expected classes:
+    # From SVG: "lucide", "existing-class"
+    # From cls_param_str (unique): "cls-provided-class", "new-attr-class",
+    #                              "another-new-attr", "dupe-cls"
+    # Total unique: lucide, existing-class, cls-provided-class, new-attr-class,
+    #               another-new-attr, dupe-cls
+    # 6 classes total.
 
-    assert root.get("data-value") == "foo"
-    assert root.get("width") == "100"
-    assert (
-        root.get("id") == "square-icon"
-    )  # Original attribute not in attrs is preserved
+    assert "lucide" in class_set  # Original
+    assert "existing-class" in class_set  # Original (and in cls_param_str)
+    assert "cls-provided-class" in class_set  # From cls param
+    assert "new-attr-class" in class_set  # From cls param
+    assert "another-new-attr" in class_set  # From cls param
+    assert "dupe-cls" in class_set  # From cls param (added once)
+
+    assert len(class_set) == NUM_CLASSES_EXPECTED_EIGHT
+
+    assert root.get("width") == "100"  # Explicit attribute
+    assert root.get("id") == "square-icon"  # Original attribute preserved
 
 
-def test_lucide_icon_minimal_svg_add_all(mock_db_path_fixture):  # noqa: ARG001
+def test_lucide_icon_minimal_svg_add_all(mock_db_path_fixture):
     """Test adding class and attributes to a minimal SVG."""
     core.lucide_icon.cache_clear()
-    attrs_to_add = {"stroke": "red", "stroke-width": "3", "width": "16", "height": "16"}
-    icon_str = core.lucide_icon("line", cls="important-line styled", attrs=attrs_to_add)
+    icon_str = core.lucide_icon(
+        "line",  # "line" icon is minimal in fixture
+        cls="important-line styled",
+        stroke="red",
+        stroke_width="3",
+        width="16",
+        height="16",
+    )
     root = get_svg_root(icon_str)
 
     classes = root.get("class", "").split()
     assert "important-line" in classes
     assert "styled" in classes
-    assert len(set(classes)) == NUM_CLASSES_EXPECTED
+    assert "lucide" in classes
+    assert "lucide-line" in classes
+    assert len(set(classes)) == NUM_CLASSES_EXPECTED_FIVE
 
     assert root.get("stroke") == "red"
     assert root.get("stroke-width") == "3"
@@ -265,23 +342,36 @@ def test_lucide_icon_minimal_svg_add_all(mock_db_path_fixture):  # noqa: ARG001
     assert root.find(SVG_NAMESPACE + "path") is not None  # Check child is preserved
 
 
-def test_lucide_icon_remove_class_attribute_if_all_classes_removed(
-    mock_db_path_fixture,  # noqa: ARG001
+def test_lucide_icon_cls_empty_string_behavior(
+    mock_db_path_fixture,
 ):
-    """Test that the class attribute is removed if cls and attrs make it empty."""
+    """Test behavior of cls='' parameter."""
     core.lucide_icon.cache_clear()
-    # 'square' icon has 'lucide existing-class'
-    # attrs['class'] = "" will clear base classes
-    attrs_empty_class = {"class": ""}
-    icon_str = core.lucide_icon(
-        "square", cls="", attrs=attrs_empty_class
-    )  # cls="" adds nothing
-    root = get_svg_root(icon_str)
 
-    assert root.get("class") is None  # Class attribute should be entirely removed
+    # Scenario 1: Icon initially has no class attribute ("circle" icon from fixture)
+    # Providing cls="" should result in only automatic classes being added
+    icon_str_circle = core.lucide_icon("circle", cls="")
+    root_circle = get_svg_root(icon_str_circle)
+    classes = root_circle.get("class", "").split()
+    assert "lucide" in classes
+    assert "lucide-circle" in classes
+    assert "lucide-circle-icon" in classes
+    assert len(classes) == NUM_CLASSES_EXPECTED_THREE
+    assert set(classes) == {"lucide", "lucide-circle", "lucide-circle-icon"}
+
+    # Scenario 2: Icon initially has classes ("square" icon: "lucide existing-class")
+    # Providing cls="" should keep existing classes and add automatic ones.
+    icon_str_square = core.lucide_icon("square", cls="")
+    root_square = get_svg_root(icon_str_square)
+    classes = root_square.get("class", "").split()
+    assert "lucide" in classes
+    assert "existing-class" in classes
+    assert "lucide-square" in classes
+    assert "lucide-square-icon" in classes
+    assert len(classes) == NUM_CLASSES_EXPECTED_FOUR
 
 
-def test_lucide_icon_not_found_placeholder(mock_db_path_fixture):  # noqa: ARG001
+def test_lucide_icon_not_found_placeholder(mock_db_path_fixture):
     """Test behavior when icon is not found, returns placeholder SVG."""
     core.lucide_icon.cache_clear()
     icon_name = "non-existent-icon-123"
@@ -298,7 +388,7 @@ def test_lucide_icon_not_found_placeholder(mock_db_path_fixture):  # noqa: ARG00
 
 
 def test_lucide_icon_not_found_with_custom_fallback_text(
-    mock_db_path_fixture,  # noqa: ARG001
+    mock_db_path_fixture,
 ):
     """Test placeholder SVG uses custom fallback text."""
     core.lucide_icon.cache_clear()
@@ -314,7 +404,7 @@ def test_lucide_icon_not_found_with_custom_fallback_text(
 
 
 def test_lucide_icon_db_connection_failure_returns_placeholder(
-    mock_db_path_fixture,  # noqa: ARG001
+    mock_db_path_fixture,
 ):
     """Test placeholder is returned if DB connection cannot be established."""
     core.lucide_icon.cache_clear()
@@ -332,7 +422,7 @@ def test_lucide_icon_db_connection_failure_returns_placeholder(
 
 
 def test_lucide_icon_db_query_error_returns_placeholder(
-    mock_db_path_fixture,  # noqa: ARG001
+    mock_db_path_fixture,
 ):
     """Test placeholder for SQLite errors during icon query."""
     core.lucide_icon.cache_clear()
@@ -353,6 +443,17 @@ def test_lucide_icon_db_query_error_returns_placeholder(
         icon_str = core.lucide_icon("circle")  # Valid icon name, but query will fail
         root = get_svg_root(icon_str)
         assert root.get("data-missing-icon") == "circle"
+
+
+def test_configurable_cache_size():
+    """Test that the LRU cache size is configurable via config."""
+    # Test that the function is decorated with a cache of the configured size
+    cache_info = core.lucide_icon.cache_info()
+    assert cache_info.maxsize == core.DEFAULT_ICON_CACHE_SIZE
+    # Verify it's using the config value
+    from lucide.config import DEFAULT_ICON_CACHE_SIZE
+
+    assert cache_info.maxsize == DEFAULT_ICON_CACHE_SIZE
 
 
 def test_lucide_icon_caching_behavior(mock_db_path_fixture):
@@ -396,7 +497,7 @@ def test_lucide_icon_caching_behavior(mock_db_path_fixture):
         assert icon1_str == icon2_str
 
         icon3_str = core.lucide_icon("circle", cls="class-a")
-        assert db_access_count == NUM_CLASSES_EXPECTED
+        assert db_access_count == NUM_CLASSES_EXPECTED_TWO
         root3 = get_svg_root(icon3_str)
         assert "class-a" in root3.get("class", "").split()
         assert icon1_str != icon3_str
@@ -405,8 +506,8 @@ def test_lucide_icon_caching_behavior(mock_db_path_fixture):
         assert db_access_count == NUM_CLASSES_EXPECTED_THREE
         assert icon3_str != icon4_str
 
-        attrs = {"width": "10"}
-        icon5_str = core.lucide_icon("circle", attrs=attrs)
+        # Test with an explicit attribute (width)
+        icon5_str = core.lucide_icon("circle", width="10")
         assert db_access_count == NUM_CLASSES_EXPECTED_FOUR
         root5 = get_svg_root(icon5_str)
         assert root5.get("width") == "10"
@@ -422,7 +523,7 @@ def test_lucide_icon_caching_behavior(mock_db_path_fixture):
         assert icon1_str != icon7_str
 
 
-def test_get_icon_list_fetches_correctly(mock_db_path_fixture):  # noqa: ARG001
+def test_get_icon_list_fetches_correctly(mock_db_path_fixture):
     """Test retrieving the list of all available icon names."""
     core.lucide_icon.cache_clear()  # Clear to ensure get_icon_list hits DB
     icon_list = core.get_icon_list()
@@ -431,7 +532,7 @@ def test_get_icon_list_fetches_correctly(mock_db_path_fixture):  # noqa: ARG001
     assert icon_list == expected_icons
 
 
-def test_get_icon_list_db_connection_error(mock_db_path_fixture):  # noqa: ARG001
+def test_get_icon_list_db_connection_error(mock_db_path_fixture):
     """Test get_icon_list returns empty list if DB connection fails."""
     core.lucide_icon.cache_clear()
 

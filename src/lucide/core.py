@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-# ruff: noqa: ARG001
+# ruff: noqa: ARG001, PLR0913
 """Serves lucide SVG icons from a SQLite database.
 
 This module provides functions to retrieve Lucide icons from a SQLite database.
 """
 
 import functools
-import inspect
 import logging
 import sqlite3
 import xml.etree.ElementTree as ET
 
+from .config import DEFAULT_ICON_CACHE_SIZE
 from .db import get_db_connection, get_default_db_path
 
 logger = logging.getLogger(__name__)
@@ -26,89 +26,118 @@ SVG_NAMESPACE_URI = "http://www.w3.org/2000/svg"
 ET.register_namespace("", SVG_NAMESPACE_URI)
 
 
-def _process_classes(root, cls, param_attrs):
-    """Process CSS classes for the SVG element.
+def _process_classes(root: ET.Element, cls: str | None, icon_name: str) -> None:
+    """Process CSS classes for the SVG element, modifying it in place.
 
     Args:
-        root: ET root element of the SVG
-        cls: Optional CSS class string to append
-        param_attrs: Dictionary of attributes, may contain 'class'
-
-    Returns:
-        Updated attributes dictionary with processed classes
+        root: ET.Element root element of the SVG.
+        cls: Optional CSS class string to append.
+        icon_name: Name of the icon to generate automatic Lucide classes.
     """
-    final_attributes = root.attrib.copy()
-    working_class_list = []
+    # Start with existing classes on the SVG element
+    original_class_str = root.attrib.get("class", "")
+    working_classes = (
+        {c for c in original_class_str.split() if c} if original_class_str else set()
+    )
 
-    # 1. Determine the base list of classes
-    if "class" in param_attrs:
-        # Class from param_attrs takes precedence
-        class_str_from_attrs = param_attrs.pop("class", "")
-        if class_str_from_attrs and isinstance(class_str_from_attrs, str):
-            working_class_list.extend(c for c in class_str_from_attrs.split() if c)
-    elif "class" in final_attributes:
-        # Use original SVG classes if no override
-        original_class_str = final_attributes.get("class", "")
-        if original_class_str and isinstance(original_class_str, str):
-            working_class_list.extend(c for c in original_class_str.split() if c)
+    # Add automatic Lucide classes
+    working_classes.update(
+        {"lucide", f"lucide-{icon_name}", f"lucide-{icon_name}-icon"}
+    )
 
-    # 2. Add classes from the 'cls' parameter
+    # Add classes from the 'cls' parameter
     if cls and isinstance(cls, str):
-        for c_item in cls.split():
-            if c_item and c_item not in working_class_list:
-                working_class_list.append(c_item)
+        working_classes.update(cls.split())
 
-    # 3. Update final_attributes with the new class string
-    if working_class_list:
-        final_attributes["class"] = " ".join(working_class_list)
-    elif "class" in final_attributes:
-        del final_attributes["class"]
-
-    return final_attributes
+    # Update the root element's class attribute
+    if working_classes:
+        root.set("class", " ".join(sorted(working_classes)))
+    elif "class" in root.attrib:
+        # Remove class attribute if it's empty and was present
+        del root.attrib["class"]
 
 
-def _apply_attributes(root, final_attributes, param_attrs):
-    """Apply attributes to the SVG element.
+def _apply_attributes(  # noqa: D417
+    root: ET.Element,
+    width: str | int | None = None,
+    height: str | int | None = None,
+    fill: str | None = None,
+    stroke: str | None = None,
+    stroke_width: str | int | None = None,
+    stroke_linecap: str | None = None,
+    stroke_linejoin: str | None = None,
+) -> None:
+    """Apply explicit attributes to the SVG element, modifying it in place.
 
     Args:
-        root: ET root element of the SVG
-        final_attributes: Dictionary of processed attributes
-        param_attrs: Dictionary of attributes to apply
-
-    Returns:
-        None (modifies root in place)
+        root: ET.Element root element of the SVG.
+        width, height, fill, stroke, stroke_width, stroke_linecap, stroke_linejoin:
+            Optional SVG attributes to set or override.
+            Pythonic names like 'stroke_width' are converted to 'stroke-width'.
     """
-    # Apply other attributes from param_attrs (excluding 'class' which was handled)
-    for key, value in param_attrs.items():
-        final_attributes[key] = str(value)  # Ensure value is string for ET
+    attrs_to_set = {
+        "width": width,
+        "height": height,
+        "fill": fill,
+        "stroke": stroke,
+        "stroke_width": stroke_width,
+        "stroke_linecap": stroke_linecap,
+        "stroke_linejoin": stroke_linejoin,
+    }
 
-    # Apply all attributes to the root element
-    root.attrib.clear()
-    for key, value in final_attributes.items():
-        root.set(key, value)
+    attr_name_map = {
+        "stroke_width": "stroke-width",
+        "stroke_linecap": "stroke-linecap",
+        "stroke_linejoin": "stroke-linejoin",
+    }
+
+    for py_name, value in attrs_to_set.items():
+        if value is not None:
+            svg_attr_name = attr_name_map.get(py_name, py_name)
+            root.set(svg_attr_name, str(value))
 
 
-def _modify_svg(original_svg_content, icon_name, cls, attrs):
+def _modify_svg(  # noqa: D417
+    original_svg_content: str,
+    icon_name: str,
+    cls: str | None,
+    width: int | str | None = None,
+    height: int | str | None = None,
+    fill: str | None = None,
+    stroke: str | None = None,
+    stroke_width: int | str | None = None,
+    stroke_linecap: str | None = None,
+    stroke_linejoin: str | None = None,
+) -> str:
     """Modifies the SVG content with provided attributes and classes.
 
     Args:
-        original_svg_content: Original SVG string
-        icon_name: Name of the icon (for error reporting)
-        cls: Optional CSS classes to add
-        attrs: Optional attributes to apply
+        original_svg_content: Original SVG string.
+        icon_name: Name of the icon (for error reporting).
+        cls: Optional CSS classes to add/append.
+        width, height, fill, stroke, stroke_width, stroke_linecap, stroke_linejoin:
+            Optional SVG attributes to set or override.
 
     Returns:
-        Modified SVG content as string
+        Modified SVG content as string.
     """
     try:
         root = ET.fromstring(original_svg_content)
-        param_attrs = dict(attrs) if attrs else {}
 
-        # Process classes and get updated attributes
-        final_attributes = _process_classes(root, cls, param_attrs)
+        # Process and apply CSS classes
+        _process_classes(root, cls, icon_name)
 
-        # Apply all attributes to the SVG
-        _apply_attributes(root, final_attributes, param_attrs)
+        # Apply explicit attributes
+        _apply_attributes(
+            root,
+            width=width,
+            height=height,
+            fill=fill,
+            stroke=stroke,
+            stroke_width=stroke_width,
+            stroke_linecap=stroke_linecap,
+            stroke_linejoin=stroke_linejoin,
+        )
 
         # Serialize back to string
         return ET.tostring(
@@ -127,63 +156,33 @@ def _modify_svg(original_svg_content, icon_name, cls, attrs):
         return original_svg_content
 
 
-def _ensure_hashable_attrs(func_to_wrap):
-    """Shim to ensure that the 'attrs' argument is hashable.
-
-    Decorator to convert the 'attrs' argument (if it's a dict)
-    to a hashable frozenset of sorted (key, value) items.
-    This allows functools.lru_cache to work with dicts for 'attrs'.
-    It also propagates cache-related attributes from the lru_cache-wrapped function.
-    """
-    sig = inspect.signature(func_to_wrap)
-    attrs_param_name = "attrs"  # The name of the parameter to process
-
-    @functools.wraps(
-        func_to_wrap
-    )  # Copies __name__, __doc__, __module__, etc. from func_to_wrap
-    def wrapper(*args, **kwargs):
-        bound_arguments = sig.bind(*args, **kwargs)
-        bound_arguments.apply_defaults()
-
-        current_attrs_value = bound_arguments.arguments.get(attrs_param_name)
-
-        if isinstance(current_attrs_value, dict):
-            hashable_attrs = frozenset(sorted(current_attrs_value.items()))
-            bound_arguments.arguments[attrs_param_name] = hashable_attrs
-            return func_to_wrap(*bound_arguments.args, **bound_arguments.kwargs)
-        return func_to_wrap(*args, **kwargs)
-
-    # Manually assign lru_cache specific attributes to the new wrapper.
-    # func_to_wrap is the function object created by @functools.lru_cache
-    if hasattr(func_to_wrap, "cache_info"):
-        wrapper.cache_info = func_to_wrap.cache_info
-    if hasattr(func_to_wrap, "cache_clear"):
-        wrapper.cache_clear = func_to_wrap.cache_clear
-    # Note: wrapper.__wrapped__ is already correctly set by @functools.wraps
-    # to point to func_to_wrap (the lru_cache object).
-
-    return wrapper
-
-
-@_ensure_hashable_attrs
-@functools.lru_cache(maxsize=128)
+@functools.lru_cache(maxsize=DEFAULT_ICON_CACHE_SIZE)
 def lucide_icon(
     icon_name: str,
     cls: str = "",
-    attrs: dict | None = None,
     fallback_text: str | None = None,
-):
+    width: str | int | None = None,
+    height: str | int | None = None,
+    fill: str | None = None,
+    stroke: str | None = None,
+    stroke_width: str | int | None = None,
+    stroke_linecap: str | None = None,
+    stroke_linejoin: str | None = None,
+) -> str:
     """Fetches a Lucide icon SVG from the database with caching.
 
     Args:
         icon_name: Name of the Lucide icon to fetch.
         cls: Optional CSS class string to apply/append to the SVG element.
              Multiple classes can be space-separated.
-        attrs: Optional dictionary of attributes to apply to the SVG element.
-               If 'class' is a key in attrs, its value will determine the base
-               classes before classes from the `cls` param are appended.
-               Other attributes in `attrs` will override existing attributes on the SVG.
         fallback_text: Optional text to display if the icon is not found.
+        width: Optional width attribute for the SVG element.
+        height: Optional height attribute for the SVG element.
+        fill: Optional fill attribute for the SVG element.
+        stroke: Optional stroke attribute for the SVG element.
+        stroke_width: Optional stroke-width attribute for the SVG element.
+        stroke_linecap: Optional stroke-linecap attribute for the SVG element.
+        stroke_linejoin: Optional stroke-linejoin attribute for the SVG element.
 
     Returns:
         The SVG content as a string.
@@ -205,12 +204,18 @@ def lucide_icon(
 
             original_svg_content = row[0]
 
-            # If no modifications needed, return the original SVG
-            if not cls and not attrs:
-                return original_svg_content
-
-            # Otherwise, modify the SVG with the provided attributes and classes
-            return _modify_svg(original_svg_content, icon_name, cls, attrs)
+            return _modify_svg(
+                original_svg_content,
+                icon_name,
+                cls,
+                width=width,
+                height=height,
+                fill=fill,
+                stroke=stroke,
+                stroke_width=stroke_width,
+                stroke_linecap=stroke_linecap,
+                stroke_linejoin=stroke_linejoin,
+            )
 
     except sqlite3.Error as e:
         logger.error(f"Database query error for icon '{icon_name}': {e}")
@@ -222,7 +227,11 @@ def lucide_icon(
         return create_placeholder_svg(icon_name, fallback_text, f"Error: {e}")
 
 
-def create_placeholder_svg(icon_name, fallback_text=None, error_text=None):
+def create_placeholder_svg(
+    icon_name: str,
+    fallback_text: str | None = None,
+    error_text: str | None = None,
+) -> str:
     """Creates a placeholder SVG when an icon is not found or an error occurs.
 
     Args:
@@ -245,7 +254,7 @@ def create_placeholder_svg(icon_name, fallback_text=None, error_text=None):
     return f"""{comment}
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-stroke-linejoin="round" class="lucide lucide-placeholder"
+stroke-linejoin="round" class="lucide lucide-{icon_name} lucide-placeholder"
 data-missing-icon="{icon_name}">
   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
   <text x="12" y="14" text-anchor="middle" font-size="8"
@@ -253,7 +262,7 @@ data-missing-icon="{icon_name}">
 </svg>""".strip()
 
 
-def get_icon_list():
+def get_icon_list() -> list[str]:
     """Returns a list of all available icon names from the database.
 
     Returns:

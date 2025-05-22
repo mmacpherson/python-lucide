@@ -7,11 +7,27 @@ import logging
 import os
 import pathlib
 import sqlite3
+from collections.abc import Generator
+from typing import Protocol
+
+
+# Define a protocol for importlib.resources.abc.Traversable for type checking
+class TraversableResource(Protocol):
+    """Protocol for importlib.resources.abc.Traversable for type checking."""
+
+    def joinpath(self, *paths: str) -> "TraversableResource":
+        """Join the resource path with the given paths."""
+        ...
+
+    def __str__(self) -> str:
+        """Return the string representation of the resource path."""
+        ...
+
 
 logger = logging.getLogger(__name__)
 
 
-def get_default_db_path():
+def get_default_db_path() -> pathlib.Path | None:
     """Determines the default path for the Lucide icons database.
 
     The function looks for the database in the following locations (in order):
@@ -30,8 +46,10 @@ def get_default_db_path():
     try:
         package_data = importlib.resources.files("lucide.data")
         db_file_path = package_data.joinpath("lucide-icons.db")
-        if db_file_path.exists():
-            return db_file_path
+        # Convert to string and then to Path to handle Traversable objects
+        db_path = pathlib.Path(str(db_file_path))
+        if db_path.exists():
+            return db_path
     except (ModuleNotFoundError, FileNotFoundError, ImportError):
         pass
 
@@ -40,7 +58,9 @@ def get_default_db_path():
 
 
 @contextlib.contextmanager
-def get_db_connection(db_path=None):
+def get_db_connection(
+    db_path: pathlib.Path | str | None = None,
+) -> Generator[sqlite3.Connection | None, None, None]:
     """Provides a SQLite database connection as a context manager.
 
     Args:
@@ -54,6 +74,16 @@ def get_db_connection(db_path=None):
 
     if db_path is None:
         db_path = get_default_db_path()
+
+    # Convert string path to Path object
+    if isinstance(db_path, str):
+        db_path = pathlib.Path(db_path)
+
+    # Handle None case
+    if db_path is None:
+        logger.error("No database path could be determined")
+        yield None
+        return
 
     try:
         if not db_path.exists():
