@@ -1,4 +1,4 @@
-# Makefile for lucide-py development
+# Makefile for python-lucide development
 
 # Variables
 UV_CMD := uv
@@ -7,11 +7,11 @@ PYTEST_CMD := $(UV_CMD) run pytest
 LUCIDE_DB_CMD := $(UV_CMD) run lucide-db
 
 # Get default Lucide tag from the package's config.py
-PYTHON_CMD_FOR_TAG := $(UV_CMD) run python -c "from lucide_py.config import DEFAULT_LUCIDE_TAG; print(DEFAULT_LUCIDE_TAG)"
+PYTHON_CMD_FOR_TAG := $(UV_CMD) run python -c "from lucide.config import DEFAULT_LUCIDE_TAG; print(DEFAULT_LUCIDE_TAG)"
 DEFAULT_LUCIDE_TAG := $(shell $(PYTHON_CMD_FOR_TAG))
 # Allow overriding the tag via make argument, e.g., make db TAG=0.500.0
 TAG ?= $(DEFAULT_LUCIDE_TAG)
-DB_OUTPUT_PATH := src/lucide_py/data/lucide-icons.db
+DB_OUTPUT_PATH := src/lucide/data/lucide-icons.db
 VENV_DIR := .venv
 
 # Phony targets prevent conflicts with files of the same name.
@@ -21,7 +21,7 @@ VENV_DIR := .venv
 default: help
 
 help:
-	@echo "Makefile for lucide-py development"
+	@echo "Makefile for python-lucide development"
 	@echo ""
 	@echo "Usage: make [target]"
 	@echo ""
@@ -29,7 +29,7 @@ help:
 	@echo "  help                   Show this help message."
 	@echo "  env                    Set up the development environment (creates $(VENV_DIR) and installs dependencies)."
 	@echo "  db                     (Re)builds the Lucide icon database into $(DB_OUTPUT_PATH)."
-	@echo "                         Uses TAG=$(TAG). Default TAG is read from src/lucide_py/config.py (currently $(DEFAULT_LUCIDE_TAG))."
+	@echo "                         Uses TAG=$(TAG). Default TAG is read from src/lucide/config.py (currently $(DEFAULT_LUCIDE_TAG))."
 	@echo "                         Example: make db TAG=0.520.0"
 	@echo "  test                   Run tests using pytest."
 	@echo "  install-hooks          Install pre-commit hooks."
@@ -50,7 +50,7 @@ $(VENV_DIR)/pyvenv.cfg:
 
 db:
 	@echo "Building Lucide icon database with tag $(TAG) into $(DB_OUTPUT_PATH)..."
-	@mkdir -p src/lucide_py/data # Ensure data directory exists
+	@mkdir -p src/lucide/data # Ensure data directory exists
 	$(LUCIDE_DB_CMD) -o $(DB_OUTPUT_PATH) -t $(TAG) -v
 	@echo "Database build complete: $(DB_OUTPUT_PATH)"
 

@@ -1,4 +1,4 @@
-"""lucide-py - A Python package for working with Lucide icons.
+"""python-lucide - A Python package for working with Lucide icons.
 
 This package provides utilities for creating, accessing, and using Lucide
 icons from a SQLite database.

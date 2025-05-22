@@ -4,7 +4,7 @@ from unittest import mock
 
 import pytest
 
-from lucide_py import cli
+from lucide import cli
 
 
 @pytest.fixture
@@ -16,12 +16,12 @@ def temp_output_path(tmp_path):
 def test_download_and_build_db_basic(temp_output_path):
     """Test basic functionality of the download_and_build_db function."""
     # Mock subprocess.run to avoid actually calling git
-    with mock.patch("subprocess.run") as mock_run, mock.patch(
-        "pathlib.Path.exists", return_value=True
-    ), mock.patch("sqlite3.connect") as mock_connect, mock.patch(
-        "pathlib.Path.glob"
-    ) as mock_glob, mock.patch(
-        "builtins.open", mock.mock_open(read_data="<svg></svg>")
+    with (
+        mock.patch("subprocess.run") as mock_run,
+        mock.patch("pathlib.Path.exists", return_value=True),
+        mock.patch("sqlite3.connect") as mock_connect,
+        mock.patch("pathlib.Path.glob") as mock_glob,
+        mock.patch("builtins.open", mock.mock_open(read_data="<svg></svg>")),
     ):
         # Setup mocks
         mock_glob.return_value = [
@@ -58,12 +58,12 @@ def test_download_and_build_db_basic(temp_output_path):
 def test_download_and_build_db_with_icon_list(temp_output_path):
     """Test building a database with a specific list of icons."""
     # Mock subprocess.run to avoid actually calling git
-    with mock.patch("subprocess.run") as mock_run, mock.patch(
-        "pathlib.Path.exists", return_value=True
-    ), mock.patch("sqlite3.connect") as mock_connect, mock.patch(
-        "pathlib.Path.glob"
-    ) as mock_glob, mock.patch(
-        "builtins.open", mock.mock_open(read_data="<svg></svg>")
+    with (
+        mock.patch("subprocess.run") as mock_run,
+        mock.patch("pathlib.Path.exists", return_value=True),
+        mock.patch("sqlite3.connect") as mock_connect,
+        mock.patch("pathlib.Path.glob") as mock_glob,
+        mock.patch("builtins.open", mock.mock_open(read_data="<svg></svg>")),
     ):
         # Setup mocks
         mock_glob.return_value = [
@@ -134,7 +134,7 @@ def test_main_function():
         )
 
         # Mock download_and_build_db to avoid actually running it
-        with mock.patch("lucide_py.cli.download_and_build_db") as mock_download:
+        with mock.patch("lucide.cli.download_and_build_db") as mock_download:
             mock_download.return_value = pathlib.Path("test.db")
 
             # Call the main function

@@ -1,1 +1,1 @@
-"""Tests for the lucide-py package."""
+"""Tests for the python-lucide package."""

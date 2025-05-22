@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 
-from lucide_py import core, db  # Import db to patch its members
+from lucide import core, db  # Import db to patch its members
 
 SVG_NAMESPACE = "{http://www.w3.org/2000/svg}"
 
@@ -356,10 +356,11 @@ def test_lucide_icon_caching_behavior(mock_db_path_fixture):
             yield conn
 
     # Patch at the core module level since that's where it's being called from
-    with mock.patch(
-        "lucide_py.core.get_db_connection", counting_get_db_connection_wrapper
-    ), mock.patch(
-        "lucide_py.core.get_default_db_path", return_value=mock_db_path_fixture
+    with (
+        mock.patch("lucide.core.get_db_connection", counting_get_db_connection_wrapper),
+        mock.patch(
+            "lucide.core.get_default_db_path", return_value=mock_db_path_fixture
+        ),
     ):
         # Call 1: Fetch "circle"
         icon1_str = core.lucide_icon("circle")
@@ -416,7 +417,7 @@ def test_get_icon_list_db_connection_error(mock_db_path_fixture):  # noqa: ARG00
         yield None
 
     # Override both the db connection and the default path
-    with mock.patch("lucide_py.core.get_db_connection") as mock_get_conn:
+    with mock.patch("lucide.core.get_db_connection") as mock_get_conn:
         mock_get_conn.side_effect = no_connection_ctx
 
         # This ensures the function sees our mocked connection
@@ -438,7 +439,7 @@ def test_lucide_icon_invalid_svg_from_db_fallback(mock_db_path_fixture):
 
     # When patching the db path, we should get our malformed SVG back
     with mock.patch(
-        "lucide_py.core.get_default_db_path", return_value=mock_db_path_fixture
+        "lucide.core.get_default_db_path", return_value=mock_db_path_fixture
     ):
         # Simple case - no attributes or classes
         icon_str = core.lucide_icon("circle")

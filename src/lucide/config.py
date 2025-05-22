@@ -1,4 +1,4 @@
-"""Configuration for lucide-py.
+"""Configuration for python-lucide.
 
 This module contains default configuration values used throughout the package.
 """
