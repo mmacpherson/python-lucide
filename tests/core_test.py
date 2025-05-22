@@ -358,9 +358,7 @@ def test_lucide_icon_caching_behavior(mock_db_path_fixture):
     # Patch at the core module level since that's where it's being called from
     with mock.patch(
         "lucide.core.get_db_connection", counting_get_db_connection_wrapper
-    ), mock.patch(
-        "lucide.core.get_default_db_path", return_value=mock_db_path_fixture
-    ):
+    ), mock.patch("lucide.core.get_default_db_path", return_value=mock_db_path_fixture):
         # Call 1: Fetch "circle"
         icon1_str = core.lucide_icon("circle")
         assert db_access_count == 1

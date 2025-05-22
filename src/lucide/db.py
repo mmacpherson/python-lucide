@@ -39,9 +39,7 @@ def get_default_db_path():
         else:
             # Python 3.8 approach
             # Use path API for Python 3.8
-            with importlib.resources.path(
-                "lucide.data", "lucide-icons.db"
-            ) as db_path:
+            with importlib.resources.path("lucide.data", "lucide-icons.db") as db_path:
                 if db_path.exists():
                     return db_path
     except (ModuleNotFoundError, FileNotFoundError, ImportError):
