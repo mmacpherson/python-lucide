@@ -19,7 +19,7 @@ dependencies = []
 description = "A Python package for working with Lucide icons"
 keywords = ["lucide", "icons", "svg", "sqlite"]
 license = {text = "MIT"}
-name = "lucide"
+name = "python-lucide"
 readme = "README.md"
 requires-python = ">=3.10"
 version = "0.1.0"
