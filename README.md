@@ -1,4 +1,4 @@
-# lucide-py
+# python-lucide
 
 A Python package for working with [Lucide icons](https://lucide.dev/). This package allows you to:
 
@@ -10,27 +10,27 @@ A Python package for working with [Lucide icons](https://lucide.dev/). This pack
 
 ### Basic Installation
 ```bash
-pip install lucide-py
+pip install lucide
 ```
 
 This installs the core package without the pre-built icons database. You'll need to build the database yourself using the `lucide-db` command.
 
 ### Installation with Pre-built Database
 ```bash
-pip install "lucide-py"
+pip install "lucide"
 ```
 
 This installs the package with a pre-built Lucide icons database, so you can use it right away without building it yourself.
 
 ### Development Installation
-If you plan to contribute to `lucide-py`, see the "Development" section for setup instructions.
+If you plan to contribute to `python-lucide`, see the "Development" section for setup instructions.
 
 ## Usage
 
 ### Getting an Icon
 
 ```python
-from lucide_py import lucide_icon
+from lucide import lucide_icon
 
 # Get a basic icon
 svg_content = lucide_icon("home")
@@ -76,7 +76,7 @@ lucide-db -v
 You can also build the database programmatically:
 
 ```python
-from lucide_py.cli import download_and_build_db
+from lucide.cli import download_and_build_db
 
 # Build a custom database
 db_path = download_and_build_db(
@@ -89,7 +89,7 @@ db_path = download_and_build_db(
 ### Getting a List of Available Icons
 
 ```python
-from lucide_py import get_icon_list
+from lucide import get_icon_list
 
 # Get all available icon names
 icons = get_icon_list()
@@ -100,7 +100,7 @@ print(icons)  # ['activity', 'airplay', 'alert-circle', ...]
 
 The package will look for the icons database in the following locations (in order):
 
-1. The path specified in the `LUCIDE_PY_DB_PATH` environment variable
+1. The path specified in the `LUCIDE_DB_PATH` environment variable
 2. In the package data directory (if installed with the `db` extra)
 3. In the current working directory as `lucide-icons.db`
 
@@ -110,7 +110,7 @@ The package will look for the icons database in the following locations (in orde
 
 ```python
 from flask import Flask
-from lucide_py import lucide_icon
+from lucide import lucide_icon
 
 app = Flask(__name__)
 
@@ -125,7 +125,7 @@ def serve_icon(icon_name):
 ```python
 from fastapi import FastAPI
 from fastapi.responses import Response
-from lucide_py import lucide_icon
+from lucide import lucide_icon
 
 app = FastAPI()
 
@@ -143,8 +143,8 @@ This project uses `uv` for project and virtual environment management, and `pre-
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/mmacpherson/lucide-py.git
-    cd lucide-py
+    git clone https://github.com/mmacpherson/python-lucide.git
+    cd python-lucide
     ```
 
 2.  **Create a virtual environment and install dependencies:**
@@ -163,7 +163,7 @@ This project uses `uv` for project and virtual environment management, and `pre-
     # Install the package in editable mode with development dependencies
     uv pip install -e ".[dev]"
     ```
-    This command installs `lucide-py` in "editable" mode (`-e`), meaning changes you make to the source code will be reflected immediately. It also installs all dependencies listed under the `[dev]` extra in your `pyproject.toml` (like `pytest`, `ruff`, and `pre-commit`).
+    This command installs `lucide` in "editable" mode (`-e`), meaning changes you make to the source code will be reflected immediately. It also installs all dependencies listed under the `[dev]` extra in your `pyproject.toml` (like `pytest`, `ruff`, and `pre-commit`).
 
     Alternatively, you can use the `Makefile` target:
     ```bash
@@ -187,8 +187,8 @@ If you prefer not to use `uv` or `make`, you can use Python's built-in `venv` mo
 
 1.  **Clone the repository (if not already done):**
     ```bash
-    git clone https://github.com/mmacpherson/lucide-py.git
-    cd lucide-py
+    git clone https://github.com/mmacpherson/python-lucide.git
+    cd python-lucide
     ```
 
 2.  **Create and activate a virtual environment:**
@@ -246,7 +246,7 @@ uv run ruff format .
 
 ### Building the Icon Database
 
-The packaged database can be rebuilt using the `lucide-db` command-line tool. To update the database bundled with the `[db]` extra (typically stored at `src/lucide_py/data/lucide-icons.db`):
+The packaged database can be rebuilt using the `lucide-db` command-line tool. To update the database bundled with the `[db]` extra (typically stored at `src/lucide/data/lucide-icons.db`):
 
 Using the `Makefile` (recommended for consistency):
 ```bash
@@ -256,7 +256,7 @@ make db TAG=<version>
 Or directly using `lucide-db` (ensure your virtual environment is active):
 ```bash
 # Replace <version> with the desired Lucide tag
-uv run lucide-db -o src/lucide_py/data/lucide-icons.db -t <version> -v
+uv run lucide-db -o src/lucide/data/lucide-icons.db -t <version> -v
 ```
 The default tag used by `make db` is specified in the `Makefile`.
 

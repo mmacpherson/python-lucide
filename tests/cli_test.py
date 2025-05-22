@@ -4,7 +4,7 @@ from unittest import mock
 
 import pytest
 
-from lucide_py import cli
+from lucide import cli
 
 
 @pytest.fixture
@@ -134,7 +134,7 @@ def test_main_function():
         )
 
         # Mock download_and_build_db to avoid actually running it
-        with mock.patch("lucide_py.cli.download_and_build_db") as mock_download:
+        with mock.patch("lucide.cli.download_and_build_db") as mock_download:
             mock_download.return_value = pathlib.Path("test.db")
 
             # Call the main function
