@@ -7,7 +7,6 @@ import logging
 import os
 import pathlib
 import sqlite3
-import sys
 
 logger = logging.getLogger(__name__)
 
@@ -29,21 +28,10 @@ def get_default_db_path():
 
     # Then try package data
     try:
-        if sys.version_info >= (3, 9):
-            # Python 3.9+ approach
-            # Use files API for Python 3.9+
-            package_data = importlib.resources.files("lucide.data")
-            db_file_path = package_data.joinpath("lucide-icons.db")
-            if db_file_path.exists():
-                return db_file_path
-        else:
-            # Python 3.8 approach
-            # Use path API for Python 3.8
-            with importlib.resources.path(
-                "lucide.data", "lucide-icons.db"
-            ) as db_path:
-                if db_path.exists():
-                    return db_path
+        package_data = importlib.resources.files("lucide.data")
+        db_file_path = package_data.joinpath("lucide-icons.db")
+        if db_file_path.exists():
+            return db_file_path
     except (ModuleNotFoundError, FileNotFoundError, ImportError):
         pass
 
