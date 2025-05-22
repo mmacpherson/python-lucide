@@ -43,7 +43,7 @@ jobs:
     # Optional: Create GitHub Release with assets
     - name: Upload assets to GitHub Release
       if: github.event_name == 'release'
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
           dist/*.tar.gz
