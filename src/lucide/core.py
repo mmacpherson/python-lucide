@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+# ruff: noqa: ARG001
 """Serves lucide SVG icons from a SQLite database.
 
 This module provides functions to retrieve Lucide icons from a SQLite database.
 """
 
 import functools
+import inspect
 import logging
 import sqlite3
 import xml.etree.ElementTree as ET
@@ -125,9 +127,51 @@ def _modify_svg(original_svg_content, icon_name, cls, attrs):
         return original_svg_content
 
 
+def _ensure_hashable_attrs(func_to_wrap):
+    """Shim to ensure that the 'attrs' argument is hashable.
+
+    Decorator to convert the 'attrs' argument (if it's a dict)
+    to a hashable frozenset of sorted (key, value) items.
+    This allows functools.lru_cache to work with dicts for 'attrs'.
+    It also propagates cache-related attributes from the lru_cache-wrapped function.
+    """
+    sig = inspect.signature(func_to_wrap)
+    attrs_param_name = "attrs"  # The name of the parameter to process
+
+    @functools.wraps(
+        func_to_wrap
+    )  # Copies __name__, __doc__, __module__, etc. from func_to_wrap
+    def wrapper(*args, **kwargs):
+        bound_arguments = sig.bind(*args, **kwargs)
+        bound_arguments.apply_defaults()
+
+        current_attrs_value = bound_arguments.arguments.get(attrs_param_name)
+
+        if isinstance(current_attrs_value, dict):
+            hashable_attrs = frozenset(sorted(current_attrs_value.items()))
+            bound_arguments.arguments[attrs_param_name] = hashable_attrs
+            return func_to_wrap(*bound_arguments.args, **bound_arguments.kwargs)
+        return func_to_wrap(*args, **kwargs)
+
+    # Manually assign lru_cache specific attributes to the new wrapper.
+    # func_to_wrap is the function object created by @functools.lru_cache
+    if hasattr(func_to_wrap, "cache_info"):
+        wrapper.cache_info = func_to_wrap.cache_info
+    if hasattr(func_to_wrap, "cache_clear"):
+        wrapper.cache_clear = func_to_wrap.cache_clear
+    # Note: wrapper.__wrapped__ is already correctly set by @functools.wraps
+    # to point to func_to_wrap (the lru_cache object).
+
+    return wrapper
+
+
+@_ensure_hashable_attrs
 @functools.lru_cache(maxsize=128)
 def lucide_icon(
-    icon_name: str, cls: str = "", attrs=None, fallback_text: str | None = None
+    icon_name: str,
+    cls: str = "",
+    attrs: dict | None = None,
+    fallback_text: str | None = None,
 ):
     """Fetches a Lucide icon SVG from the database with caching.
 
@@ -135,12 +179,10 @@ def lucide_icon(
         icon_name: Name of the Lucide icon to fetch.
         cls: Optional CSS class string to apply/append to the SVG element.
              Multiple classes can be space-separated.
-        attrs: Optional dictionary or frozenset of tuples of attributes to apply to
-               the SVG element. If 'class' is a key in attrs, its value will determine
-               the base
+        attrs: Optional dictionary of attributes to apply to the SVG element.
+               If 'class' is a key in attrs, its value will determine the base
                classes before classes from the `cls` param are appended.
-               Other attributes
-               in `attrs` will override existing attributes on the SVG.
+               Other attributes in `attrs` will override existing attributes on the SVG.
         fallback_text: Optional text to display if the icon is not found.
 
     Returns:
