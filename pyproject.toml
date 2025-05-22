@@ -3,7 +3,7 @@ build-backend = "hatchling.build"
 requires = ["hatchling"]
 
 [project]
-authors = [{name = "Lucide Contributors"}]
+authors = [{name = "Mike Macpherson"}]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
@@ -22,7 +22,7 @@ license = {text = "MIT"}
 name = "python-lucide"
 readme = "README.md"
 requires-python = ">=3.10"
-version = "0.1.1"
+version = "0.1.2"
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0.0", "pytest-cov>=4.0.0", "ruff>=0.1.0", "pre-commit>=3.0.0"]

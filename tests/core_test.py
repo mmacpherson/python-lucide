@@ -157,13 +157,11 @@ def test_lucide_icon_add_existing_class_is_idempotent(
 def test_lucide_icon_with_attrs_basic(mock_db_path_fixture):  # noqa: ARG001
     """Test retrieving an icon with custom attributes."""
     core.lucide_icon.cache_clear()
-    attrs_to_add = frozenset(
-        [
-            ("data-testid", "test-icon"),
-            ("aria-hidden", "true"),
-            ("width", "32"),  # Override existing width
-        ]
-    )
+    attrs_to_add = {
+        "data-testid": "test-icon",
+        "aria-hidden": "true",
+        "width": "32",  # Override existing width
+    }
     icon_str = core.lucide_icon("circle", attrs=attrs_to_add)
     root = get_svg_root(icon_str)
 
@@ -178,7 +176,7 @@ def test_lucide_icon_attrs_can_add_class_to_svg_without_class(
 ):
     """Test adding class via attrs dictionary to an SVG without an initial class."""
     core.lucide_icon.cache_clear()
-    attrs_with_class = frozenset([("class", "attr-class1 attr-class2")])
+    attrs_with_class = {"class": "attr-class1 attr-class2"}
     icon_str = core.lucide_icon(
         "circle", attrs=attrs_with_class
     )  # circle has no initial class
@@ -196,9 +194,7 @@ def test_lucide_icon_attrs_replaces_existing_class(
     """Test attrs dictionary REPLACES existing class if 'class' is in attrs."""
     core.lucide_icon.cache_clear()
     # square has "lucide existing-class"
-    attrs_replacing_class = frozenset(
-        [("class", "replacement-class other-replacement")]
-    )
+    attrs_replacing_class = {"class": "replacement-class other-replacement"}
     icon_str = core.lucide_icon("square", attrs=attrs_replacing_class)
     root = get_svg_root(icon_str)
 
@@ -220,13 +216,11 @@ def test_lucide_icon_with_cls_and_attrs_class_merging(
     # square's original class: "lucide existing-class"
     # attrs['class'] will replace this with "attr-class another-attr"
     # cls param "cls-provided-class dupe-cls" will append unique classes
-    attrs_complex = frozenset(
-        [
-            ("class", "attr-class another-attr dupe-cls"),
-            ("data-value", "foo"),
-            ("width", "100"),
-        ]
-    )
+    attrs_complex = {
+        "class": "attr-class another-attr dupe-cls",
+        "data-value": "foo",
+        "width": "100",
+    }
     icon_str = core.lucide_icon(
         "square", cls="cls-provided-class dupe-cls", attrs=attrs_complex
     )
@@ -255,9 +249,7 @@ def test_lucide_icon_with_cls_and_attrs_class_merging(
 def test_lucide_icon_minimal_svg_add_all(mock_db_path_fixture):  # noqa: ARG001
     """Test adding class and attributes to a minimal SVG."""
     core.lucide_icon.cache_clear()
-    attrs_to_add = frozenset(
-        [("stroke", "red"), ("stroke-width", "3"), ("width", "16"), ("height", "16")]
-    )
+    attrs_to_add = {"stroke": "red", "stroke-width": "3", "width": "16", "height": "16"}
     icon_str = core.lucide_icon("line", cls="important-line styled", attrs=attrs_to_add)
     root = get_svg_root(icon_str)
 
@@ -280,7 +272,7 @@ def test_lucide_icon_remove_class_attribute_if_all_classes_removed(
     core.lucide_icon.cache_clear()
     # 'square' icon has 'lucide existing-class'
     # attrs['class'] = "" will clear base classes
-    attrs_empty_class = frozenset([("class", "")])
+    attrs_empty_class = {"class": ""}
     icon_str = core.lucide_icon(
         "square", cls="", attrs=attrs_empty_class
     )  # cls="" adds nothing
@@ -413,7 +405,7 @@ def test_lucide_icon_caching_behavior(mock_db_path_fixture):
         assert db_access_count == NUM_CLASSES_EXPECTED_THREE
         assert icon3_str != icon4_str
 
-        attrs = frozenset([("width", "10")])
+        attrs = {"width": "10"}
         icon5_str = core.lucide_icon("circle", attrs=attrs)
         assert db_access_count == NUM_CLASSES_EXPECTED_FOUR
         root5 = get_svg_root(icon5_str)
