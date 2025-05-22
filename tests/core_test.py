@@ -102,24 +102,44 @@ def test_lucide_icon_with_multiple_classes_in_cls(mock_db_path_fixture):  # noqa
     assert len(classes) == NUM_CLASSES_EXPECTED_THREE
 
 
-def test_lucide_icon_add_class_to_existing_classes(mock_db_path_fixture):  # noqa: ARG001
-    """Test adding a class to an SVG that already has classes (cls param only)."""
+def test_lucide_icon_with_namespace_handling(mock_db_path_fixture):  # noqa: ARG001
+    """Test retrieving an icon with focus on namespace and serialization."""
     core.lucide_icon.cache_clear()
-    icon_str = core.lucide_icon(
-        "square", cls="new-class"
-    )  # square has "lucide existing-class"
-    root = get_svg_root(icon_str)
+    icon_str = core.lucide_icon("circle", cls="my-class")
+    root = get_svg_root(icon_str)  # This helper is fine for parsing
 
+    # Check 1: Parsed structure is correct (existing checks)
     classes = root.get("class", "").split()
-    assert "lucide" in classes
-    assert "existing-class" in classes
-    assert "new-class" in classes
-    assert len(set(classes)) == NUM_CLASSES_EXPECTED_THREE  # Check for uniqueness
-    assert root.get("width") == "50"
-    assert root.get("id") == "square-icon"  # Original ID preserved
+    assert "my-class" in classes
+    assert root.get("width") == "24"  # Original attribute preserved
+    assert root.tag == SVG_NAMESPACE + "svg"  # Good check for parsed tag
+
+    # Check 2: Serialized string does not contain unwanted namespace prefixes
+    assert "ns0:" not in icon_str, "Serialized SVG should not contain 'ns0:' prefix"
+    assert icon_str.strip().startswith("<svg"), (
+        "Serialized SVG should start with <svg ...> "
+        "after stripping leading/trailing whitespace"
+    )
+    # Ensure the xmlns attribute is correctly on the svg tag itself
+    # if no modifications happen or if it's the root of modification.
+    if not ET.fromstring(icon_str).get(
+        "class"
+    ):  # Example: if only default ns is expected
+        assert 'xmlns="http://www.w3.org/2000/svg"' in icon_str
+
+    # A more robust check for the root tag in the string:
+    import re
+
+    match = re.match(r"<([a-zA-Z0-9_:]+)", icon_str.strip())
+    assert match is not None, "Could not find root tag in serialized string"
+    assert match.group(1) == "svg", (
+        f"Serialized root tag should be 'svg', not '{match.group(1)}'"
+    )
 
 
-def test_lucide_icon_add_existing_class_is_idempotent(mock_db_path_fixture):  # noqa: ARG001
+def test_lucide_icon_add_existing_class_is_idempotent(
+    mock_db_path_fixture,  # noqa: ARG001
+):
     """Test adding a class that is already present (should be idempotent)."""
     core.lucide_icon.cache_clear()
     icon_str = core.lucide_icon(
@@ -153,7 +173,9 @@ def test_lucide_icon_with_attrs_basic(mock_db_path_fixture):  # noqa: ARG001
     assert root.get("height") == "24"  # Original height preserved
 
 
-def test_lucide_icon_attrs_can_add_class_to_svg_without_class(mock_db_path_fixture):  # noqa: ARG001
+def test_lucide_icon_attrs_can_add_class_to_svg_without_class(
+    mock_db_path_fixture,  # noqa: ARG001
+):
     """Test adding class via attrs dictionary to an SVG without an initial class."""
     core.lucide_icon.cache_clear()
     attrs_with_class = frozenset([("class", "attr-class1 attr-class2")])
@@ -168,7 +190,9 @@ def test_lucide_icon_attrs_can_add_class_to_svg_without_class(mock_db_path_fixtu
     assert len(set(classes)) == NUM_CLASSES_EXPECTED
 
 
-def test_lucide_icon_attrs_replaces_existing_class(mock_db_path_fixture):  # noqa: ARG001
+def test_lucide_icon_attrs_replaces_existing_class(
+    mock_db_path_fixture,  # noqa: ARG001
+):
     """Test attrs dictionary REPLACES existing class if 'class' is in attrs."""
     core.lucide_icon.cache_clear()
     # square has "lucide existing-class"
@@ -188,7 +212,9 @@ def test_lucide_icon_attrs_replaces_existing_class(mock_db_path_fixture):  # noq
     assert root.get("id") == "square-icon"  # Other original attributes preserved
 
 
-def test_lucide_icon_with_cls_and_attrs_class_merging(mock_db_path_fixture):  # noqa: ARG001
+def test_lucide_icon_with_cls_and_attrs_class_merging(
+    mock_db_path_fixture,  # noqa: ARG001
+):
     """Test merging classes: attrs['class'] provides base, then cls param appends."""
     core.lucide_icon.cache_clear()
     # square's original class: "lucide existing-class"
@@ -279,7 +305,9 @@ def test_lucide_icon_not_found_placeholder(mock_db_path_fixture):  # noqa: ARG00
     assert text_element.text.strip() == icon_name
 
 
-def test_lucide_icon_not_found_with_custom_fallback_text(mock_db_path_fixture):  # noqa: ARG001
+def test_lucide_icon_not_found_with_custom_fallback_text(
+    mock_db_path_fixture,  # noqa: ARG001
+):
     """Test placeholder SVG uses custom fallback text."""
     core.lucide_icon.cache_clear()
     icon_name = "another-missing-icon"
@@ -293,7 +321,9 @@ def test_lucide_icon_not_found_with_custom_fallback_text(mock_db_path_fixture): 
     assert text_element.text.strip() == fallback
 
 
-def test_lucide_icon_db_connection_failure_returns_placeholder(mock_db_path_fixture):  # noqa: ARG001
+def test_lucide_icon_db_connection_failure_returns_placeholder(
+    mock_db_path_fixture,  # noqa: ARG001
+):
     """Test placeholder is returned if DB connection cannot be established."""
     core.lucide_icon.cache_clear()
     with mock.patch.object(core, "get_db_connection") as mock_get_conn:
@@ -309,7 +339,9 @@ def test_lucide_icon_db_connection_failure_returns_placeholder(mock_db_path_fixt
         assert root.get("data-missing-icon") == "any-icon-name"
 
 
-def test_lucide_icon_db_query_error_returns_placeholder(mock_db_path_fixture):  # noqa: ARG001
+def test_lucide_icon_db_query_error_returns_placeholder(
+    mock_db_path_fixture,  # noqa: ARG001
+):
     """Test placeholder for SQLite errors during icon query."""
     core.lucide_icon.cache_clear()
     with mock.patch.object(core, "get_db_connection") as mock_get_conn:

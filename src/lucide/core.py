@@ -20,6 +20,9 @@ logger = logging.getLogger(__name__)
 # which itself calls get_default_db_path() if no specific path is provided.
 DB_PATH = get_default_db_path()
 
+SVG_NAMESPACE_URI = "http://www.w3.org/2000/svg"
+ET.register_namespace("", SVG_NAMESPACE_URI)
+
 
 def _process_classes(root, cls, param_attrs):
     """Process CSS classes for the SVG element.
@@ -106,7 +109,9 @@ def _modify_svg(original_svg_content, icon_name, cls, attrs):
         _apply_attributes(root, final_attributes, param_attrs)
 
         # Serialize back to string
-        return ET.tostring(root, encoding="unicode", xml_declaration=False)
+        return ET.tostring(
+            root, encoding="unicode", xml_declaration=False, method="xml"
+        )
 
     except ET.ParseError as e:
         logger.warning(
