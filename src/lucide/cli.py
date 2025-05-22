@@ -28,7 +28,9 @@ class DatabaseReportData:
 logger = logging.getLogger(__name__)
 
 
-def _setup_logging_and_icons(verbose, icon_list, icon_file):
+def _setup_logging_and_icons(
+    verbose: bool, icon_list: list[str] | None, icon_file: pathlib.Path | str | None
+) -> tuple[set[str] | None, bool]:
     """Set up logging and prepare the list of icons to include.
 
     Args:
@@ -61,7 +63,9 @@ def _setup_logging_and_icons(verbose, icon_list, icon_file):
     return icons_to_include, True
 
 
-def _clone_repository(temp_path, tag, verbose):
+def _clone_repository(
+    temp_path: pathlib.Path, tag: str, verbose: bool
+) -> tuple[pathlib.Path | None, bool]:
     """Clone the Lucide repository with the specified tag.
 
     Args:
@@ -118,7 +122,12 @@ def _clone_repository(temp_path, tag, verbose):
     return icons_dir, True
 
 
-def _create_database(output_path, icons_dir, icons_to_include, verbose=False):
+def _create_database(
+    output_path: pathlib.Path | str,
+    icons_dir: pathlib.Path,
+    icons_to_include: set[str],
+    verbose: bool = False,
+) -> bool:
     """Create the SQLite database with icons.
 
     Args:
@@ -190,7 +199,12 @@ def _create_database(output_path, icons_dir, icons_to_include, verbose=False):
         return False
 
 
-def _add_icons_to_db(cursor, svg_files, icons_to_include, verbose=False):
+def _add_icons_to_db(
+    cursor: sqlite3.Cursor,
+    svg_files: list[pathlib.Path],
+    icons_to_include: set[str],
+    verbose: bool = False,
+) -> tuple[int, int]:
     """Add icons to the database.
 
     Args:
@@ -230,7 +244,7 @@ def _add_icons_to_db(cursor, svg_files, icons_to_include, verbose=False):
     return added_count, skipped_count
 
 
-def _report_database_results(data: DatabaseReportData):
+def _report_database_results(data: DatabaseReportData) -> None:
     """Report the results of the database creation.
 
     Args:
@@ -262,12 +276,12 @@ def _report_database_results(data: DatabaseReportData):
 
 
 def download_and_build_db(
-    output_path=None,
-    tag=DEFAULT_LUCIDE_TAG,
-    icon_list=None,
-    icon_file=None,
-    verbose=False,
-):
+    output_path: pathlib.Path | str | None = None,
+    tag: str = DEFAULT_LUCIDE_TAG,
+    icon_list: list[str] | None = None,
+    icon_file: pathlib.Path | str | None = None,
+    verbose: bool = False,
+) -> pathlib.Path | None:
     """Downloads Lucide icons and builds a SQLite database.
 
     Args:
@@ -306,14 +320,18 @@ def download_and_build_db(
             return None
 
         # Create the database
-        success = _create_database(output_path, icons_dir, icons_to_include, verbose)
+        if icons_dir is None:
+            return None
+
+        icons_set = set() if icons_to_include is None else icons_to_include
+        success = _create_database(output_path, icons_dir, icons_set, verbose)
         if not success:
             return None
 
         return output_path
 
 
-def main():
+def main() -> int:
     """Main entry point for the command-line interface."""
     parser = argparse.ArgumentParser(
         description="Download Lucide icons and build a SQLite database",
@@ -353,7 +371,7 @@ def main():
     args = parser.parse_args()
 
     # Process the icons list if provided
-    icon_list = None
+    icon_list: list[str] | None = None
     if args.icons:
         icon_list = [icon.strip() for icon in args.icons.split(",") if icon.strip()]
 
