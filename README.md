@@ -17,7 +17,7 @@ This installs the core package without the pre-built icons database. You'll need
 
 ### Installation with Pre-built Database
 ```bash
-pip install "lucide-py[db]"
+pip install "lucide-py"
 ```
 
 This installs the package with a pre-built Lucide icons database, so you can use it right away without building it yourself.
