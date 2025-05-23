@@ -22,7 +22,7 @@ This installs the package with a pre-built database of all Lucide icons, ready t
 from lucide import lucide_icon
 
 # Get an icon
-svg = lucide_icon("home")
+svg = lucide_icon("house")
 
 # Add CSS classes
 svg = lucide_icon("settings", cls="icon icon-settings")
@@ -60,7 +60,7 @@ def get():
     return Titled("Hello Icons",
         H1("Welcome"),
         # Wrap icon output in NotStr to prevent HTML escaping
-        NotStr(lucide_icon("home", cls="icon")),
+        NotStr(lucide_icon("house", cls="icon")),
         P("This is a simple FastHTML app with Lucide icons.")
     )
 
