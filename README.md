@@ -1,113 +1,73 @@
 # python-lucide
 
-A Python package for working with [Lucide icons](https://lucide.dev/). This package allows you to:
+A Python package that provides easy access to all [Lucide
+icons](https://lucide.dev/) as SVG strings. Just import and use any Lucide icon
+in your Python projects, with no javascript in sight.
 
-1. Build a SQLite database of Lucide icons
-2. Serve Lucide SVG icons from a Python application
-3. Customize icons with classes and attributes
+## Features
+- 🎨 **Access 1000+ Lucide icons** directly from Python
+- 🛠 **Customize icons** with classes, sizes, colors, and other SVG attributes
+- 🚀 **Framework-friendly** with examples for FastHTML, Flask, Django, and more
+- 📦 **Lightweight** with minimal dependencies
+- 🔧 **Customizable icon sets** - include only the icons you need
 
 ## Installation
-
-### Basic Installation
 ```bash
-pip install lucide
+pip install python-lucide
 ```
+This installs the package with a pre-built database of all Lucide icons, ready to use immediately.
 
-This installs the core package without the pre-built icons database. You'll need to build the database yourself using the `lucide-db` command.
-
-### Installation with Pre-built Database
-```bash
-pip install "lucide"
-```
-
-This installs the package with a pre-built Lucide icons database, so you can use it right away without building it yourself.
-
-### Development Installation
-If you plan to contribute to `python-lucide`, see the "Development" section for setup instructions.
-
-## Usage
-
-### Getting an Icon
-
+## Quick Start
 ```python
 from lucide import lucide_icon
 
-# Get a basic icon
-svg_content = lucide_icon("home")
+# Get an icon
+svg = lucide_icon("home")
 
-# Add a CSS class
-svg_content = lucide_icon("settings", cls="my-icon-class")
+# Add CSS classes
+svg = lucide_icon("settings", cls="icon icon-settings")
 
-# Add custom attributes
-svg_content = lucide_icon("arrow-up", attrs={"width": "32", "height": "32"})
+# Customize size
+svg = lucide_icon("arrow-up", width="32", height="32")
 
-# Provide fallback text for when an icon is missing
-svg_content = lucide_icon("some-icon", fallback_text="Icon")
+# Customize colors (stroke for outline, fill for interior)
+svg = lucide_icon("heart", stroke="red", fill="pink")
+
+# Customize stroke properties
+svg = lucide_icon("chart-line", stroke_width="3", stroke_linecap="round")
 ```
 
-### Building the Icon Database
-
-#### Using the Command-Line Tool
-
-The package installs a command-line tool called `lucide-db` that you can use to build the database:
-
-```bash
-# Build a database with all icons
-lucide-db
-
-# Specify a custom output path
-lucide-db -o /path/to/output.db
-
-# Use a specific Lucide version
-lucide-db -t 0.500.0
-
-# Include only specific icons
-lucide-db -i home,settings,user
-
-# Include icons from a file (one name per line)
-lucide-db -f my-icons.txt
-
-# Enable verbose output
-lucide-db -v
-```
-
-#### Using the Python API
-
-You can also build the database programmatically:
-
+### Icon Customization
+All Lucide icons use `stroke` for their outline color and `fill` for their interior color:
 ```python
-from lucide.cli import download_and_build_db
-
-# Build a custom database
-db_path = download_and_build_db(
-    output_path="custom-icons.db",
-    tag="0.511.0",
-    icon_list=["home", "settings", "user"]
-)
+# Looking for how to change colors? Use stroke and fill:
+lucide_icon("user", stroke="blue")        # Blue outline
+lucide_icon("user", fill="currentColor")  # Inherit color from CSS
+lucide_icon("user", stroke="#ff6b6b")     # Hex colors work too
 ```
 
-### Getting a List of Available Icons
+## Framework Integration Examples
 
+### FastHTML
 ```python
-from lucide import get_icon_list
+from fasthtml.common import *
+from lucide import lucide_icon
 
-# Get all available icon names
-icons = get_icon_list()
-print(icons)  # ['activity', 'airplay', 'alert-circle', ...]
+app, rt = fast_app()
+
+@rt('/')
+def get():
+    return Titled("Hello Icons",
+        H1("Welcome"),
+        # Wrap icon output in NotStr to prevent HTML escaping
+        NotStr(lucide_icon("home", cls="icon")),
+        P("This is a simple FastHTML app with Lucide icons.")
+    )
+
+serve()
 ```
-
-## Configuration
-
-The package will look for the icons database in the following locations (in order):
-
-1. The path specified in the `LUCIDE_DB_PATH` environment variable
-2. In the package data directory (if installed with the `db` extra)
-3. In the current working directory as `lucide-icons.db`
-
-## Example Web Framework Integration
 
 ### Flask
-
 ```python
 from flask import Flask
 from lucide import lucide_icon
@@ -116,12 +76,33 @@ app = Flask(__name__)
 
 @app.route('/icons/<icon_name>')
 def serve_icon(icon_name):
-    svg = lucide_icon(icon_name, cls="my-icon")
+    svg = lucide_icon(icon_name, cls="icon", stroke="currentColor")
     return svg, 200, {'Content-Type': 'image/svg+xml'}
 ```
 
-### FastAPI
+### Django
+```python
+# In your views.py
+from django.http import HttpResponse
+from lucide import lucide_icon
 
+def icon_view(request, icon_name):
+    svg = lucide_icon(icon_name, cls="icon-lg", width="32", height="32")
+    return HttpResponse(svg, content_type='image/svg+xml')
+
+# In your templates (as a template tag)
+from django import template
+from django.utils.safestring import mark_safe
+from lucide import lucide_icon
+
+register = template.Library()
+
+@register.simple_tag
+def icon(name, **kwargs):
+    return mark_safe(lucide_icon(name, **kwargs))
+```
+
+### FastAPI
 ```python
 from fastapi import FastAPI
 from fastapi.responses import Response
@@ -130,158 +111,135 @@ from lucide import lucide_icon
 app = FastAPI()
 
 @app.get("/icons/{icon_name}")
-def serve_icon(icon_name: str):
-    svg = lucide_icon(icon_name, cls="my-icon")
+def get_icon(icon_name: str, size: int = 24, color: str = "currentColor"):
+    svg = lucide_icon(icon_name, width=size, height=size, stroke=color)
     return Response(content=svg, media_type="image/svg+xml")
 ```
 
-## Development
+## API Reference
 
-This project uses `uv` for project and virtual environment management, and `pre-commit` for code quality checks. A `Makefile` is also provided for common development tasks.
+### `lucide_icon()`
+Retrieves and customizes a Lucide icon.
+```python
+lucide_icon(
+    icon_name: str,
+    cls: str = "",
+    fallback_text: str | None = None,
+    width: str | int | None = None,
+    height: str | int | None = None,
+    fill: str | None = None,
+    stroke: str | None = None,
+    stroke_width: str | int | None = None,
+    stroke_linecap: str | None = None,
+    stroke_linejoin: str | None = None,
+) -> str
+```
+**Parameters:**
+- `icon_name`: Name of the Lucide icon to retrieve
+- `cls`: CSS classes to add to the SVG element (space-separated)
+- `fallback_text`: Text to display if the icon is not found
+- `width`: Width of the SVG element
+- `height`: Height of the SVG element
+- `fill`: Fill color for the icon
+- `stroke`: Stroke color for the icon (outline color)
+- `stroke_width`: Width of the stroke
+- `stroke_linecap`: How the ends of strokes are rendered ("round", "butt", "square")
+- `stroke_linejoin`: How corners are rendered ("round", "miter", "bevel")
 
-### Setup Development Environment
+**Returns:** SVG string
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/mmacpherson/python-lucide.git
-    cd python-lucide
-    ```
+**Example:**
+```python
+# Full customization example
+icon = lucide_icon(
+    "activity",
+    cls="icon icon-activity animated",
+    width=48,
+    height=48,
+    stroke="rgb(59, 130, 246)",
+    stroke_width=2.5,
+    stroke_linecap="round",
+    stroke_linejoin="round"
+)
+```
 
-2.  **Create a virtual environment and install dependencies:**
-    This project uses `uv` for fast environment management and dependency installation.
-    ```bash
-    # Create a virtual environment in .venv/
-    uv venv
-    # Activate the virtual environment
-    # On macOS/Linux:
-    source .venv/bin/activate
-    # On Windows (PowerShell):
-    # .venv\\Scripts\\Activate.ps1
-    # On Windows (CMD):
-    # .venv\\Scripts\\activate.bat
+### `get_icon_list()`
+Returns a list of all available icon names.
+```python
+from lucide import get_icon_list
 
-    # Install the package in editable mode with development dependencies
-    uv pip install -e ".[dev]"
-    ```
-    This command installs `lucide` in "editable" mode (`-e`), meaning changes you make to the source code will be reflected immediately. It also installs all dependencies listed under the `[dev]` extra in your `pyproject.toml` (like `pytest`, `ruff`, and `pre-commit`).
+icons = get_icon_list()
+print(f"Available icons: {len(icons)}")
+print(icons[:5])  # ['activity', 'airplay', 'alarm-check', ...]
+```
 
-    Alternatively, you can use the `Makefile` target:
-    ```bash
-    make env
-    # Then activate the environment as shown above.
-    ```
+## Advanced Usage
 
-3.  **Install pre-commit hooks:**
-    ```bash
-    uv run pre-commit install
-    ```
-    Or use the Makefile:
-    ```bash
-    make install-hooks
-    ```
-
-<details>
-<summary>Alternative: Using Python's venv and pip</summary>
-
-If you prefer not to use `uv` or `make`, you can use Python's built-in `venv` module and `pip`:
-
-1.  **Clone the repository (if not already done):**
-    ```bash
-    git clone https://github.com/mmacpherson/python-lucide.git
-    cd python-lucide
-    ```
-
-2.  **Create and activate a virtual environment:**
-    ```bash
-    python -m venv .venv
-    # On macOS/Linux:
-    source .venv/bin/activate
-    # On Windows (PowerShell):
-    # .venv\\Scripts\\Activate.ps1
-    # On Windows (CMD):
-    # .venv\\Scripts\\activate.bat
-    ```
-
-3.  **Install dependencies:**
-    ```bash
-    pip install -e ".[dev]"
-    ```
-
-4.  **Install pre-commit hooks:**
-    ```bash
-    pre-commit install
-    ```
-
-</details>
-
-### Running Tests
-
-After setting up your development environment, run tests using `pytest`.
-You can use the `Makefile`:
+### Building a Custom Icon Set
+If you want to include only specific icons or use a different version of Lucide:
 ```bash
+# Build with specific icons only
+lucide-db -i home,settings,user,heart,star -o custom-icons.db
+
+# Use a specific Lucide version
+lucide-db -t 0.350.0 -o lucide-v0.350.0.db
+
+# Build from a file listing icon names
+echo -e "home\nsettings\nuser" > my-icons.txt
+lucide-db -f my-icons.txt -o my-icons.db
+```
+
+### Using a Custom Database
+Set the `LUCIDE_DB_PATH` environment variable:
+```bash
+export LUCIDE_DB_PATH=/path/to/custom-icons.db
+python your-app.py
+```
+Or configure it in your Python code:
+```python
+import os
+os.environ['LUCIDE_DB_PATH'] = '/path/to/custom-icons.db'
+
+from lucide import lucide_icon
+# Will now use your custom database
+```
+
+## Development
+This project uses `uv` for fast dependency management and `pre-commit` for code quality.
+
+### Setup
+```bash
+# Clone the repository
+git clone https://github.com/mmacpherson/python-lucide.git
+cd python-lucide
+
+# Create a virtual environment and install dependencies
+make env
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install pre-commit hooks
+make install-hooks
+
+# Run tests
 make test
 ```
-Or run `pytest` directly via `uv`:
+
+### Rebuilding the Icon Database
 ```bash
-uv run pytest
+# Rebuild with latest Lucide icons
+make db
+
+# Rebuild with specific version
+make db TAG=0.350.0
 ```
 
-### Linting and Formatting
-
-This project uses `ruff` for linting and formatting, managed via `pre-commit`. The hooks will run automatically on commit.
-To run all hooks manually across all files, use the `Makefile`:
-```bash
-make run-hooks-all-files
-```
-Or run `pre-commit` directly via `uv`:
-```bash
-uv run pre-commit run --all-files
-```
-
-You can also run `ruff` commands directly:
-```bash
-uv run ruff check .
-uv run ruff format .
-```
-
-### Building the Icon Database
-
-The packaged database can be rebuilt using the `lucide-db` command-line tool. To update the database bundled with the `[db]` extra (typically stored at `src/lucide/data/lucide-icons.db`):
-
-Using the `Makefile` (recommended for consistency):
-```bash
-# Replace <version> with the desired Lucide tag, e.g., 0.511.0
-make db TAG=<version>
-```
-Or directly using `lucide-db` (ensure your virtual environment is active):
-```bash
-# Replace <version> with the desired Lucide tag
-uv run lucide-db -o src/lucide/data/lucide-icons.db -t <version> -v
-```
-The default tag used by `make db` is specified in the `Makefile`.
-
-### Building the Package
-
-To build the sdist and wheel for distribution:
-```bash
-python -m build
-```
-Or, if you have `hatch` installed (it's part of `[dev]` dependencies):
-```bash
-hatch build
-```
-
-### Makefile Targets
-A `Makefile` is provided with common development tasks. Run `make help` to see available targets, including:
-*   `env`: Sets up the development environment (creates `.venv` and installs dependencies).
-*   `db`: Rebuilds the Lucide icon database.
-*   `test`: Runs tests.
-*   `install-hooks`: Installs pre-commit hooks.
-*   `run-hooks-all-files`: Runs all pre-commit hooks on all files.
-*   `clean`: Removes build artifacts, `__pycache__`, etc.
-*   `nuke`: A more thorough clean, including the `uv` cache if present and the `.venv` directory.
-
+## How It Works
+The package comes with a pre-built SQLite database containing all Lucide icons. When you call `lucide_icon()`, it fetches the icon's SVG from the database and applies your customizations. This approach means:
+- **Fast**: Icons are loaded from an efficient SQLite database
+- **Offline**: No internet connection required at runtime
+- **Customizable**: Build your own database with just the icons you need
+- **Maintainable**: Update to newer Lucide versions by rebuilding the database
 
 ## License
-
 This project is licensed under the MIT License - see the LICENSE file for details.
+The Lucide icons themselves are also MIT licensed - see [Lucide's license](https://github.com/lucide-icons/lucide/blob/main/LICENSE).
