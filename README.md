@@ -256,10 +256,10 @@ This project follows a manual release process:
    ```bash
    # Create release branch
    git checkout -b release/v0.2.0
-   
+
    # Edit pyproject.toml to bump version
    # version = "0.2.0"
-   
+
    # Commit and push
    git add pyproject.toml
    git commit -m "Bump version to 0.2.0"
