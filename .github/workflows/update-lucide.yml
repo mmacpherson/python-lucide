@@ -3,7 +3,7 @@ name: Update Lucide Icons
 on:
   schedule:
     # Run every Monday at 9 AM UTC
-    - cron: '0 9 * * 1'
+  - cron: 0 9 * * 1
   # Allow manual triggering for testing
   workflow_dispatch:
 
@@ -13,7 +13,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -38,10 +38,10 @@ jobs:
         # Get current and latest versions
         CURRENT_VERSION=$(python -c "from lucide.config import DEFAULT_LUCIDE_TAG; print(DEFAULT_LUCIDE_TAG)")
         LATEST_VERSION=$(python -c "from lucide.dev_utils import get_latest_lucide_version; print(get_latest_lucide_version() or '')")
-        
+
         echo "current-version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
         echo "latest-version=$LATEST_VERSION" >> $GITHUB_OUTPUT
-        
+
         if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ] && [ -n "$LATEST_VERSION" ]; then
           echo "needs-update=true" >> $GITHUB_OUTPUT
           echo "📍 Update available: $CURRENT_VERSION → $LATEST_VERSION"
@@ -55,7 +55,7 @@ jobs:
       id: check-pr
       run: |
         BRANCH_NAME="update/lucide-${{ steps.version-check.outputs.latest-version }}"
-        
+
         # Check if branch already exists
         if git show-ref --verify --quiet refs/remotes/origin/$BRANCH_NAME; then
           echo "pr-exists=true" >> $GITHUB_OUTPUT
@@ -76,10 +76,10 @@ jobs:
       if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
       run: |
         NEW_VERSION="${{ steps.version-check.outputs.latest-version }}"
-        
+
         # Update the DEFAULT_LUCIDE_TAG in config.py
         sed -i "s/DEFAULT_LUCIDE_TAG = \".*\"/DEFAULT_LUCIDE_TAG = \"$NEW_VERSION\"/" src/lucide/config.py
-        
+
         # Verify the change was made
         grep "DEFAULT_LUCIDE_TAG" src/lucide/config.py
         echo "✅ Updated config.py to version $NEW_VERSION"
@@ -89,7 +89,7 @@ jobs:
       run: |
         echo "🔨 Rebuilding Lucide icon database..."
         make lucide-db
-        
+
         # Verify database was created
         ICON_COUNT=$(sqlite3 src/lucide/data/lucide-icons.db "SELECT COUNT(*) FROM icons;")
         echo "✅ Database rebuilt with $ICON_COUNT icons"
@@ -118,13 +118,13 @@ jobs:
       run: |
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        
+
         git add src/lucide/config.py src/lucide/data/lucide-icons.db
         git commit -m "Update Lucide icons to version ${{ steps.version-check.outputs.latest-version }}
 
         - Update DEFAULT_LUCIDE_TAG to ${{ steps.version-check.outputs.latest-version }}
         - Rebuild database with latest icons
-        
+
         🤖 Automated update via GitHub Actions"
 
     - name: Push branch
@@ -140,7 +140,7 @@ jobs:
         # Get release notes URL and icon count
         RELEASE_URL="https://github.com/lucide-icons/lucide/releases/tag/${{ steps.version-check.outputs.latest-version }}"
         ICON_COUNT=$(sqlite3 src/lucide/data/lucide-icons.db "SELECT COUNT(*) FROM icons;")
-        
+
         # Create PR with detailed description
         gh pr create \
           --title "🔄 Update Lucide icons to version ${{ steps.version-check.outputs.latest-version }}" \
@@ -182,7 +182,7 @@ jobs:
         echo "- **Current Version**: ${{ steps.version-check.outputs.current-version }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Latest Version**: ${{ steps.version-check.outputs.latest-version }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Update Needed**: ${{ steps.version-check.outputs.needs-update }}" >> $GITHUB_STEP_SUMMARY
-        
+
         if [ "${{ steps.version-check.outputs.needs-update }}" = "true" ]; then
           if [ "${{ steps.check-pr.outputs.pr-exists }}" = "true" ]; then
             echo "- **Status**: ⚠️ Update branch already exists" >> $GITHUB_STEP_SUMMARY
