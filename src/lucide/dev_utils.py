@@ -133,26 +133,29 @@ def check_version_status() -> VersionStatus:
         if db_version and db_version != current_version:
             needs_update = True
             recommendations.append(
-                f"Database version ({db_version}) doesn't match config ({current_version}). "
-                f"Run 'make db' to rebuild."
+                f"Database version ({db_version}) doesn't match config "
+                f"({current_version}). Run 'make db' to rebuild."
             )
         elif not db_version:
             recommendations.append(
-                "Database version unknown (no metadata). Consider rebuilding with 'make db'."
+                "Database version unknown (no metadata). "
+                "Consider rebuilding with 'make db'."
             )
 
         # Check if config was modified after database creation
         if config_modified_at and db_created_at and config_modified_at > db_created_at:
             needs_update = True
             recommendations.append(
-                "Config file modified after database creation. Run 'make db' to rebuild."
+                "Config file modified after database creation. "
+                "Run 'make db' to rebuild."
             )
 
     # Check if there's a newer version available
     if latest_version and latest_version != current_version:
         recommendations.append(
             f"Newer Lucide version available: {latest_version} "
-            f"(current: {current_version}). Consider updating DEFAULT_LUCIDE_TAG in config.py."
+            f"(current: {current_version}). Consider updating "
+            "DEFAULT_LUCIDE_TAG in config.py."
         )
 
     if not recommendations:
@@ -198,16 +201,14 @@ def print_version_status() -> int:
             print("Database version:  Unknown")
 
         if status.database_created_at:
-            print(
-                f"Created at:        {status.database_created_at.strftime('%Y-%m-%d %H:%M:%S')}"
-            )
+            created_str = status.database_created_at.strftime("%Y-%m-%d %H:%M:%S")
+            print(f"Created at:        {created_str}")
     else:
         print("Database exists:   ❌ No")
 
     if status.config_modified_at:
-        print(
-            f"Config modified:   {status.config_modified_at.strftime('%Y-%m-%d %H:%M:%S')}"
-        )
+        modified_str = status.config_modified_at.strftime("%Y-%m-%d %H:%M:%S")
+        print(f"Config modified:   {modified_str}")
 
     print()
     print("💡 Recommendations")
