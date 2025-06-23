@@ -127,19 +127,19 @@ def check_version_status() -> VersionStatus:
     # Check if database exists
     if not db_exists:
         needs_update = True
-        recommendations.append("Database not found. Run 'make db' to create it.")
+        recommendations.append("Database not found. Run 'make lucide-db' to create it.")
     else:
         # Check if database version matches config
         if db_version and db_version != current_version:
             needs_update = True
             recommendations.append(
                 f"Database version ({db_version}) doesn't match config "
-                f"({current_version}). Run 'make db' to rebuild."
+                f"({current_version}). Run 'make lucide-db' to rebuild."
             )
         elif not db_version:
             recommendations.append(
                 "Database version unknown (no metadata). "
-                "Consider rebuilding with 'make db'."
+                "Consider rebuilding with 'make lucide-db'."
             )
 
         # Check if config was modified after database creation
@@ -147,7 +147,7 @@ def check_version_status() -> VersionStatus:
             needs_update = True
             recommendations.append(
                 "Config file modified after database creation. "
-                "Run 'make db' to rebuild."
+                "Run 'make lucide-db' to rebuild."
             )
 
     # Check if there's a newer version available

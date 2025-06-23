@@ -37,8 +37,8 @@ dev = [
 ]
 
 [project.scripts]
+check-lucide-version = "lucide.dev_utils:print_version_status"
 lucide-db = "lucide.cli:main"
-lucide-dev-check = "lucide.dev_utils:print_version_status"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/mmacpherson/python-lucide/issues"

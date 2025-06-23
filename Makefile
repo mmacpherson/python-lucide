@@ -15,7 +15,7 @@ DB_OUTPUT_PATH := src/lucide/data/lucide-icons.db
 VENV_DIR := .venv
 
 # Phony targets prevent conflicts with files of the same name.
-.PHONY: help default env db test install-hooks run-hooks-all-files check-version clean nuke
+.PHONY: help default env lucide-db test install-hooks run-hooks-all-files check-lucide-version clean nuke
 
 # Default target
 default: help
@@ -28,14 +28,14 @@ help:
 	@echo "Available targets:"
 	@echo "  help                   Show this help message."
 	@echo "  env                    Set up the development environment (creates $(VENV_DIR) and installs dependencies)."
-	@echo "  db                     (Re)builds the Lucide icon database into $(DB_OUTPUT_PATH)."
+	@echo "  lucide-db              (Re)builds the Lucide icon database into $(DB_OUTPUT_PATH)."
 	@echo "                         Uses TAG=$(TAG). Default TAG is read from src/lucide/config.py (currently $(DEFAULT_LUCIDE_TAG))."
-	@echo "                         Example: make db TAG=0.520.0"
+	@echo "                         Example: make lucide-db TAG=0.520.0"
 	@echo "  test                   Run tests using pytest."
 	@echo "  install-hooks          Install pre-commit hooks."
 	@echo "  update-hooks           Update pre-commit hooks to latest version."
 	@echo "  run-hooks-all-files    Run all pre-commit hooks on all files."
-	@echo "  check-version          Check if Lucide version/artifacts need updating."
+	@echo "  check-lucide-version   Check if Lucide version/artifacts need updating."
 	@echo "  clean                  Remove build artifacts, __pycache__, .pytest_cache, .ruff_cache, coverage data, etc."
 	@echo "  nuke                   A more thorough clean: runs 'clean', 'uv cache clean', and removes $(VENV_DIR)."
 	@echo ""
@@ -49,7 +49,7 @@ $(VENV_DIR)/pyvenv.cfg:
 	@echo "Creating virtual environment in $(VENV_DIR)/ using $(UV_CMD)..."
 	$(UV_CMD) venv $(VENV_DIR)
 
-db:
+lucide-db:
 	@echo "Building Lucide icon database with tag $(TAG) into $(DB_OUTPUT_PATH)..."
 	@mkdir -p src/lucide/data # Ensure data directory exists
 	$(LUCIDE_DB_CMD) -o $(DB_OUTPUT_PATH) -t $(TAG) -v
@@ -71,9 +71,9 @@ run-hooks-all-files:
 	@echo "Running all pre-commit hooks on all files..."
 	$(PRE_COMMIT_CMD) run --all-files
 
-check-version:
+check-lucide-version:
 	@echo "Checking Lucide version and artifact status..."
-	$(UV_CMD) run python -c "from lucide.dev_utils import print_version_status; exit(print_version_status())"
+	$(UV_CMD) run check-lucide-version
 
 clean:
 	@echo "Cleaning up project..."
