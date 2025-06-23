@@ -22,7 +22,7 @@ license = {text = "MIT"}
 name = "python-lucide"
 readme = "README.md"
 requires-python = ">=3.10"
-version = "0.1.4"
+version = "0.2.0"
 
 [project.optional-dependencies]
 dev = [
