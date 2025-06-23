@@ -1,5 +1,6 @@
 # ruff: noqa: ARG001
 import contextlib
+import re
 import sqlite3
 import xml.etree.ElementTree as ET
 from unittest import mock
@@ -7,6 +8,7 @@ from unittest import mock
 import pytest
 
 from lucide import core, db  # Import db to patch its members
+from lucide.config import DEFAULT_ICON_CACHE_SIZE
 
 SVG_NAMESPACE = "{http://www.w3.org/2000/svg}"
 
@@ -143,7 +145,6 @@ def test_lucide_icon_with_namespace_handling(mock_db_path_fixture):
         assert 'xmlns="http://www.w3.org/2000/svg"' in icon_str
 
     # A more robust check for the root tag in the string:
-    import re
 
     match = re.match(r"<([a-zA-Z0-9_:]+)", icon_str.strip())
     assert match is not None, "Could not find root tag in serialized string"
@@ -451,7 +452,6 @@ def test_configurable_cache_size():
     cache_info = core.lucide_icon.cache_info()
     assert cache_info.maxsize == core.DEFAULT_ICON_CACHE_SIZE
     # Verify it's using the config value
-    from lucide.config import DEFAULT_ICON_CACHE_SIZE
 
     assert cache_info.maxsize == DEFAULT_ICON_CACHE_SIZE
 
