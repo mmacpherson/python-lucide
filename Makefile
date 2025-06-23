@@ -15,7 +15,7 @@ DB_OUTPUT_PATH := src/lucide/data/lucide-icons.db
 VENV_DIR := .venv
 
 # Phony targets prevent conflicts with files of the same name.
-.PHONY: help default env db test install-hooks run-hooks-all-files clean nuke
+.PHONY: help default env db test install-hooks run-hooks-all-files check-version clean nuke
 
 # Default target
 default: help
@@ -35,6 +35,7 @@ help:
 	@echo "  install-hooks          Install pre-commit hooks."
 	@echo "  update-hooks           Update pre-commit hooks to latest version."
 	@echo "  run-hooks-all-files    Run all pre-commit hooks on all files."
+	@echo "  check-version          Check if Lucide version/artifacts need updating."
 	@echo "  clean                  Remove build artifacts, __pycache__, .pytest_cache, .ruff_cache, coverage data, etc."
 	@echo "  nuke                   A more thorough clean: runs 'clean', 'uv cache clean', and removes $(VENV_DIR)."
 	@echo ""
@@ -69,6 +70,10 @@ update-hooks:
 run-hooks-all-files:
 	@echo "Running all pre-commit hooks on all files..."
 	$(PRE_COMMIT_CMD) run --all-files
+
+check-version:
+	@echo "Checking Lucide version and artifact status..."
+	$(UV_CMD) run python -c "from lucide.dev_utils import print_version_status; exit(print_version_status())"
 
 clean:
 	@echo "Cleaning up project..."

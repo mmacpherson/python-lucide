@@ -9,6 +9,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+from datetime import datetime
 
 from .config import DEFAULT_LUCIDE_TAG
 
@@ -126,6 +127,7 @@ def _create_database(
     output_path: pathlib.Path | str,
     icons_dir: pathlib.Path,
     icons_to_include: set[str],
+    tag: str = DEFAULT_LUCIDE_TAG,
     verbose: bool = False,
 ) -> bool:
     """Create the SQLite database with icons.
@@ -134,6 +136,7 @@ def _create_database(
         output_path: Path where the database will be saved
         icons_dir: Directory containing the icon SVG files
         icons_to_include: Set of icon names to include (or empty for all)
+        tag: Lucide version tag used for this database
         verbose: If True, prints detailed progress information
 
     Returns:
@@ -146,8 +149,9 @@ def _create_database(
         conn = sqlite3.connect(output_path)
         cursor = conn.cursor()
 
-        # Create table with name as PRIMARY KEY
+        # Create tables with name as PRIMARY KEY
         cursor.execute("DROP TABLE IF EXISTS icons")
+        cursor.execute("DROP TABLE IF EXISTS metadata")
         cursor.execute(
             """
             CREATE TABLE icons (
@@ -156,6 +160,20 @@ def _create_database(
             )
             """
         )
+        cursor.execute(
+            """
+            CREATE TABLE metadata (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            )
+            """
+        )
+        
+        # Store metadata about this database build
+        current_time = datetime.now().isoformat()
+        cursor.execute("INSERT INTO metadata VALUES (?, ?)", ("version", tag))
+        cursor.execute("INSERT INTO metadata VALUES (?, ?)", ("created_at", current_time))
+        
         cursor.execute("VACUUM")
 
         # Find all SVG files and add them to the database
@@ -324,7 +342,7 @@ def download_and_build_db(
             return None
 
         icons_set = set() if icons_to_include is None else icons_to_include
-        success = _create_database(output_path, icons_dir, icons_set, verbose)
+        success = _create_database(output_path, icons_dir, icons_set, tag, verbose)
         if not success:
             return None
 
