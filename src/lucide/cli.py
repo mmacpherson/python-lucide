@@ -168,13 +168,13 @@ def _create_database(
             )
             """
         )
-        
+
         # Store metadata about this database build
         current_time = datetime.now().isoformat()
         cursor.execute("INSERT INTO metadata VALUES (?, ?)", ("version", tag))
-        cursor.execute("INSERT INTO metadata VALUES (?, ?)", ("created_at", current_time))
-        
-        cursor.execute("VACUUM")
+        cursor.execute(
+            "INSERT INTO metadata VALUES (?, ?)", ("created_at", current_time)
+        )
 
         # Find all SVG files and add them to the database
         svg_files = list(icons_dir.glob("*.svg"))
@@ -187,6 +187,9 @@ def _create_database(
         )
 
         conn.commit()
+
+        # Run VACUUM after commit to optimize database
+        cursor.execute("VACUUM")
 
         # Report on the results
         report_data = DatabaseReportData(
