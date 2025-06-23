@@ -227,11 +227,54 @@ make test
 ### Rebuilding the Icon Database
 ```bash
 # Rebuild with latest Lucide icons
-make db
+make lucide-db
 
 # Rebuild with specific version
-make db TAG=0.350.0
+make lucide-db TAG=0.350.0
+
+# Check if version updates are available
+make check-lucide-version
 ```
+
+### Version Checking and Automation
+The project includes automated version checking and update capabilities:
+
+```bash
+# Check for Lucide version updates and artifact status
+make check-lucide-version
+
+# Alternative: Use the CLI command directly
+uv run check-lucide-version
+```
+
+**Weekly Automation**: The repository automatically checks for new Lucide releases every Monday and creates update PRs when new versions are available.
+
+### Release Process
+This project follows a manual release process:
+
+1. **Update version** in `pyproject.toml`:
+   ```bash
+   # Create release branch
+   git checkout -b release/v0.2.0
+
+   # Edit pyproject.toml to bump version
+   # version = "0.2.0"
+
+   # Commit and push
+   git add pyproject.toml
+   git commit -m "Bump version to 0.2.0"
+   git push -u origin release/v0.2.0
+   ```
+
+2. **Create and merge PR** for the version bump
+
+3. **Trigger publishing workflow**:
+   - Go to [Actions](../../actions/workflows/publish.yml)
+   - Click "Run workflow"
+   - Select the main branch
+   - Click "Run workflow"
+
+4. **Automatic publishing**: The `publish.yml` workflow builds and publishes the package to PyPI using trusted publishing.
 
 ## How It Works
 The package comes with a pre-built SQLite database containing all Lucide icons. When you call `lucide_icon()`, it fetches the icon's SVG from the database and applies your customizations. This approach means:
