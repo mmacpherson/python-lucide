@@ -1,0 +1,194 @@
+name: Update Lucide Icons
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+  - cron: 0 9 * * 1
+  # Allow manual triggering for testing
+  workflow_dispatch:
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        # Need full history to create branches
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: pip
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Check for Lucide version updates
+      id: version-check
+      run: |
+        # Get current and latest versions
+        CURRENT_VERSION=$(python -c "from lucide.config import DEFAULT_LUCIDE_TAG; print(DEFAULT_LUCIDE_TAG)")
+        LATEST_VERSION=$(python -c "from lucide.dev_utils import get_latest_lucide_version; print(get_latest_lucide_version() or '')")
+
+        echo "current-version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+        echo "latest-version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+
+        if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ] && [ -n "$LATEST_VERSION" ]; then
+          echo "needs-update=true" >> $GITHUB_OUTPUT
+          echo "📍 Update available: $CURRENT_VERSION → $LATEST_VERSION"
+        else
+          echo "needs-update=false" >> $GITHUB_OUTPUT
+          echo "✅ Already up to date: $CURRENT_VERSION"
+        fi
+
+    - name: Check for existing update PR
+      if: steps.version-check.outputs.needs-update == 'true'
+      id: check-pr
+      run: |
+        BRANCH_NAME="update/lucide-${{ steps.version-check.outputs.latest-version }}"
+
+        # Check if branch already exists
+        if git show-ref --verify --quiet refs/remotes/origin/$BRANCH_NAME; then
+          echo "pr-exists=true" >> $GITHUB_OUTPUT
+          echo "⚠️ Update branch already exists: $BRANCH_NAME"
+        else
+          echo "pr-exists=false" >> $GITHUB_OUTPUT
+          echo "✅ No existing update branch found"
+        fi
+
+    - name: Create update branch
+      if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
+      run: |
+        BRANCH_NAME="update/lucide-${{ steps.version-check.outputs.latest-version }}"
+        git checkout -b $BRANCH_NAME
+        echo "Created branch: $BRANCH_NAME"
+
+    - name: Update configuration
+      if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
+      run: |
+        NEW_VERSION="${{ steps.version-check.outputs.latest-version }}"
+
+        # Update the DEFAULT_LUCIDE_TAG in config.py
+        sed -i "s/DEFAULT_LUCIDE_TAG = \".*\"/DEFAULT_LUCIDE_TAG = \"$NEW_VERSION\"/" src/lucide/config.py
+
+        # Verify the change was made
+        grep "DEFAULT_LUCIDE_TAG" src/lucide/config.py
+        echo "✅ Updated config.py to version $NEW_VERSION"
+
+    - name: Rebuild database
+      if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
+      run: |
+        echo "🔨 Rebuilding Lucide icon database..."
+        make lucide-db
+
+        # Verify database was created
+        ICON_COUNT=$(sqlite3 src/lucide/data/lucide-icons.db "SELECT COUNT(*) FROM icons;")
+        echo "✅ Database rebuilt with $ICON_COUNT icons"
+
+    - name: Verify database integrity
+      if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
+      run: |
+        # Verify database was created and has the right metadata
+        DB_VERSION=$(sqlite3 src/lucide/data/lucide-icons.db "SELECT value FROM metadata WHERE key='version';")
+        if [ "$DB_VERSION" = "${{ steps.version-check.outputs.latest-version }}" ]; then
+          echo "✅ Database version verified: $DB_VERSION"
+        else
+          echo "❌ Database version mismatch! Expected: ${{ steps.version-check.outputs.latest-version }}, Got: $DB_VERSION"
+          exit 1
+        fi
+
+    - name: Run tests
+      if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
+      run: |
+        echo "🧪 Running tests to verify update..."
+        pytest
+        echo "✅ All tests passed"
+
+    - name: Commit changes
+      if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
+      run: |
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+
+        git add src/lucide/config.py src/lucide/data/lucide-icons.db
+        git commit -m "Update Lucide icons to version ${{ steps.version-check.outputs.latest-version }}
+
+        - Update DEFAULT_LUCIDE_TAG to ${{ steps.version-check.outputs.latest-version }}
+        - Rebuild database with latest icons
+
+        🤖 Automated update via GitHub Actions"
+
+    - name: Push branch
+      if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
+      run: |
+        BRANCH_NAME="update/lucide-${{ steps.version-check.outputs.latest-version }}"
+        git push origin $BRANCH_NAME
+        echo "✅ Pushed branch: $BRANCH_NAME"
+
+    - name: Create Pull Request
+      if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
+      run: |
+        # Get release notes URL and icon count
+        RELEASE_URL="https://github.com/lucide-icons/lucide/releases/tag/${{ steps.version-check.outputs.latest-version }}"
+        ICON_COUNT=$(sqlite3 src/lucide/data/lucide-icons.db "SELECT COUNT(*) FROM icons;")
+
+        # Create PR with detailed description
+        gh pr create \
+          --title "🔄 Update Lucide icons to version ${{ steps.version-check.outputs.latest-version }}" \
+          --body "## 📦 Lucide Icon Update
+
+        This PR automatically updates the Lucide icon database to the latest version.
+
+        ### Changes
+        - **Version**: ${{ steps.version-check.outputs.current-version }} → **${{ steps.version-check.outputs.latest-version }}**
+        - **Icons**: Database rebuilt with latest icon set
+        - **Database**: Contains $ICON_COUNT total icons
+
+        ### Release Information
+        - 📋 [Release Notes]($RELEASE_URL)
+        - 🏷️ [Lucide Releases](https://github.com/lucide-icons/lucide/releases)
+
+        ### Verification
+        - ✅ Database rebuilt successfully
+        - ✅ All tests passed
+        - ✅ Database integrity verified
+
+        ### Review Checklist
+        - [ ] Verify icon count is reasonable
+        - [ ] Check for any breaking changes in release notes
+        - [ ] Confirm database file size is appropriate
+
+        ---
+        🤖 *This PR was created automatically by the weekly Lucide update workflow.*
+        " \
+          --label "dependencies,automated" \
+          --assignee "@me"
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Summary
+      if: always()
+      run: |
+        echo "## 📋 Update Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Current Version**: ${{ steps.version-check.outputs.current-version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Latest Version**: ${{ steps.version-check.outputs.latest-version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Update Needed**: ${{ steps.version-check.outputs.needs-update }}" >> $GITHUB_STEP_SUMMARY
+
+        if [ "${{ steps.version-check.outputs.needs-update }}" = "true" ]; then
+          if [ "${{ steps.check-pr.outputs.pr-exists }}" = "true" ]; then
+            echo "- **Status**: ⚠️ Update branch already exists" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Status**: ✅ Update PR created successfully" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "- **Status**: ✅ Already up to date" >> $GITHUB_STEP_SUMMARY
+        fi

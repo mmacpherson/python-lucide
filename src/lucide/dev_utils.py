@@ -220,3 +220,41 @@ def print_version_status() -> int:
         print(f"{icon} {rec}")
 
     return 1 if status.needs_update else 0
+
+
+def compare_versions(current: str, latest: str | None) -> bool:
+    """Compare current and latest versions to determine if update is needed.
+
+    Args:
+        current: Current version string
+        latest: Latest version string or None if fetch failed
+
+    Returns:
+        True if update is needed, False otherwise
+    """
+    return latest is not None and current != latest
+
+
+def get_icon_count_from_db(db_path: pathlib.Path | str | None = None) -> int:
+    """Get the number of icons in the database.
+
+    Args:
+        db_path: Path to database file, uses default if None
+
+    Returns:
+        Number of icons in database, 0 if database doesn't exist or error
+    """
+    if db_path is None:
+        db_path = get_default_db_path()
+
+    if not db_path or not pathlib.Path(db_path).exists():
+        return 0
+
+    try:
+        with sqlite3.connect(f"file:{db_path}?mode=ro", uri=True) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM icons")
+            result = cursor.fetchone()
+            return result[0] if result else 0
+    except sqlite3.Error:
+        return 0
