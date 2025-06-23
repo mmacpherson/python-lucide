@@ -37,6 +37,7 @@ dev = [
 ]
 
 [project.scripts]
+check-lucide-version = "lucide.dev_utils:print_version_status"
 lucide-db = "lucide.cli:main"
 
 [project.urls]
