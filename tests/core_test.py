@@ -1,4 +1,4 @@
-# ruff: noqa: ARG001, PLR0913
+# ruff: noqa: ARG001
 import contextlib
 import sqlite3
 import xml.etree.ElementTree as ET

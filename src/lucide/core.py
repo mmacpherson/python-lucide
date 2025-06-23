@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ruff: noqa: ARG001, PLR0913
+# ruff: noqa: PLR0913
 """Serves lucide SVG icons from a SQLite database.
 
 This module provides functions to retrieve Lucide icons from a SQLite database.
