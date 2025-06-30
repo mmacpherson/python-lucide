@@ -140,9 +140,10 @@ jobs:
     - name: Create Pull Request
       if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
       run: |
-        # Get release notes URL and icon count
+        # Get release notes URL, icon count, and DB file size
         RELEASE_URL="https://github.com/lucide-icons/lucide/releases/tag/${{ steps.version-check.outputs.latest-version }}"
         ICON_COUNT=$(sqlite3 src/lucide/data/lucide-icons.db "SELECT COUNT(*) FROM icons;")
+        DB_SIZE=$(du -h src/lucide/data/lucide-icons.db | cut -f1)
 
         # Create PR with detailed description
         gh pr create \
@@ -155,6 +156,7 @@ jobs:
         - **Version**: ${{ steps.version-check.outputs.current-version }} → **${{ steps.version-check.outputs.latest-version }}**
         - **Icons**: Database rebuilt with latest icon set
         - **Database**: Contains $ICON_COUNT total icons
+        - **Size**: $DB_SIZE
 
         ### Release Information
         - 📋 [Release Notes]($RELEASE_URL)
