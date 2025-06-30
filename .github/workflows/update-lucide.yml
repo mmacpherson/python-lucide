@@ -174,7 +174,7 @@ jobs:
         🤖 *This PR was created automatically by the weekly Lucide update workflow.*
         "
       env:
-        GH_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Summary
       if: always()
