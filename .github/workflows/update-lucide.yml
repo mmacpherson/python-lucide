@@ -37,8 +37,8 @@ jobs:
       id: version-check
       run: |
         # Get current and latest versions
-        CURRENT_VERSION=$(python -c "from lucide.config import DEFAULT_LUCIDE_TAG; print(DEFAULT_LUCIDE_TAG)")
-        LATEST_VERSION=$(python -c "from lucide.dev_utils import get_latest_lucide_version; print(get_latest_lucide_version() or '')")
+        CURRENT_VERSION=$(uv run python -c "from lucide.config import DEFAULT_LUCIDE_TAG; print(DEFAULT_LUCIDE_TAG)")
+        LATEST_VERSION=$(uv run python -c "from lucide.dev_utils import get_latest_lucide_version; print(get_latest_lucide_version() or '')")
 
         echo "current-version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
         echo "latest-version=$LATEST_VERSION" >> $GITHUB_OUTPUT
@@ -84,7 +84,7 @@ jobs:
 
         # Bump package version in pyproject.toml
         CURRENT_PKG_VERSION=$(grep "^version = " pyproject.toml | sed 's/version = "\(.*\)"/\1/')
-        NEW_PKG_VERSION=$(python -c "v = '$CURRENT_PKG_VERSION'.split('.'); v[-1] = str(int(v[-1]) + 1); print('.'.join(v))")
+        NEW_PKG_VERSION=$(uv run python -c "v = '$CURRENT_PKG_VERSION'.split('.'); v[-1] = str(int(v[-1]) + 1); print('.'.join(v))")
 
         sed -i "s/version = ".*"/version = "$NEW_PKG_VERSION"/" pyproject.toml
         echo "✅ Bumped package version from $CURRENT_PKG_VERSION to $NEW_PKG_VERSION"

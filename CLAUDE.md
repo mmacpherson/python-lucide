@@ -31,3 +31,7 @@
 * **Consistent patterns**: Maintain consistency within a codebase
 * **Error handling**: Be explicit about error cases and edge conditions
 * **Testing mindset**: Write code that's easy to test and debug
+
+## GitHub Actions & Workflows
+* **Use uv run**: Always use `uv run python` instead of bare `python` in workflows after `uv sync`
+* **Check with make**: Use `make run-hooks-all-files` and `make test` for quality checks
