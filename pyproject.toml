@@ -2,6 +2,18 @@
 build-backend = "hatchling.build"
 requires = ["hatchling"]
 
+[dependency-groups]
+dev = [
+  "mypy-extensions>=1.0.0",
+  "mypy>=1.0.0",
+  "pre-commit>=3.0.0",
+  "pytest-cov>=4.0.0",
+  "pytest>=7.0.0",
+  "ruff>=0.1.0",
+  "types-setuptools>=80.9.0.20250529",
+  "typing-extensions>=4.1.0"
+]
+
 [project]
 authors = [{name = "Mike Macpherson"}]
 classifiers = [
@@ -23,18 +35,6 @@ name = "python-lucide"
 readme = "README.md"
 requires-python = ">=3.10"
 version = "0.2.1"
-
-[project.optional-dependencies]
-dev = [
-  "pytest>=7.0.0",
-  "pytest-cov>=4.0.0",
-  "ruff>=0.1.0",
-  "pre-commit>=3.0.0",
-  "mypy>=1.0.0",
-  "mypy-extensions>=1.0.0",
-  "typing-extensions>=4.1.0",
-  "types-setuptools"
-]
 
 [project.scripts]
 check-lucide-version = "lucide.dev_utils:print_version_status"
