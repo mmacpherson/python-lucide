@@ -31,11 +31,11 @@ jobs:
 
     - name: Build package
       run: |
-        python -m build
+        uv run python -m build
 
     - name: Verify package
       run: |
-        python -m twine check dist/*
+        uv run python -m twine check dist/*
 
     - name: Publish package to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
