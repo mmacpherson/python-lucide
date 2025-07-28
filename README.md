@@ -1,5 +1,14 @@
 # python-lucide
 
+[![PyPI version](https://badge.fury.io/py/python-lucide.svg)](https://badge.fury.io/py/python-lucide)
+[![Python versions](https://img.shields.io/pypi/pyversions/python-lucide.svg)](https://pypi.org/project/python-lucide/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/mmacpherson/python-lucide/workflows/CI/badge.svg)](https://github.com/mmacpherson/python-lucide/actions/workflows/ci.yml)
+[![Lucide Version](https://img.shields.io/github/file-contents/mmacpherson/python-lucide/src/lucide/config.py?query=DEFAULT_LUCIDE_TAG%20=%20%22(.*)%22&label=Lucide&color=blue)](https://github.com/lucide-icons/lucide/releases)
+[![PyPI downloads](https://img.shields.io/pypi/dm/python-lucide.svg)](https://pypi.org/project/python-lucide/)
+[![Icons Available](https://img.shields.io/badge/Icons-1600+-green.svg)](https://lucide.dev/icons/)
+[![Built with uv](https://img.shields.io/badge/Built%20with-uv-purple.svg)](https://github.com/astral-sh/uv)
+
 A Python package that provides easy access to all [Lucide
 icons](https://lucide.dev/) as SVG strings. Just import and use any Lucide icon
 in your Python projects, with no javascript in sight.
