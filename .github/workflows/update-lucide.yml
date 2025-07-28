@@ -95,7 +95,7 @@ jobs:
         echo "✅ Updated config.py to Lucide version $NEW_LUCIDE_VERSION"
 
         # Update badge JSON file
-        echo "{\"version\": \"$NEW_LUCIDE_VERSION\"}" > .github/lucide-version.json
+        echo "{\"schemaVersion\": 1, \"label\": \"Lucide\", \"message\": \"$NEW_LUCIDE_VERSION\", \"color\": \"blue\"}" > .github/lucide-version.json
         echo "✅ Updated badge JSON to Lucide version $NEW_LUCIDE_VERSION"
 
         # Bump package version in pyproject.toml
