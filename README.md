@@ -6,7 +6,6 @@
 [![CI](https://github.com/mmacpherson/python-lucide/workflows/CI/badge.svg)](https://github.com/mmacpherson/python-lucide/actions/workflows/ci.yml)
 [![Lucide Version](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmmacpherson%2Fpython-lucide%2Fmain%2F.github%2Flucide-version.json)](https://github.com/lucide-icons/lucide/releases)
 [![PyPI downloads](https://img.shields.io/pypi/dm/python-lucide.svg)](https://pypi.org/project/python-lucide/)
-[![Icons Available](https://img.shields.io/badge/Icons-1600+-green.svg)](https://lucide.dev/icons/)
 [![Built with uv](https://img.shields.io/badge/Built%20with-uv-purple.svg)](https://github.com/astral-sh/uv)
 
 A Python package that provides easy access to all [Lucide
@@ -14,7 +13,7 @@ icons](https://lucide.dev/) as SVG strings. Just import and use any Lucide icon
 in your Python projects, with no javascript in sight.
 
 ## Features
-- 🎨 **Access 1000+ Lucide icons** directly from Python
+- 🎨 **Access 1600+ Lucide icons** directly from Python
 - 🛠 **Customize icons** with classes, sizes, colors, and other SVG attributes
 - 🚀 **Framework-friendly** with examples for FastHTML, Flask, Django, and more
 - 📦 **Lightweight** with minimal dependencies
