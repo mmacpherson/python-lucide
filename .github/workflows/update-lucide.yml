@@ -77,13 +77,24 @@ jobs:
       if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
       id: version-bump
       run: |
+        # Save original package version before modifying
+        CURRENT_PKG_VERSION=$(grep "^version = " pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+        echo "current-pkg-version=$CURRENT_PKG_VERSION" >> $GITHUB_OUTPUT
+
+        # Get current icon count before rebuilding
+        if [ -f "src/lucide/data/lucide-icons.db" ]; then
+          OLD_ICON_COUNT=$(sqlite3 src/lucide/data/lucide-icons.db "SELECT COUNT(*) FROM icons;" 2>/dev/null || echo "0")
+        else
+          OLD_ICON_COUNT="0"
+        fi
+        echo "old-icon-count=$OLD_ICON_COUNT" >> $GITHUB_OUTPUT
+
         # Update Lucide tag in config.py
         NEW_LUCIDE_VERSION="${{ steps.version-check.outputs.latest-version }}"
         sed -i "s/DEFAULT_LUCIDE_TAG = \".*\"/DEFAULT_LUCIDE_TAG = \"$NEW_LUCIDE_VERSION\"/" src/lucide/config.py
         echo "✅ Updated config.py to Lucide version $NEW_LUCIDE_VERSION"
 
         # Bump package version in pyproject.toml
-        CURRENT_PKG_VERSION=$(grep "^version = " pyproject.toml | sed 's/version = "\(.*\)"/\1/')
         NEW_PKG_VERSION=$(uv run python -c "v = '$CURRENT_PKG_VERSION'.split('.'); v[-1] = str(int(v[-1]) + 1); print('.'.join(v))")
 
         sed -i "s/^version = \".*\"/version = \"$NEW_PKG_VERSION\"/" pyproject.toml
@@ -93,13 +104,15 @@ jobs:
 
     - name: Rebuild database
       if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
+      id: rebuild-db
       run: |
         echo "🔨 Rebuilding Lucide icon database..."
         make lucide-db
 
-        # Verify database was created
+        # Get new icon count and save it
         ICON_COUNT=$(sqlite3 src/lucide/data/lucide-icons.db "SELECT COUNT(*) FROM icons;")
         echo "✅ Database rebuilt with $ICON_COUNT icons"
+        echo "new-icon-count=$ICON_COUNT" >> $GITHUB_OUTPUT
 
     - name: Verify database integrity
       if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
@@ -149,10 +162,22 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # Get release notes URL, icon count, and DB file size
+        # Gather information for PR description
         RELEASE_URL="https://github.com/lucide-icons/lucide/releases/tag/${{ steps.version-check.outputs.latest-version }}"
-        ICON_COUNT=$(sqlite3 src/lucide/data/lucide-icons.db "SELECT COUNT(*) FROM icons;")
         DB_SIZE=$(du -h src/lucide/data/lucide-icons.db | cut -f1)
+
+        OLD_ICON_COUNT="${{ steps.version-bump.outputs.old-icon-count }}"
+        NEW_ICON_COUNT="${{ steps.rebuild-db.outputs.new-icon-count }}"
+        ICON_DIFF=$((NEW_ICON_COUNT - OLD_ICON_COUNT))
+
+        # Format icon count change
+        if [ "$ICON_DIFF" -gt 0 ]; then
+          ICON_CHANGE="📈 +$ICON_DIFF icons added"
+        elif [ "$ICON_DIFF" -lt 0 ]; then
+          ICON_CHANGE="📉 $ICON_DIFF icons removed"
+        else
+          ICON_CHANGE="📊 No change in icon count"
+        fi
 
         # Create PR with detailed description
         gh pr create \
@@ -161,26 +186,34 @@ jobs:
 
         This PR automatically updates the Lucide icon database and bumps the package version.
 
-        ### Changes
-        - **Lucide Version**: `${{ steps.version-check.outputs.current-version }}` → **`${{ steps.version-check.outputs.latest-version }}`**
-        - **Package Version**: `$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')` → **`${{ steps.version-bump.outputs.new-pkg-version }}`**
-        - **Icons**: Database rebuilt with the latest icon set
-        - **Database**: Contains `$ICON_COUNT` total icons
-        - **Size**: `$DB_SIZE`
+        ### 🔄 Changes Summary
+        - **Lucide Version**: \`${{ steps.version-check.outputs.current-version }}\` → **\`${{ steps.version-check.outputs.latest-version }}\`**
+        - **Package Version**: \`${{ steps.version-bump.outputs.current-pkg-version }}\` → **\`${{ steps.version-bump.outputs.new-pkg-version }}\`**
+        - **Icon Count**: $OLD_ICON_COUNT → **$NEW_ICON_COUNT** ($ICON_CHANGE)
+        - **Database Size**: $DB_SIZE
+        - **Database**: Rebuilt with latest icon set and metadata
 
-        ### Release Information
+        ### 📊 Icon Statistics
+        - **Previous Count**: $OLD_ICON_COUNT icons
+        - **New Count**: $NEW_ICON_COUNT icons
+        - **Net Change**: $ICON_CHANGE
+
+        ### 🔗 Release Information
         - 📋 [Lucide Release Notes]($RELEASE_URL)
-        - 🏷️ [Lucide Releases](https://github.com/lucide-icons/lucide/releases)
+        - 🏷️ [All Lucide Releases](https://github.com/lucide-icons/lucide/releases)
+        - 📚 [Lucide Documentation](https://lucide.dev)
 
-        ### Verification
+        ### ✅ Verification Status
         - ✅ Database rebuilt successfully
         - ✅ All tests passed
         - ✅ Database integrity verified
+        - ✅ Version metadata updated
 
-        ### Review Checklist
-        - [ ] Verify icon count is reasonable
-        - [ ] Check for any breaking changes in release notes
-        - [ ] Confirm database file size is appropriate
+        ### 📋 Review Checklist
+        - [ ] Icon count change looks reasonable ($ICON_DIFF icons)
+        - [ ] Check [release notes]($RELEASE_URL) for breaking changes
+        - [ ] Database size is appropriate ($DB_SIZE)
+        - [ ] No unexpected version conflicts
 
         ---
         🤖 *This PR was created automatically by the weekly Lucide update workflow.*
