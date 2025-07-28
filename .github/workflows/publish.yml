@@ -37,9 +37,6 @@ jobs:
     - name: Publish package to PyPI
       run: |
         uv publish
-      env:
-        # Use API token if available, otherwise rely on trusted publishing
-        UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN || '' }}
 
     # Optional: Create GitHub Release with assets
     - name: Upload assets to GitHub Release
