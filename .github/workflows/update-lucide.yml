@@ -79,14 +79,14 @@ jobs:
       run: |
         # Update Lucide tag in config.py
         NEW_LUCIDE_VERSION="${{ steps.version-check.outputs.latest-version }}"
-        sed -i "s/DEFAULT_LUCIDE_TAG = ".*"/DEFAULT_LUCIDE_TAG = "$NEW_LUCIDE_VERSION"/" src/lucide/config.py
+        sed -i "s/DEFAULT_LUCIDE_TAG = \".*\"/DEFAULT_LUCIDE_TAG = \"$NEW_LUCIDE_VERSION\"/" src/lucide/config.py
         echo "✅ Updated config.py to Lucide version $NEW_LUCIDE_VERSION"
 
         # Bump package version in pyproject.toml
         CURRENT_PKG_VERSION=$(grep "^version = " pyproject.toml | sed 's/version = "\(.*\)"/\1/')
         NEW_PKG_VERSION=$(uv run python -c "v = '$CURRENT_PKG_VERSION'.split('.'); v[-1] = str(int(v[-1]) + 1); print('.'.join(v))")
 
-        sed -i "s/version = ".*"/version = "$NEW_PKG_VERSION"/" pyproject.toml
+        sed -i "s/version = \".*\"/version = \"$NEW_PKG_VERSION\"/" pyproject.toml
         echo "✅ Bumped package version from $CURRENT_PKG_VERSION to $NEW_PKG_VERSION"
 
         echo "new-pkg-version=$NEW_PKG_VERSION" >> $GITHUB_OUTPUT
