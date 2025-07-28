@@ -94,6 +94,10 @@ jobs:
         sed -i "s/DEFAULT_LUCIDE_TAG = \".*\"/DEFAULT_LUCIDE_TAG = \"$NEW_LUCIDE_VERSION\"/" src/lucide/config.py
         echo "✅ Updated config.py to Lucide version $NEW_LUCIDE_VERSION"
 
+        # Update badge JSON file
+        echo "{\"schemaVersion\": 1, \"label\": \"Lucide\", \"message\": \"$NEW_LUCIDE_VERSION\", \"color\": \"blue\"}" > .github/lucide-version.json
+        echo "✅ Updated badge JSON to Lucide version $NEW_LUCIDE_VERSION"
+
         # Bump package version in pyproject.toml
         NEW_PKG_VERSION=$(uv run python -c "v = '$CURRENT_PKG_VERSION'.split('.'); v[-1] = str(int(v[-1]) + 1); print('.'.join(v))")
 
@@ -139,7 +143,7 @@ jobs:
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
 
-        git add src/lucide/config.py src/lucide/data/lucide-icons.db pyproject.toml
+        git add src/lucide/config.py src/lucide/data/lucide-icons.db pyproject.toml .github/lucide-version.json
         git commit -m "feat: Update Lucide icons to v${{ steps.version-check.outputs.latest-version }}
 
         Bumps package version to ${{ steps.version-bump.outputs.new-pkg-version }}.
