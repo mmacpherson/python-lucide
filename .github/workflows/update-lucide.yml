@@ -165,6 +165,19 @@ jobs:
         # Gather information for PR description
         RELEASE_URL="https://github.com/lucide-icons/lucide/releases/tag/${{ steps.version-check.outputs.latest-version }}"
         DB_SIZE=$(du -h src/lucide/data/lucide-icons.db | cut -f1)
+        
+        OLD_ICON_COUNT="${{ steps.version-bump.outputs.old-icon-count }}"
+        NEW_ICON_COUNT="${{ steps.rebuild-db.outputs.new-icon-count }}"
+        ICON_DIFF=$((NEW_ICON_COUNT - OLD_ICON_COUNT))
+        
+        # Format icon count change
+        if [ "$ICON_DIFF" -gt 0 ]; then
+          ICON_CHANGE="📈 +$ICON_DIFF icons added"
+        elif [ "$ICON_DIFF" -lt 0 ]; then
+          ICON_CHANGE="📉 $ICON_DIFF icons removed"
+        else
+          ICON_CHANGE="📊 No change in icon count"
+        fi
 
         OLD_ICON_COUNT="${{ steps.version-bump.outputs.old-icon-count }}"
         NEW_ICON_COUNT="${{ steps.rebuild-db.outputs.new-icon-count }}"
