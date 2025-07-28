@@ -45,6 +45,15 @@ lucide-db = "lucide.cli:main"
 "Homepage" = "https://github.com/mmacpherson/python-lucide"
 "Source Code" = "https://github.com/mmacpherson/python-lucide"
 
+[tool.uv.build-backend]
+# The module name differs from the normalized package name
+module-name = "lucide"
+# Include tests and database files in source distribution
+source-include = [
+  "tests/**",
+  "src/lucide/data/*.db"
+]
+
 [tool.mypy]
 check_untyped_defs = true
 disallow_incomplete_defs = true
