@@ -34,7 +34,7 @@ license = {text = "MIT"}
 name = "python-lucide"
 readme = "README.md"
 requires-python = ">=3.10"
-version = "0.2.8"
+version = "0.2.9"
 
 [project.scripts]
 check-lucide-version = "lucide.dev_utils:print_version_status"
