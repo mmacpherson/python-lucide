@@ -38,7 +38,7 @@ def get_latest_lucide_version() -> str | None:
             data = json.loads(response.read().decode())
             tag_name = data.get("tag_name")
             return tag_name if isinstance(tag_name, str) else None
-    except (urllib.error.URLError, json.JSONDecodeError, KeyError):
+    except (urllib.error.URLError, json.JSONDecodeError, KeyError, TimeoutError):
         return None
 
 
