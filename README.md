@@ -1,12 +1,16 @@
 # python-lucide
 
-[![PyPI version](https://badge.fury.io/py/python-lucide.svg)](https://badge.fury.io/py/python-lucide)
+[![CI](https://github.com/mmacpherson/python-lucide/actions/workflows/ci.yml/badge.svg)](https://github.com/mmacpherson/python-lucide/actions/workflows/ci.yml)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/mmacpherson/python-lucide/main.svg)](https://results.pre-commit.ci/latest/github/mmacpherson/python-lucide/main)
+
+[![PyPI](https://img.shields.io/pypi/v/python-lucide.svg)](https://pypi.org/project/python-lucide/)
 [![Python versions](https://img.shields.io/pypi/pyversions/python-lucide.svg)](https://pypi.org/project/python-lucide/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/mmacpherson/python-lucide/workflows/CI/badge.svg)](https://github.com/mmacpherson/python-lucide/actions/workflows/ci.yml)
-[![Lucide Version](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmmacpherson%2Fpython-lucide%2Fmain%2F.github%2Flucide-version.json)](https://github.com/lucide-icons/lucide/releases)
-[![PyPI downloads](https://img.shields.io/pypi/dm/python-lucide.svg)](https://pypi.org/project/python-lucide/)
+[![Downloads](https://img.shields.io/pypi/dm/python-lucide.svg)](https://pypi.org/project/python-lucide/)
+
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![License](https://img.shields.io/github/license/mmacpherson/python-lucide.svg)](https://github.com/mmacpherson/python-lucide/blob/main/LICENSE)
 [![Built with uv](https://img.shields.io/badge/Built%20with-uv-purple.svg)](https://github.com/astral-sh/uv)
+[![Lucide Version](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmmacpherson%2Fpython-lucide%2Fmain%2F.github%2Flucide-version.json)](https://github.com/lucide-icons/lucide/releases)
 
 A Python package that provides easy access to all [Lucide
 icons](https://lucide.dev/) as SVG strings. Just import and use any Lucide icon
