@@ -7,10 +7,10 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/python-lucide.svg)](https://pypi.org/project/python-lucide/)
 [![Downloads](https://img.shields.io/pypi/dm/python-lucide.svg)](https://pypi.org/project/python-lucide/)
 
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![License](https://img.shields.io/github/license/mmacpherson/python-lucide.svg)](https://github.com/mmacpherson/python-lucide/blob/main/LICENSE)
-[![Built with uv](https://img.shields.io/badge/Built%20with-uv-purple.svg)](https://github.com/astral-sh/uv)
 [![Lucide Version](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmmacpherson%2Fpython-lucide%2Fmain%2F.github%2Flucide-version.json)](https://github.com/lucide-icons/lucide/releases)
+[![Built with uv](https://img.shields.io/badge/Built%20with-uv-purple.svg)](https://github.com/astral-sh/uv)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 A Python package that provides easy access to all [Lucide
 icons](https://lucide.dev/) as SVG strings. Just import and use any Lucide icon
