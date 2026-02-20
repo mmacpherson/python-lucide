@@ -1,9 +1,7 @@
 ---
 layout: default
-title: python-lucide — Lucide icons as Python strings
+title: Lucide icons as Python strings
 ---
-
-# python-lucide
 
 *[Mike Macpherson](https://github.com/mmacpherson)*
 
@@ -12,7 +10,7 @@ in Python. `pip install python-lucide`, import, embed. No JavaScript, no icon
 fonts, no client-side rendering step. Every icon on this page is a real Lucide
 SVG, sourced from the package itself.
 
-<div style="display: flex; flex-wrap: wrap; gap: 12px; margin: 1.5em 0; align-items: center; justify-content: center;">
+<div style="display: grid; grid-template-columns: repeat(5, 28px); gap: 16px; margin: 1.5em 0; justify-content: center;">
 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" /></svg>
 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 21-4.34-4.34" /><circle cx="11" cy="11" r="8" /></svg>
@@ -37,9 +35,10 @@ SVG, sourced from the package itself.
 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /></svg>
 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2" /><path d="M14 2v2" /><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1" /><path d="M6 2v2" /></svg>
 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M12 8v13" /><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" /><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5" /></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" /><path d="M15 5.764v15" /><path d="M9 3.236v15" /></svg>
 </div>
 
-## the itch
+## the problem
 
 I like building HTML on the server. Not templates-with-holes, but actual
 programmatic markup — [hiccup](https://github.com/weavejester/hiccup) in
@@ -49,7 +48,7 @@ ethos and makes it a full framework: pure Python components, web-standards-first
 no transpilation, no virtual DOM, no magic.
 
 The pattern extends to interactivity.
-[Datastar](https://data-star.dev/), [HTMX](https://htmx.org/), and FastHTML's
+[datastar.js](https://data-star.dev/), [HTMX](https://htmx.org/), and FastHTML's
 own HTMX integration all follow the same principle: the server renders HTML, the
 browser just shows it. No client-side JavaScript framework sitting between you
 and your markup.
@@ -62,9 +61,10 @@ for a traditional SPA. In a server-rendered world, though, you have to call
 `lucide.createIcons()` again after every DOM swap — every HTMX response, every
 Datastar fragment, every partial update. It's a small thing, but it grates.
 
-The fix is obvious: just embed the SVG directly. If the icon is already inline
-in the HTML, there's nothing to initialize, nothing to re-run, nothing to
-coordinate. The server sends the icon, the browser renders it, done.
+If you're already building your markup on the server, SVG is just... more markup
+to include. That's what python-lucide enables — it packages the Lucide icon set
+into an easy-to-use Python library so that every icon is just a function call
+away, no client-side initialization needed.
 
 ## the approach
 
