@@ -2,8 +2,8 @@ name: Update Lucide Icons
 
 on:
   schedule:
-    # Run every Monday at 9 AM UTC
-  - cron: 0 9 * * 1
+    # Run every Sunday at 12:00 PM UTC (5:00 AM Pacific)
+  - cron: 0 12 * * 0
   # Allow manual triggering for testing
   workflow_dispatch:
 
