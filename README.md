@@ -60,6 +60,35 @@ lucide_icon("user", stroke="#ff6b6b")     # Hex colors work too
 
 ## Framework Integration Examples
 
+### Starlette
+```python
+from starlette.applications import Starlette
+from starlette.responses import Response
+from starlette.routing import Route
+from lucide import lucide_icon
+
+def icon(request):
+    icon_name = request.path_params["icon_name"]
+    svg = lucide_icon(icon_name, cls="icon", stroke="currentColor")
+    return Response(svg, media_type="image/svg+xml")
+
+app = Starlette(routes=[Route("/icons/{icon_name}", icon)])
+```
+
+### FastAPI
+```python
+from fastapi import FastAPI
+from fastapi.responses import Response
+from lucide import lucide_icon
+
+app = FastAPI()
+
+@app.get("/icons/{icon_name}")
+def get_icon(icon_name: str, size: int = 24, color: str = "currentColor"):
+    svg = lucide_icon(icon_name, width=size, height=size, stroke=color)
+    return Response(content=svg, media_type="image/svg+xml")
+```
+
 ### FastHTML
 ```python
 from fasthtml.common import *
@@ -112,20 +141,6 @@ register = template.Library()
 @register.simple_tag
 def icon(name, **kwargs):
     return mark_safe(lucide_icon(name, **kwargs))
-```
-
-### FastAPI
-```python
-from fastapi import FastAPI
-from fastapi.responses import Response
-from lucide import lucide_icon
-
-app = FastAPI()
-
-@app.get("/icons/{icon_name}")
-def get_icon(icon_name: str, size: int = 24, color: str = "currentColor"):
-    svg = lucide_icon(icon_name, width=size, height=size, stroke=color)
-    return Response(content=svg, media_type="image/svg+xml")
 ```
 
 ## API Reference
