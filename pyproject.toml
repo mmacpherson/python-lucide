@@ -4,14 +4,19 @@ requires = ["uv_build>=0.8.3,<0.12.0"]
 
 [dependency-groups]
 dev = [
+  "cairosvg>=2.7.0",
+  "fastembed>=0.4.0",
+  "hdbscan>=0.8.0",
   "mypy-extensions>=1.0.0",
   "mypy>=1.0.0",
+  "plotly>=5.0.0",
   "pre-commit>=3.0.0",
   "pytest-cov>=4.0.0",
   "pytest>=7.0.0",
   "ruff>=0.1.0",
   "types-setuptools>=80.9.0.20250529",
-  "typing-extensions>=4.1.0"
+  "typing-extensions>=4.1.0",
+  "umap-learn>=0.5.0"
 ]
 
 [project]
@@ -37,9 +42,13 @@ readme = "README.md"
 requires-python = ">=3.10"
 version = "0.2.24"
 
+[project.optional-dependencies]
+search = ["fastembed>=0.4.0"]
+
 [project.scripts]
 check-lucide-version = "lucide.dev_utils:print_version_status"
-lucide-db = "lucide.cli:main"
+lucide = "lucide.cli:main"
+lucide-db = "lucide.cli:main_legacy_db"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/mmacpherson/python-lucide/issues"
@@ -126,7 +135,8 @@ section-order = [
 
 [tool.ruff.lint.per-file-ignores]
 "**/__init__.py" = ["F401"]
-"tests/**/*.py" = ["D", "SLF001"]
+"scripts/**/*.py" = ["D", "SLF001", "PLR2004", "PLR0915", "PLC0415", "ERA001", "E741", "C408"]
+"tests/**/*.py" = ["D", "SLF001", "PLR2004", "ARG005"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -137,5 +147,5 @@ module-name = "lucide"
 # Include tests and database files in source distribution
 source-include = [
   "tests/**",
-  "src/lucide/data/*.db"
+  "src/lucide/data/lucide-icons.db"
 ]

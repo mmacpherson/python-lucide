@@ -46,3 +46,31 @@ jobs:
         files: |
           dist/*.tar.gz
           dist/*.whl
+
+    - name: Build and publish search database
+      if: github.event_name == 'release'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: |
+        uv sync --dev
+        make search-data
+
+        SEARCH_DB=src/lucide/data/lucide-search.db
+        if [ ! -f "$SEARCH_DB" ]; then
+          echo "⚠️ Search database not built, skipping"
+          exit 0
+        fi
+
+        LUCIDE_VERSION=$(sqlite3 "$SEARCH_DB" "SELECT value FROM metadata WHERE key='version';")
+        RELEASE_TAG="search-v${LUCIDE_VERSION}"
+        echo "Publishing search DB for Lucide v${LUCIDE_VERSION} → ${RELEASE_TAG}"
+
+        # Create the search-data release if it doesn't already exist
+        gh release view "$RELEASE_TAG" >/dev/null 2>&1 || \
+          gh release create "$RELEASE_TAG" \
+            --title "Search data for Lucide v${LUCIDE_VERSION}" \
+            --notes "Pre-built semantic search database for Lucide icons v${LUCIDE_VERSION}. Downloaded automatically by \`python-lucide[search]\` on first use."
+
+        gh release upload "$RELEASE_TAG" "$SEARCH_DB" --clobber
+        echo "✅ Uploaded search DB to release ${RELEASE_TAG}"

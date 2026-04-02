@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_database": "python_lucide",
+  "project_id": "7e7233a1-78e1-4955-90fc-b8f3276b73f2"
+}
