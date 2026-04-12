@@ -129,6 +129,24 @@ jobs:
           exit 1
         fi
 
+    - name: Generate search data
+      if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: |
+        echo "🔍 Generating semantic search data for new icons..."
+        make search-data
+        SEARCH_DB=src/lucide/data/lucide-search.db
+        if [ -f "$SEARCH_DB" ]; then
+          DESC_COUNT=$(sqlite3 "$SEARCH_DB" "SELECT COUNT(*) FROM icon_descriptions;")
+          EMB_COUNT=$(sqlite3 "$SEARCH_DB" "SELECT COUNT(*) FROM icon_embeddings;")
+          ICON_COUNT=$(sqlite3 src/lucide/data/lucide-icons.db "SELECT COUNT(*) FROM icons;")
+          echo "✅ Search data: $DESC_COUNT descriptions, $EMB_COUNT embeddings (of $ICON_COUNT icons)"
+          echo "search-db-size=$(du -h "$SEARCH_DB" | cut -f1)" >> $GITHUB_OUTPUT
+        else
+          echo "⚠️ Search database not created (GEMINI_API_KEY may not be set)"
+        fi
+
     - name: Run tests
       if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
       run: |
@@ -143,6 +161,8 @@ jobs:
         git config --local user.name "github-actions[bot]"
 
         git add src/lucide/config.py src/lucide/data/lucide-icons.db pyproject.toml .github/lucide-version.json
+        # Include descriptions JSONL if generated (search DB is built at publish time)
+        [ -f src/lucide/data/gemini-icon-descriptions.jsonl ] && git add src/lucide/data/gemini-icon-descriptions.jsonl
         git commit -m "feat: Update Lucide icons to v${{ steps.version-check.outputs.latest-version }}
 
         Bumps package version to ${{ steps.version-bump.outputs.new-pkg-version }}.
