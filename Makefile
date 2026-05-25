@@ -4,7 +4,7 @@
 UV_CMD := uv
 PRE_COMMIT_CMD := $(UV_CMD) run pre-commit
 PYTEST_CMD := $(UV_CMD) run pytest
-LUCIDE_DB_CMD := $(UV_CMD) run lucide-db
+LUCIDE_CMD := $(UV_CMD) run lucide
 
 # Get default Lucide tag from the package's config.py
 PYTHON_CMD_FOR_TAG := $(UV_CMD) run python -c "from lucide.config import DEFAULT_LUCIDE_TAG; print(DEFAULT_LUCIDE_TAG)"
@@ -12,10 +12,12 @@ DEFAULT_LUCIDE_TAG := $(shell $(PYTHON_CMD_FOR_TAG))
 # Allow overriding the tag via make argument, e.g., make db TAG=0.500.0
 TAG ?= $(DEFAULT_LUCIDE_TAG)
 DB_OUTPUT_PATH := src/lucide/data/lucide-icons.db
+SEARCH_DB_OUTPUT_PATH := src/lucide/data/lucide-search.db
+DESCRIPTIONS_JSONL := src/lucide/data/gemini-icon-descriptions.jsonl
 VENV_DIR := .venv
 
 # Phony targets prevent conflicts with files of the same name.
-.PHONY: help default env lucide-db test install-hooks run-hooks-all-files check-lucide-version clean nuke
+.PHONY: help default env lucide-db describe build-search search-data lucide-db-full test install-hooks run-hooks-all-files check-lucide-version clean nuke
 
 # Default target
 default: help
@@ -31,6 +33,10 @@ help:
 	@echo "  lucide-db              (Re)builds the Lucide icon database into $(DB_OUTPUT_PATH)."
 	@echo "                         Uses TAG=$(TAG). Default TAG is read from src/lucide/config.py (currently $(DEFAULT_LUCIDE_TAG))."
 	@echo "                         Example: make lucide-db TAG=0.520.0"
+	@echo "  describe               Generate icon descriptions via VLM (requires GEMINI_API_KEY)."
+	@echo "  build-search           Build search SQLite DB from descriptions JSONL."
+	@echo "  search-data            Run describe + build-search."
+	@echo "  lucide-db-full         Build icons database + search data."
 	@echo "  test                   Run tests using pytest."
 	@echo "  install-hooks          Install pre-commit hooks."
 	@echo "  update-hooks           Update pre-commit hooks to latest version."
@@ -52,8 +58,22 @@ $(VENV_DIR)/pyvenv.cfg:
 lucide-db:
 	@echo "Building Lucide icon database with tag $(TAG) into $(DB_OUTPUT_PATH)..."
 	@mkdir -p src/lucide/data # Ensure data directory exists
-	$(LUCIDE_DB_CMD) -o $(DB_OUTPUT_PATH) -t $(TAG) -v
+	$(LUCIDE_CMD) db -o $(DB_OUTPUT_PATH) -t $(TAG) -v
 	@echo "Database build complete: $(DB_OUTPUT_PATH)"
+
+describe:
+	@echo "Generating icon descriptions..."
+	$(LUCIDE_CMD) describe --icons-db $(DB_OUTPUT_PATH) -o $(DESCRIPTIONS_JSONL) -v
+
+CLUSTERS_JSON := src/lucide/data/lucide-icon-clusters.json
+
+build-search:
+	@echo "Building search DB from descriptions..."
+	$(LUCIDE_CMD) build-search --descriptions-file $(DESCRIPTIONS_JSONL) --clusters-file $(CLUSTERS_JSON) --icons-db $(DB_OUTPUT_PATH) -o $(SEARCH_DB_OUTPUT_PATH) -v
+
+search-data: describe build-search
+
+lucide-db-full: lucide-db search-data
 
 test:
 	@echo "Running tests..."

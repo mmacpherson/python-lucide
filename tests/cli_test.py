@@ -1,10 +1,13 @@
 import pathlib
+import sqlite3
 import subprocess
 from unittest import mock
 
+import numpy as np
 import pytest
 
-from lucide import cli
+from lucide import cli, search
+from lucide.config import DEFAULT_EMBEDDING_DIM
 
 
 @pytest.fixture
@@ -15,7 +18,6 @@ def temp_output_path(tmp_path):
 
 def test_download_and_build_db_basic(temp_output_path):
     """Test basic functionality of the download_and_build_db function."""
-    # Mock subprocess.run to avoid actually calling git
     with (
         mock.patch("subprocess.run") as mock_run,
         mock.patch("pathlib.Path.exists", return_value=True),
@@ -23,7 +25,6 @@ def test_download_and_build_db_basic(temp_output_path):
         mock.patch("pathlib.Path.glob") as mock_glob,
         mock.patch("builtins.open", mock.mock_open(read_data="<svg></svg>")),
     ):
-        # Setup mocks
         mock_glob.return_value = [
             pathlib.Path("icons/home.svg"),
             pathlib.Path("icons/settings.svg"),
@@ -35,29 +36,23 @@ def test_download_and_build_db_basic(temp_output_path):
         mock_conn.cursor.return_value = mock_cursor
         mock_cursor.fetchall.return_value = [("home",), ("settings",)]
 
-        # Call the function
         result = cli.download_and_build_db(
             output_path=temp_output_path, tag="test-tag", verbose=True
         )
 
-        # Verify the function called git clone with the right parameters
         mock_run.assert_called_once()
         git_args = mock_run.call_args.args[0]
         assert "git" in git_args
         assert "clone" in git_args
         assert "--branch=test-tag" in git_args
 
-        # Verify database operations
         assert mock_connect.called
         assert mock_cursor.execute.called
-
-        # Verify the function returned the expected path
         assert result == temp_output_path
 
 
 def test_download_and_build_db_with_icon_list(temp_output_path):
     """Test building a database with a specific list of icons."""
-    # Mock subprocess.run to avoid actually calling git
     with (
         mock.patch("subprocess.run") as mock_run,
         mock.patch("pathlib.Path.exists", return_value=True),
@@ -65,7 +60,6 @@ def test_download_and_build_db_with_icon_list(temp_output_path):
         mock.patch("pathlib.Path.glob") as mock_glob,
         mock.patch("builtins.open", mock.mock_open(read_data="<svg></svg>")),
     ):
-        # Setup mocks
         mock_glob.return_value = [
             pathlib.Path("icons/home.svg"),
             pathlib.Path("icons/settings.svg"),
@@ -78,7 +72,6 @@ def test_download_and_build_db_with_icon_list(temp_output_path):
         mock_conn.cursor.return_value = mock_cursor
         mock_cursor.fetchall.return_value = [("home",)]
 
-        # Call the function with a specific icon list
         result = cli.download_and_build_db(
             output_path=temp_output_path,
             tag="test-tag",
@@ -86,68 +79,135 @@ def test_download_and_build_db_with_icon_list(temp_output_path):
             verbose=True,
         )
 
-        # Verify the function called git clone
         assert mock_run.called
-
-        # Verify database operations - should have inserted only 'home'
         assert mock_connect.called
 
-        # Count insert calls with "home" but not with "settings" or "user"
         insert_calls = [
             call
             for call in mock_cursor.execute.mock_calls
             if "INSERT INTO" in str(call)
         ]
         assert len(insert_calls) > 0
-
-        # Verify the function returned the expected path
         assert result == temp_output_path
 
 
 def test_download_and_build_db_git_failure(temp_output_path):
     """Test behavior when git clone fails."""
-    # Mock subprocess.run to simulate a git failure
     with mock.patch(
         "subprocess.run",
         side_effect=subprocess.CalledProcessError(1, "git", stderr=b"error"),
     ):
-        # Call the function
         result = cli.download_and_build_db(output_path=temp_output_path, tag="test-tag")
-
-        # Verify the function returned None
         assert result is None
 
 
-def test_main_function():
-    """Test the main CLI entry point function."""
-    # Mock the argparse.ArgumentParser to avoid actual command line parsing
-    with mock.patch("argparse.ArgumentParser") as mock_parser:
-        # Setup mock parser
-        parser_instance = mock.MagicMock()
-        mock_parser.return_value = parser_instance
-        parser_instance.parse_args.return_value = mock.MagicMock(
-            output="test.db",
-            tag="test-tag",
-            icons="home,settings",
-            file=None,
-            verbose=True,
-        )
-
-        # Mock download_and_build_db to avoid actually running it
-        with mock.patch("lucide.cli.download_and_build_db") as mock_download:
-            mock_download.return_value = pathlib.Path("test.db")
-
-            # Call the main function
+class TestMainSubcommands:
+    def test_no_command_returns_error(self):
+        with mock.patch("sys.argv", ["lucide"]):
             result = cli.main()
+        assert result == 1
 
-            # Verify the function called download_and_build_db with the right parameters
-            mock_download.assert_called_with(
+    def test_db_subcommand(self):
+        with mock.patch("lucide.cli.download_and_build_db") as mock_build:
+            mock_build.return_value = pathlib.Path("test.db")
+            with mock.patch(
+                "sys.argv",
+                ["lucide", "db", "-o", "test.db", "-t", "test-tag", "-v"],
+            ):
+                result = cli.main()
+
+            mock_build.assert_called_once_with(
                 output_path="test.db",
                 tag="test-tag",
-                icon_list=["home", "settings"],
+                icon_list=None,
                 icon_file=None,
                 verbose=True,
             )
-
-            # Verify the function returned 0 (success)
             assert result == 0
+
+    def test_db_subcommand_with_icons(self):
+        with mock.patch("lucide.cli.download_and_build_db") as mock_build:
+            mock_build.return_value = pathlib.Path("test.db")
+            with mock.patch(
+                "sys.argv",
+                ["lucide", "db", "-o", "test.db", "-i", "heart,star"],
+            ):
+                result = cli.main()
+
+            mock_build.assert_called_once()
+            call_kwargs = mock_build.call_args.kwargs
+            assert call_kwargs["icon_list"] == ["heart", "star"]
+            assert result == 0
+
+    def test_version_subcommand(self):
+        with mock.patch("lucide.dev_utils.print_version_status") as mock_version:
+            with mock.patch("sys.argv", ["lucide", "version"]):
+                result = cli.main()
+            mock_version.assert_called_once()
+            assert result == 0
+
+    def test_legacy_lucide_db_alias(self):
+        with mock.patch("lucide.cli.download_and_build_db") as mock_build:
+            mock_build.return_value = pathlib.Path("test.db")
+            with mock.patch("sys.argv", ["lucide-db", "-o", "test.db", "-v"]):
+                result = cli.main_legacy_db()
+
+            mock_build.assert_called_once()
+            assert result == 0
+
+    def test_search_subcommand(self, tmp_path):
+        search_db = tmp_path / "test-search.db"
+        conn = sqlite3.connect(search_db)
+        conn.execute(
+            "CREATE TABLE icon_descriptions"
+            " (name TEXT PRIMARY KEY, description TEXT, model TEXT)"
+        )
+        conn.execute(
+            "CREATE TABLE icon_embeddings"
+            " (name TEXT PRIMARY KEY, embedding BLOB, model TEXT)"
+        )
+        conn.execute(
+            "CREATE TABLE icon_clusters (name TEXT, cluster_id INTEGER, theme TEXT)"
+        )
+        conn.execute("CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT)")
+        emb = (
+            np.random.default_rng(42)
+            .standard_normal(DEFAULT_EMBEDDING_DIM)
+            .astype(np.float32)
+        )
+        conn.execute(
+            "INSERT INTO icon_descriptions VALUES (?, ?, ?)",
+            ("heart", "A heart icon", "test"),
+        )
+        conn.execute(
+            "INSERT INTO icon_embeddings VALUES (?, ?, ?)",
+            ("heart", emb.tobytes(), "test"),
+        )
+        conn.execute("INSERT INTO metadata VALUES ('version', 'test')")
+        conn.commit()
+        conn.close()
+
+        with mock.patch(
+            "sys.argv",
+            ["lucide", "search", "love", "--search-db", str(search_db)],
+        ):
+            result = cli.main()
+        assert result == 0
+
+    def test_search_subcommand_no_db(self, monkeypatch):
+        monkeypatch.delenv("LUCIDE_SEARCH_DB_PATH", raising=False)
+        search._search_index = None
+        search._embedder_instance = None
+
+        with mock.patch(
+            "sys.argv",
+            [
+                "lucide",
+                "search",
+                "love",
+                "--search-db",
+                "/nonexistent/search.db",
+            ],
+        ):
+            result = cli.main()
+        assert result == 1
