@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       # This permission is needed for private packages
-      contents: read
+      contents: write
       id-token: write  # This is required for OIDC publishing
 
     steps:
