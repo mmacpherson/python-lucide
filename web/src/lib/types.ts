@@ -23,6 +23,8 @@ export interface IconData {
 
 export interface IconsManifest {
   version: string;
+  /** python-lucide package version that exported this data ("" if unknown) */
+  packageVersion: string;
   models: ModelConfig[];
   icons: IconData[];
 }

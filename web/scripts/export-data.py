@@ -15,6 +15,7 @@ time — the browser only embeds the query, so Python and web search score
 against identical document vectors.
 """
 
+import importlib.metadata
 import json
 import sqlite3
 import sys
@@ -124,8 +125,14 @@ def export_icons(names: list[str]) -> None:
             }
         )
 
+    try:
+        package_version = importlib.metadata.version("python-lucide")
+    except importlib.metadata.PackageNotFoundError:
+        package_version = ""
+
     output = {
         "version": version,
+        "packageVersion": package_version,
         "models": _model_manifest(),
         "icons": icons,
     }
