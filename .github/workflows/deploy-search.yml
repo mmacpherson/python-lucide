@@ -56,7 +56,7 @@ jobs:
       run: uv run python web/scripts/export-data.py
 
     - name: Compute embeddings
-      run: node web/scripts/compute-embeddings.mjs
+      run: node scripts/compute-embeddings.mjs
       working-directory: web
 
     - name: Build Vite app
