@@ -23,6 +23,7 @@ DATA_DIR = REPO_ROOT / "src" / "lucide" / "data"
 ICONS_DB = DATA_DIR / "lucide-icons.db"
 SEARCH_DB = DATA_DIR / "lucide-search.db"
 DESCRIPTIONS_JSONL = DATA_DIR / "gemini-icon-descriptions.jsonl"
+CLUSTERS_JSON = DATA_DIR / "lucide-icon-clusters.json"
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "public" / "data"
 
 MODEL_CONFIGS = [
@@ -110,27 +111,51 @@ def export_icons() -> None:
     print(f"Wrote {len(icons)} icons to {out_path} ({size_mb:.1f} MB)", file=sys.stderr)
 
 
+def _load_cluster_coords() -> tuple[list[str], np.ndarray] | None:
+    """Load the UMAP projection persisted by the clustering pipeline."""
+    if not CLUSTERS_JSON.exists():
+        return None
+    raw = json.loads(CLUSTERS_JSON.read_text()).get("coords")
+    if not raw:
+        return None
+    names = sorted(raw)
+    return names, np.array([raw[n] for n in names], dtype=np.float64)
+
+
 def export_umap_coords() -> None:
-    """Compute UMAP 2D projection from search DB embeddings and export as JSON."""
-    conn = sqlite3.connect(f"file:{SEARCH_DB}?mode=ro", uri=True)
-    rows = conn.execute(
-        "SELECT name, embedding FROM icon_embeddings ORDER BY name"
-    ).fetchall()
-    conn.close()
+    """Export the 2D embedding projection as normalized JSON coords.
 
-    names = [r[0] for r in rows]
-    matrix = np.stack([np.frombuffer(r[1], dtype=np.float32) for r in rows])
-    print(f"Loaded {len(names)} embeddings ({matrix.shape[1]}d)", file=sys.stderr)
+    Reuses the coords saved by ``lucide cluster`` so the explore map matches
+    the cluster assignments exactly; falls back to recomputing UMAP for
+    clusters files generated before coords were persisted.
+    """
+    persisted = _load_cluster_coords()
+    if persisted:
+        names, coords_array = persisted
+        print(
+            f"Reusing {len(names)} UMAP coords from {CLUSTERS_JSON.name}",
+            file=sys.stderr,
+        )
+    else:
+        conn = sqlite3.connect(f"file:{SEARCH_DB}?mode=ro", uri=True)
+        rows = conn.execute(
+            "SELECT name, embedding FROM icon_embeddings ORDER BY name"
+        ).fetchall()
+        conn.close()
 
-    print("Running UMAP (2D projection)...", file=sys.stderr)
-    reducer = umap.UMAP(
-        n_components=2,
-        n_neighbors=15,
-        min_dist=0.1,
-        metric="cosine",
-        random_state=42,
-    )
-    coords_array = reducer.fit_transform(matrix)
+        names = [r[0] for r in rows]
+        matrix = np.stack([np.frombuffer(r[1], dtype=np.float32) for r in rows])
+        print(f"Loaded {len(names)} embeddings ({matrix.shape[1]}d)", file=sys.stderr)
+
+        print("Running UMAP (2D projection)...", file=sys.stderr)
+        reducer = umap.UMAP(
+            n_components=2,
+            n_neighbors=15,
+            min_dist=0.1,
+            metric="cosine",
+            random_state=42,
+        )
+        coords_array = reducer.fit_transform(matrix)
 
     # Normalize to 0..1 range
     mins = coords_array.min(axis=0)

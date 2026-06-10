@@ -3,6 +3,11 @@ name: Deploy Search App
 on:
   push:
     branches: [main]
+    paths:
+    - src/lucide/data/**
+    - web/**
+    - docs/**
+    - .github/workflows/deploy-search.yml
   workflow_dispatch:
 
 permissions:

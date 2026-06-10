@@ -38,24 +38,36 @@
       .slice(0, 8);
   });
 
+  // Monotonic counter so a superseded load or search can't apply stale state
+  let generation = 0;
+
   async function switchModel(config: ModelConfig) {
+    const gen = ++generation;
     ready = false;
     modelProgress = 0;
     activeModelId = config.id;
 
     try {
       const [emb] = await Promise.all([
-        loadEmbeddings(`${BASE}data/${config.file}`, manifest.icons.length, config.dim),
-        loadModel(config, (p) => { modelProgress = p; }),
+        loadEmbeddings(`${BASE}data/${config.file}?v=${manifest.version}`, manifest.icons.length, config.dim),
+        loadModel(config, (p) => { if (gen === generation) modelProgress = p; }),
       ]);
+      if (gen !== generation) return;
       embeddingsMatrix = emb;
       modelProgress = -1;
       ready = true;
       if (query) await doSearch(query);
     } catch (e) {
+      if (gen !== generation) return;
       loadError = `Failed to load model: ${e}`;
       modelProgress = -1;
     }
+  }
+
+  function retryLoad() {
+    loadError = "";
+    const config = manifest.models.find((m) => m.id === activeModelId) ?? manifest.models[0];
+    switchModel(config);
   }
 
   async function doSearch(q: string) {
@@ -63,13 +75,19 @@
     const config = manifest.models.find((m) => m.id === activeModelId);
     if (!config) return;
 
-    const queryVec = await embed(q, config);
-    const hits = search(queryVec, embeddingsMatrix, config.dim, 50);
-    results = hits.map((h) => ({
-      icon: manifest.icons[h.index],
-      score: h.score,
-      index: h.index,
-    }));
+    const gen = ++generation;
+    try {
+      const queryVec = await embed(q, config);
+      if (gen !== generation) return;
+      const hits = search(queryVec, embeddingsMatrix, config.dim, 50);
+      results = hits.map((h) => ({
+        icon: manifest.icons[h.index],
+        score: h.score,
+        index: h.index,
+      }));
+    } catch (e) {
+      if (gen === generation) console.error("Search failed:", e);
+    }
   }
 
   function handleInput() {
@@ -117,7 +135,10 @@
 
 <main class="main">
   {#if loadError}
-    <div class="error">{loadError}</div>
+    <div class="error">
+      <span>{loadError}</span>
+      <button class="retry" onclick={retryLoad}>Retry</button>
+    </div>
   {:else}
     <div class="searchbar">
       <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--ac)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
@@ -399,7 +420,14 @@
   .error {
     color: #ff6b6b; padding: 16px;
     background: #2a1515; border-radius: 8px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
   }
+  .retry {
+    border: 1px solid #ff6b6b; background: transparent; color: #ff6b6b;
+    border-radius: 6px; padding: 5px 14px; cursor: pointer;
+    font-family: var(--font); font-size: 12.5px; flex: 0 0 auto;
+  }
+  .retry:hover { background: #ff6b6b; color: #fff; }
 
   /* ── Footer ──────────────────────────────────────────────────── */
   .foot {

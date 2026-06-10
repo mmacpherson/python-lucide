@@ -4,6 +4,9 @@ export async function loadEmbeddings(
   dim: number,
 ): Promise<Float32Array> {
   const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${url}: HTTP ${response.status}`);
+  }
   const buffer = await response.arrayBuffer();
   const embeddings = new Float32Array(buffer);
   if (embeddings.length !== nIcons * dim) {

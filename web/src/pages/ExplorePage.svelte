@@ -18,6 +18,7 @@
   let searchInput = $state("");
   let coords: Record<string, [number, number]> = {};
   let loaded = $state(false);
+  let loadError = $state("");
 
   let clusters = $derived(clusterList(clusterColors, manifest.icons));
 
@@ -65,20 +66,17 @@
   }
 
   let iconImages: Map<string, HTMLImageElement> = new Map();
-  let iconImagesReady = false;
 
-  async function prerenderIcons() {
-    const promises: Promise<void>[] = [];
+  // Glyphs stream in behind the colored-dot fallback in draw(); each
+  // arrival coalesces into at most one redraw per frame.
+  function prerenderIcons() {
     for (const icon of manifest.icons) {
       const color = clusterColor(clusterColors, icon.cluster);
-      promises.push(
-        svgToImage(icon.svg, color, ICON_SIZE * 2).then((img) => {
-          iconImages.set(icon.name, img);
-        }),
-      );
+      void svgToImage(icon.svg, color, ICON_SIZE * 2).then((img) => {
+        iconImages.set(icon.name, img);
+        scheduleDraw();
+      });
     }
-    await Promise.all(promises);
-    iconImagesReady = true;
   }
 
   function layoutPoints() {
@@ -107,6 +105,16 @@
         };
       })
       .filter((p): p is NonNullable<typeof p> => p !== null);
+  }
+
+  let drawScheduled = false;
+  function scheduleDraw() {
+    if (drawScheduled) return;
+    drawScheduled = true;
+    requestAnimationFrame(() => {
+      drawScheduled = false;
+      draw();
+    });
   }
 
   function draw() {
@@ -256,7 +264,7 @@
   function handleMouseMove(e: MouseEvent) {
     if (dragging) {
       transform = { ...transform, x: transform.x + e.movementX, y: transform.y + e.movementY };
-      draw();
+      scheduleDraw();
       return;
     }
     const hit = findIconAt(e.clientX, e.clientY);
@@ -290,7 +298,7 @@
     const newScale = Math.max(0.3, Math.min(10, transform.scale * factor));
     const ratio = newScale / transform.scale;
     transform = { x: mx - (mx - transform.x) * ratio, y: my - (my - transform.y) * ratio, scale: newScale };
-    draw();
+    scheduleDraw();
   }
 
   function handleSearch() {
@@ -317,20 +325,27 @@
 
   async function loadData() {
     try {
-      const resp = await fetch(`${BASE}data/umap-coords.json`);
+      const resp = await fetch(`${BASE}data/umap-coords.json?v=${manifest.version}`);
+      if (!resp.ok) throw new Error(`Failed to fetch umap-coords.json: HTTP ${resp.status}`);
       coords = await resp.json();
 
       const model = manifest.models[0];
       embeddingDim = model.dim;
       embeddingsMatrix = await loadEmbeddings(
-        `${BASE}data/${model.file}`, manifest.icons.length, model.dim,
+        `${BASE}data/${model.file}?v=${manifest.version}`, manifest.icons.length, model.dim,
       );
 
-      await prerenderIcons();
       loaded = true;
+      prerenderIcons();
     } catch (e) {
-      console.error("Failed to load explore data:", e);
+      loadError = `Failed to load explore data: ${e}`;
     }
+  }
+
+  async function retryLoad() {
+    loadError = "";
+    await loadData();
+    draw();
   }
 
   let resizeObserver: ResizeObserver | null = null;
@@ -411,7 +426,14 @@
       onmouseleave={handleMouseUp}
       onwheel={handleWheel}
     ></canvas>
-    {#if !loaded}
+    {#if loadError}
+      <div class="canvas-loading">
+        <div class="canvas-error">
+          <span>{loadError}</span>
+          <button class="retry" onclick={retryLoad}>Retry</button>
+        </div>
+      </div>
+    {:else if !loaded}
       <div class="canvas-loading">Loading embedding space...</div>
     {/if}
     <div class="ex-hint">Click to select &middot; Shift+click multi-select &middot; Scroll to zoom &middot; Drag to pan</div>
@@ -517,6 +539,17 @@
     display: flex; align-items: center; justify-content: center;
     color: var(--tx2); pointer-events: none;
   }
+  .canvas-error {
+    pointer-events: auto;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    color: #ff6b6b; font-size: 13px; text-align: center; max-width: 360px;
+  }
+  .retry {
+    border: 1px solid #ff6b6b; background: transparent; color: #ff6b6b;
+    border-radius: 6px; padding: 5px 14px; cursor: pointer;
+    font-family: var(--font); font-size: 12.5px;
+  }
+  .retry:hover { background: #ff6b6b; color: #fff; }
   .ex-hint {
     position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
     font-size: 11.5px; color: var(--tx3); white-space: nowrap; pointer-events: none;
