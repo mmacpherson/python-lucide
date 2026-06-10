@@ -72,9 +72,11 @@ jobs:
         source: docs
         destination: ./_site
 
-      # Jekyll excludes search/ — copy the Vite output back in
+      # Jekyll excludes search/ — copy the Vite output back in. The Jekyll
+      # action runs in a Docker container as root, so _site is root-owned
+      # and the copy needs sudo.
     - name: Merge search app into site
-      run: cp -r docs/search _site/search
+      run: sudo cp -r docs/search _site/search
 
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
