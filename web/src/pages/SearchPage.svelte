@@ -317,7 +317,7 @@
     {/if}
 
     <footer class="foot">
-      <span>powered by <a class="repo mono" href="https://github.com/mmacpherson/python-lucide" target="_blank" rel="noopener">python-lucide</a> &middot; {manifest.icons.length.toLocaleString()} icons shipped in SQLite</span>
+      <span>powered by <a class="repo mono" href="https://github.com/mmacpherson/python-lucide" target="_blank" rel="noopener">python-lucide</a>{#if manifest.packageVersion}&nbsp;<span class="mono dim">v{manifest.packageVersion}</span>{/if} &middot; {manifest.icons.length.toLocaleString()} icons shipped in SQLite</span>
       <span class="dim">embeddings computed in-browser via <a href="https://huggingface.co/docs/transformers.js" target="_blank">transformers.js</a></span>
     </footer>
   {/if}
