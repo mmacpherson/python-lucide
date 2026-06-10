@@ -39,7 +39,7 @@
   const iconImageCache = new Map<string, HTMLImageElement>();
 
   function svgToImage(svgStr: string, color: string, size: number): Promise<HTMLImageElement> {
-    const key = `${svgStr.length}:${color}`;
+    const key = `${svgStr}:${color}`;
     const cached = iconImageCache.get(key);
     if (cached) return Promise.resolve(cached);
 

@@ -40,7 +40,8 @@ MODEL_CONFIGS = [
         "dim": 384,
         "file": "embeddings-bge-small.bin",
         "hfModel": "Xenova/bge-small-en-v1.5",
-        "queryPrefix": "",
+        # BGE v1.5 asymmetric retrieval: queries need this instruction, documents don't
+        "queryPrefix": "Represent this sentence for searching relevant passages: ",
         "docPrefix": "",
         "label": "Better",
     },

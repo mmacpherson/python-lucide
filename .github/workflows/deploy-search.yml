@@ -31,6 +31,11 @@ jobs:
     - name: Install Python dependencies
       run: uv sync
 
+      # The search DB is not in git — derive it from the committed JSONL +
+      # clusters JSON. Embedding runs locally via fastembed; no API key needed.
+    - name: Build search database
+      run: make build-search
+
     - name: Set up Node
       uses: actions/setup-node@v4
       with:
