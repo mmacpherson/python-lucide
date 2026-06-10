@@ -130,6 +130,22 @@
     return config?.hfModel.split("/").pop() ?? "";
   }
 
+  // Curated with scripts/eval-prompts.mjs: each retrieves clearly relevant
+  // icons in the top results on BOTH models, and shows that descriptive
+  // phrases beat single keywords
+  const EXAMPLES = [
+    "waiting for something to finish loading",
+    "the weather is getting colder",
+    "notifications are turned off",
+    "celebrate a big achievement",
+    "secure login with a password",
+  ];
+
+  function runExample(q: string) {
+    query = q;
+    doSearch(q);
+  }
+
   let modelInfoOpen = $state(false);
 
   function handleWindowClick() {
@@ -164,6 +180,15 @@
         </button>
       {/if}
     </div>
+
+    {#if !query && ready}
+      <div class="examples">
+        <span class="ex-label">Try</span>
+        {#each EXAMPLES as example}
+          <button class="chip" onclick={() => runExample(example)}>{example}</button>
+        {/each}
+      </div>
+    {/if}
 
     <div class="meta">
       <div class="meta-l">
@@ -207,6 +232,7 @@
               <p><b>Faster</b> uses <span class="mono">all-MiniLM-L6-v2</span> (~90&thinsp;MB) — quick to download, solid results.</p>
               <p><b>Better</b> uses <span class="mono">bge-small-en-v1.5</span> (~130&thinsp;MB) — a larger model with noticeably stronger semantic ranking.</p>
               <p>Each model downloads once on first use, then loads from browser cache.</p>
+              <p>Tip: descriptive phrases ("waiting for a download") match better than single keywords.</p>
             </div>
           {/if}
         </div>
@@ -316,6 +342,26 @@
     display: flex; padding: 3px; border-radius: 6px;
   }
   .clear:hover { background: var(--surf2); }
+
+  /* ── Example chips ──────────────────────────────────────────── */
+  .examples {
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: 7px; margin: 13px 4px 0;
+  }
+  .ex-label {
+    font-size: 12px; color: var(--tx3); font-weight: 600;
+    margin-right: 2px;
+  }
+  .chip {
+    font-family: var(--font); font-size: 12px; font-weight: 500;
+    color: var(--tx2); background: var(--surf);
+    border: 1px solid var(--bd); border-radius: 999px;
+    padding: 5px 12px; cursor: pointer;
+    transition: color .14s, border-color .14s, background .14s;
+  }
+  .chip:hover {
+    color: var(--tx); border-color: var(--ac); background: var(--acs);
+  }
 
   /* ── Meta row ────────────────────────────────────────────────── */
   .meta {

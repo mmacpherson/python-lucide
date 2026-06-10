@@ -73,6 +73,7 @@
 <div class="glow"></div>
 
 <header class="hdr">
+  <div class="hdr-in">
   <div class="brand">
     <span class="mark">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.065 12.493-6.18 1.318a.934.934 0 0 1-1.108-.702l-.537-2.15a1.07 1.07 0 0 1 .691-1.265l13.504-4.44"/><path d="m13.56 11.747 4.332-.924"/><path d="m16 21-3.105-6.21"/><path d="M16 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="m20 9 1.768-1.768A2.245 2.245 0 0 0 20 3a2.244 2.244 0 0 0-1.768 3.232L20 9Z"/></svg>
@@ -98,6 +99,7 @@
     <a class="iconbtn" href="https://github.com/mmacpherson/python-lucide" target="_blank" rel="noopener" title="python-lucide on GitHub" aria-label="python-lucide on GitHub">
       <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--tx2)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
     </a>
+  </div>
   </div>
 </header>
 
@@ -128,11 +130,16 @@
 
   .hdr {
     position: sticky; top: 0; z-index: 20;
-    display: flex; align-items: center; justify-content: space-between;
     padding: 14px 28px;
     border-bottom: 1px solid var(--bd);
     background: color-mix(in srgb, var(--bg) 80%, transparent);
     backdrop-filter: blur(12px);
+  }
+  /* 1064px = .main's 1120px max-width minus its 28px side padding,
+     so the header content lines up with the page content */
+  .hdr-in {
+    display: flex; align-items: center; justify-content: space-between;
+    max-width: 1064px; margin: 0 auto;
   }
   .brand { display: flex; align-items: center; gap: 11px; }
   .mark {
