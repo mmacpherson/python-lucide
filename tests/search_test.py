@@ -73,6 +73,10 @@ def search_db(tmp_path):
         )
 
     cursor.execute("INSERT INTO metadata VALUES ('version', '0.577.0')")
+    cursor.execute(
+        "INSERT INTO metadata VALUES ('schema_version', ?)",
+        (str(SEARCH_DB_SCHEMA_VERSION),),
+    )
     conn.commit()
     conn.close()
 
@@ -294,7 +298,7 @@ class TestResolveSearchDb:
 
         cache_dir = tmp_path / "cache"
         cache_dir.mkdir()
-        cached = cache_dir / f"lucide-search-v{SEARCH_DB_SCHEMA_VERSION}-0.577.0.db"
+        cached = cache_dir / "lucide-search-0.577.0.db"
         # Copy the test DB to the cache location
         cached.write_bytes(db_path.read_bytes())
 
@@ -303,6 +307,50 @@ class TestResolveSearchDb:
 
         result = search._resolve_search_db(allow_download=False)
         assert result == cached
+
+    def test_stale_schema_cache_is_discarded(self, tmp_path, monkeypatch):
+        monkeypatch.delenv("LUCIDE_SEARCH_DB_PATH", raising=False)
+
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+        cached = cache_dir / "lucide-search-0.577.0.db"
+        conn = sqlite3.connect(cached)
+        conn.execute("CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT)")
+        # No schema_version key: a pre-versioning (v1) database
+        conn.execute("INSERT INTO metadata VALUES ('version', '0.577.0')")
+        conn.commit()
+        conn.close()
+
+        monkeypatch.setattr(search, "_get_cache_dir", lambda: cache_dir)
+        monkeypatch.setattr(search, "_get_icons_version", lambda: "0.577.0")
+
+        result = search._resolve_search_db(allow_download=False)
+        assert result is None
+        assert not cached.exists()
+
+    def test_incompatible_download_raises(self, tmp_path, monkeypatch):
+        monkeypatch.delenv("LUCIDE_SEARCH_DB_PATH", raising=False)
+
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+        monkeypatch.setattr(search, "_get_cache_dir", lambda: cache_dir)
+        monkeypatch.setattr(search, "_get_icons_version", lambda: "0.577.0")
+
+        def fake_urlretrieve(_url, dest):
+            conn = sqlite3.connect(dest)
+            conn.execute("CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT)")
+            conn.execute("INSERT INTO metadata VALUES ('version', '0.577.0')")
+            conn.commit()
+            conn.close()
+
+        with (
+            mock.patch.object(
+                search.urllib.request, "urlretrieve", side_effect=fake_urlretrieve
+            ),
+            pytest.raises(search.SearchNotAvailableError, match="schema"),
+        ):
+            search._resolve_search_db(allow_download=True)
+        assert not (cache_dir / "lucide-search-0.577.0.db").exists()
 
 
 class TestModelSelection:
