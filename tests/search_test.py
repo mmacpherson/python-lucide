@@ -7,7 +7,13 @@ import numpy as np
 import pytest
 
 from lucide import search
-from lucide.config import DEFAULT_EMBEDDING_DIM
+from lucide.config import (
+    DEFAULT_SEARCH_MODEL_ID,
+    EMBEDDING_MODELS,
+    SEARCH_DB_SCHEMA_VERSION,
+)
+
+DIM = EMBEDDING_MODELS[DEFAULT_SEARCH_MODEL_ID].dim
 
 # --- Fixtures ---
 
@@ -15,11 +21,11 @@ from lucide.config import DEFAULT_EMBEDDING_DIM
 @pytest.fixture(autouse=True)
 def _reset_search_caches():
     """Clear module-level caches between tests."""
-    search._embedder_instance = None
-    search._search_index = None
+    search._embedder_instances.clear()
+    search._search_indexes.clear()
     yield
-    search._embedder_instance = None
-    search._search_index = None
+    search._embedder_instances.clear()
+    search._search_indexes.clear()
 
 
 @pytest.fixture
@@ -36,7 +42,8 @@ def search_db(tmp_path):
     )
     cursor.execute(
         "CREATE TABLE icon_embeddings ("
-        "  name TEXT PRIMARY KEY, embedding BLOB NOT NULL, model TEXT NOT NULL"
+        "  name TEXT NOT NULL, embedding BLOB NOT NULL, model TEXT NOT NULL,"
+        "  PRIMARY KEY (name, model)"
         ")"
     )
     cursor.execute(
@@ -57,12 +64,12 @@ def search_db(tmp_path):
             "INSERT INTO icon_descriptions VALUES (?, ?, ?)",
             (name, desc, "test-model"),
         )
-        emb = rng.standard_normal(DEFAULT_EMBEDDING_DIM).astype(np.float32)
+        emb = rng.standard_normal(DIM).astype(np.float32)
         emb /= np.linalg.norm(emb)
         embeddings[name] = emb
         cursor.execute(
             "INSERT INTO icon_embeddings VALUES (?, ?, ?)",
-            (name, emb.tobytes(), "test-model"),
+            (name, emb.tobytes(), DEFAULT_SEARCH_MODEL_ID),
         )
 
     cursor.execute("INSERT INTO metadata VALUES ('version', '0.577.0')")
@@ -95,7 +102,7 @@ class FakeEmbedder:
 
     def embed(self, texts):
         for _text in texts:
-            vec = self.rng.standard_normal(DEFAULT_EMBEDDING_DIM).astype(np.float32)
+            vec = self.rng.standard_normal(DIM).astype(np.float32)
             vec /= np.linalg.norm(vec)
             yield vec
 
@@ -111,7 +118,7 @@ class TestSearchIcons:
         monkeypatch.setattr(search, "_get_icons_version", lambda: "0.577.0")
 
         with mock.patch.dict("sys.modules", {"fastembed": mock.MagicMock()}):
-            search._embedder_instance = FakeEmbedder()
+            search._embedder_instances[DEFAULT_SEARCH_MODEL_ID] = FakeEmbedder()
 
             results = search.search_icons("love", limit=3)
 
@@ -128,7 +135,7 @@ class TestSearchIcons:
         monkeypatch.setattr(search, "_get_icons_version", lambda: "0.577.0")
 
         with mock.patch.dict("sys.modules", {"fastembed": mock.MagicMock()}):
-            search._embedder_instance = FakeEmbedder()
+            search._embedder_instances[DEFAULT_SEARCH_MODEL_ID] = FakeEmbedder()
 
             results = search.search_icons("test", limit=1)
 
@@ -141,7 +148,7 @@ class TestSearchIcons:
         monkeypatch.setattr(search, "_get_icons_version", lambda: "0.577.0")
 
         with mock.patch.dict("sys.modules", {"fastembed": mock.MagicMock()}):
-            search._embedder_instance = FakeEmbedder()
+            search._embedder_instances[DEFAULT_SEARCH_MODEL_ID] = FakeEmbedder()
 
             # Very high threshold should exclude most results
             results = search.search_icons("test", threshold=0.99)
@@ -155,7 +162,7 @@ class TestSearchIcons:
         monkeypatch.setattr(search, "_get_icons_version", lambda: "0.577.0")
 
         with mock.patch.dict("sys.modules", {"fastembed": mock.MagicMock()}):
-            search._embedder_instance = FakeEmbedder()
+            search._embedder_instances[DEFAULT_SEARCH_MODEL_ID] = FakeEmbedder()
 
             results = search.search_icons("heart", limit=3)
 
@@ -228,7 +235,7 @@ class TestSearchNotAvailableError:
             ),
             mock.patch.dict("sys.modules", {"fastembed": mock.MagicMock()}),
         ):
-            search._embedder_instance = FakeEmbedder()
+            search._embedder_instances[DEFAULT_SEARCH_MODEL_ID] = FakeEmbedder()
             with pytest.raises(search.SearchNotAvailableError):
                 search.search_icons("test")
 
@@ -287,7 +294,7 @@ class TestResolveSearchDb:
 
         cache_dir = tmp_path / "cache"
         cache_dir.mkdir()
-        cached = cache_dir / "lucide-search-0.577.0.db"
+        cached = cache_dir / f"lucide-search-v{SEARCH_DB_SCHEMA_VERSION}-0.577.0.db"
         # Copy the test DB to the cache location
         cached.write_bytes(db_path.read_bytes())
 
@@ -296,3 +303,27 @@ class TestResolveSearchDb:
 
         result = search._resolve_search_db(allow_download=False)
         assert result == cached
+
+
+class TestModelSelection:
+    def test_unknown_model_raises(self, search_db, monkeypatch):
+        db_path, _ = search_db
+        monkeypatch.setenv("LUCIDE_SEARCH_DB_PATH", str(db_path))
+
+        with (
+            mock.patch.dict("sys.modules", {"fastembed": mock.MagicMock()}),
+            pytest.raises(ValueError, match="Unknown embedding model"),
+        ):
+            search.search_icons("test", model="not-a-model")
+
+    def test_no_embeddings_for_model_raises(self, search_db, monkeypatch):
+        # The fixture DB only has rows for the default model
+        other = next(mid for mid in EMBEDDING_MODELS if mid != DEFAULT_SEARCH_MODEL_ID)
+        db_path, _ = search_db
+        monkeypatch.setenv("LUCIDE_SEARCH_DB_PATH", str(db_path))
+        monkeypatch.setattr(search, "_get_icons_version", lambda: "0.577.0")
+
+        with mock.patch.dict("sys.modules", {"fastembed": mock.MagicMock()}):
+            search._embedder_instances[other] = FakeEmbedder()
+            with pytest.raises(search.SearchNotAvailableError, match="no embeddings"):
+                search.search_icons("test", model=other)

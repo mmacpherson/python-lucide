@@ -30,10 +30,9 @@ from datetime import datetime, timezone
 from typing import TypedDict
 
 from .config import (
-    DEFAULT_EMBEDDING_DIM,
-    DEFAULT_EMBEDDING_MODEL,
     DEFAULT_VLM_MODEL,
-    EMBEDDING_DOCUMENT_PREFIX,
+    EMBEDDING_MODELS,
+    SEARCH_DB_SCHEMA_VERSION,
 )
 
 logger = logging.getLogger(__name__)
@@ -486,9 +485,10 @@ def _ensure_search_tables(conn: sqlite3.Connection) -> None:
     )
     conn.execute(
         "CREATE TABLE IF NOT EXISTS icon_embeddings ("
-        "  name TEXT PRIMARY KEY,"
+        "  name TEXT NOT NULL,"
         "  embedding BLOB NOT NULL,"
-        "  model TEXT NOT NULL"
+        "  model TEXT NOT NULL,"
+        "  PRIMARY KEY (name, model)"
         ")"
     )
     conn.execute(
@@ -513,22 +513,34 @@ def _write_search_db(  # noqa: PLR0913
     search_db_path: pathlib.Path,
     ordered_names: list[str],
     records: dict[str, DescriptionRecord],
-    embeddings: list,
+    embeddings: dict[str, dict[str, object]],
     clusters_path: pathlib.Path,
     *,
     version: str | None = None,
     verbose: bool = False,
 ) -> None:
-    """Write descriptions, embeddings, clusters, and metadata to SQLite."""
+    """Write descriptions, embeddings, clusters, and metadata to SQLite.
+
+    Args:
+        search_db_path: Output SQLite path (recreated from scratch).
+        ordered_names: Icon names in insertion order.
+        records: Description records keyed by icon name.
+        embeddings: Embedding vectors as ``{model_id: {icon_name: vector}}``.
+            A model may cover only a subset of icons; absent names are
+            simply not inserted for that model.
+        clusters_path: JSON file with cluster assignments.
+        version: Lucide icon-set version for the metadata table.
+        verbose: Verbose logging.
+    """
     import numpy as np  # noqa: PLC0415
 
     search_db_path.parent.mkdir(parents=True, exist_ok=True)
+    # Recreate rather than DELETE-and-reuse: the schema itself may have
+    # changed since the last build (CREATE IF NOT EXISTS won't migrate it)
+    search_db_path.unlink(missing_ok=True)
     conn = sqlite3.connect(search_db_path)
     try:
         _ensure_search_tables(conn)
-
-        conn.execute("DELETE FROM icon_descriptions")
-        conn.execute("DELETE FROM icon_embeddings")
 
         for name in ordered_names:
             rec = records[name]
@@ -538,15 +550,18 @@ def _write_search_db(  # noqa: PLR0913
                 (name, rec["description"], rec["model"]),
             )
 
-        for name, emb in zip(ordered_names, embeddings, strict=True):
-            blob = np.array(emb, dtype=np.float32).tobytes()
-            conn.execute(
-                "INSERT INTO icon_embeddings (name, embedding, model) VALUES (?, ?, ?)",
-                (name, blob, DEFAULT_EMBEDDING_MODEL),
-            )
+        for model_id, vectors_by_name in embeddings.items():
+            for name in ordered_names:
+                if name not in vectors_by_name:
+                    continue
+                blob = np.array(vectors_by_name[name], dtype=np.float32).tobytes()
+                conn.execute(
+                    "INSERT INTO icon_embeddings (name, embedding, model)"
+                    " VALUES (?, ?, ?)",
+                    (name, blob, model_id),
+                )
 
         # Load clusters
-        conn.execute("DELETE FROM icon_clusters")
         cluster_data = json.loads(clusters_path.read_text())
         for cid, cluster in cluster_data["clusters"].items():
             theme = cluster.get("theme", f"Cluster {cid}")
@@ -584,10 +599,11 @@ def _write_search_db(  # noqa: PLR0913
         first = records[ordered_names[0]]
         resolved_version = version or first.get("lucide_version", "unknown")
         now = datetime.now(tz=timezone.utc).isoformat()
+        model_dims = json.dumps({mid: EMBEDDING_MODELS[mid].dim for mid in embeddings})
         for key, value in [
             ("version", resolved_version),
-            ("embedding_model", DEFAULT_EMBEDDING_MODEL),
-            ("embedding_dim", str(DEFAULT_EMBEDDING_DIM)),
+            ("schema_version", str(SEARCH_DB_SCHEMA_VERSION)),
+            ("embedding_models", model_dims),
             ("description_model", DEFAULT_VLM_MODEL),
             ("built_at", now),
         ]:
@@ -631,9 +647,10 @@ def build_search_db(
 ) -> None:
     """Build the SQLite search database from descriptions, embeddings, and clusters.
 
-    Reads descriptions from *jsonl_path*, computes embeddings with fastembed,
-    loads cluster assignments from *clusters_path*, and writes everything to
-    *search_db_path*.  The DB is rebuilt from scratch each time.
+    Reads descriptions from *jsonl_path*, computes one embedding set per
+    model in ``EMBEDDING_MODELS`` with fastembed, loads cluster assignments
+    from *clusters_path*, and writes everything to *search_db_path*.  The DB
+    is rebuilt from scratch each time.
 
     When *icons_db_path* is provided, only icons present in that database are
     included and the version metadata is read from it.
@@ -687,12 +704,18 @@ def build_search_db(
         if rec["categories"]:
             parts.append(f"Categories: {', '.join(rec['categories'])}")
         parts.append(rec["description"])
-        return f"{EMBEDDING_DOCUMENT_PREFIX}{'. '.join(parts)}"
+        return ". ".join(parts)
 
-    texts = [_embedding_text(records[n]) for n in ordered_names]
-    embedder = TextEmbedding(model_name=DEFAULT_EMBEDDING_MODEL)
-    embeddings = list(embedder.embed(texts))
-    logger.info("Computed %d embeddings", len(embeddings))
+    base_texts = [_embedding_text(records[n]) for n in ordered_names]
+    embeddings: dict[str, dict[str, object]] = {}
+    for model_id, model_cfg in EMBEDDING_MODELS.items():
+        texts = [f"{model_cfg.document_prefix}{t}" for t in base_texts]
+        embedder = TextEmbedding(model_name=model_cfg.fastembed_model)
+        vecs = list(embedder.embed(texts))
+        embeddings[model_id] = dict(zip(ordered_names, vecs, strict=True))
+        logger.info(
+            "Computed %d embeddings with %s", len(texts), model_cfg.fastembed_model
+        )
 
     _write_search_db(
         search_db_path,

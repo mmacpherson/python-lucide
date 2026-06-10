@@ -24,7 +24,11 @@ import sys
 import tempfile
 from datetime import datetime
 
-from .config import DEFAULT_LUCIDE_TAG
+from .config import (
+    DEFAULT_LUCIDE_TAG,
+    DEFAULT_SEARCH_MODEL_ID,
+    EMBEDDING_MODELS,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -546,7 +550,7 @@ def _cmd_search(args: argparse.Namespace) -> int:
                 os.environ["LUCIDE_SEARCH_DB_PATH"] = str(candidate)
 
     try:
-        results = search_icons(args.query, limit=args.limit)
+        results = search_icons(args.query, limit=args.limit, model=args.model)
     except Exception as e:
         print(f"Error: {e}")
         return 1
@@ -855,6 +859,12 @@ def main() -> int:
         "--search-db",
         help="Path to the search database",
         default=None,
+    )
+    search_parser.add_argument(
+        "--model",
+        choices=sorted(EMBEDDING_MODELS),
+        default=DEFAULT_SEARCH_MODEL_ID,
+        help="Embedding model to search with",
     )
     search_parser.add_argument(
         "-v",

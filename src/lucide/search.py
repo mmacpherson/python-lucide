@@ -15,9 +15,10 @@ import urllib.request
 from typing import Any, NamedTuple
 
 from .config import (
-    DEFAULT_EMBEDDING_MODEL,
     DEFAULT_LUCIDE_TAG,
-    EMBEDDING_QUERY_PREFIX,
+    DEFAULT_SEARCH_MODEL_ID,
+    EMBEDDING_MODELS,
+    SEARCH_DB_SCHEMA_VERSION,
     SEARCH_DB_URL_TEMPLATE,
 )
 from .db import get_db_connection
@@ -105,7 +106,9 @@ def _resolve_search_db(*, allow_download: bool = False) -> pathlib.Path | None:
             return path
 
     version = _get_icons_version()
-    cached = _get_cache_dir() / f"lucide-search-{version}.db"
+    cached = (
+        _get_cache_dir() / f"lucide-search-v{SEARCH_DB_SCHEMA_VERSION}-{version}.db"
+    )
     if cached.exists():
         return cached
 
@@ -131,14 +134,23 @@ def _resolve_search_db(*, allow_download: bool = False) -> pathlib.Path | None:
 # In-memory search index (module-level cache)
 # ---------------------------------------------------------------------------
 
-_embedder_instance: Any = None
-_search_index: dict[str, Any] | None = None
+_embedder_instances: dict[str, Any] = {}
+_search_indexes: dict[str, dict[str, Any]] = {}
 
 
-def _get_embedder() -> Any:
-    """Return a cached fastembed TextEmbedding instance."""
-    global _embedder_instance  # noqa: PLW0603
-    if _embedder_instance is None:
+def _resolve_model(model: str) -> str:
+    """Validate a model id against the registry."""
+    if model not in EMBEDDING_MODELS:
+        raise ValueError(
+            f"Unknown embedding model {model!r}. "
+            f"Available: {', '.join(sorted(EMBEDDING_MODELS))}"
+        )
+    return model
+
+
+def _get_embedder(model: str) -> Any:
+    """Return a cached fastembed TextEmbedding instance for *model*."""
+    if model not in _embedder_instances:
         _check_search_deps()
         import warnings  # noqa: PLC0415
 
@@ -146,22 +158,33 @@ def _get_embedder() -> Any:
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", UserWarning)
-            _embedder_instance = TextEmbedding(model_name=DEFAULT_EMBEDDING_MODEL)
-    return _embedder_instance
+            _embedder_instances[model] = TextEmbedding(
+                model_name=EMBEDDING_MODELS[model].fastembed_model
+            )
+    return _embedder_instances[model]
 
 
-def _load_search_index() -> dict[str, Any]:
-    """Load and cache the full search index from the search database.
+def _embed_query(model: str, query: str) -> Any:
+    """Embed a query with the model's query prefix applied."""
+    import numpy as np  # noqa: PLC0415
+
+    prefixed = f"{EMBEDDING_MODELS[model].query_prefix}{query}"
+    embedder = _get_embedder(model)
+    return np.array(next(iter(embedder.embed([prefixed]))), dtype=np.float32)
+
+
+def _load_search_index(model: str) -> dict[str, Any]:
+    """Load and cache the search index for one embedding model.
 
     The index contains pre-normalized embedding vectors for fast cosine
     similarity via a single matrix-vector dot product.
     """
-    global _search_index  # noqa: PLW0603
     import numpy as np  # noqa: PLC0415
 
     version = _get_icons_version()
-    if _search_index is not None and _search_index["version"] == version:
-        return _search_index
+    cached_index = _search_indexes.get(model)
+    if cached_index is not None and cached_index["version"] == version:
+        return cached_index
 
     db_path = _resolve_search_db(allow_download=True)
     if db_path is None:
@@ -178,14 +201,18 @@ def _load_search_index() -> dict[str, Any]:
             "SELECT e.name, e.embedding, d.description "
             "FROM icon_embeddings e "
             "JOIN icon_descriptions d ON e.name = d.name "
-            "ORDER BY e.name"
+            "WHERE e.model = ? "
+            "ORDER BY e.name",
+            (model,),
         )
         rows = cursor.fetchall()
     finally:
         conn.close()
 
     if not rows:
-        raise SearchNotAvailableError("Search database contains no embeddings")
+        raise SearchNotAvailableError(
+            f"Search database contains no embeddings for model {model!r}"
+        )
 
     names = [row[0] for row in rows]
     descriptions = {row[0]: row[2] for row in rows}
@@ -196,13 +223,13 @@ def _load_search_index() -> dict[str, Any]:
     norms = np.where(norms == 0, 1, norms)
     matrix = (matrix / norms).astype(np.float32)
 
-    _search_index = {
+    _search_indexes[model] = {
         "version": version,
         "names": names,
         "matrix": matrix,
         "descriptions": descriptions,
     }
-    return _search_index
+    return _search_indexes[model]
 
 
 # ---------------------------------------------------------------------------
@@ -214,33 +241,35 @@ def search_icons(
     query: str,
     limit: int = 10,
     threshold: float = 0.0,
+    model: str = DEFAULT_SEARCH_MODEL_ID,
 ) -> list[SearchResult]:
     """Search for icons by natural language query.
 
-    On the first call the search database is downloaded (~8 MB) and cached
-    in ``~/.cache/python-lucide/``.  The embedding model (~45 MB) is also
-    downloaded once by *fastembed*.
+    On the first call the search database is downloaded and cached in
+    ``~/.cache/python-lucide/``.  The embedding model (~35-130 MB depending
+    on *model*) is also downloaded once by *fastembed*.
 
     Args:
         query: Natural language search query (e.g. "payment", "hard work").
         limit: Maximum number of results to return.
         threshold: Minimum cosine-similarity score (0.0-1.0) to include.
+        model: Embedding model id from ``EMBEDDING_MODELS``.
 
     Returns:
         Results ordered by descending similarity score.
 
     Raises:
         ImportError: If the ``search`` extra is not installed.
+        ValueError: If *model* is not a known embedding model id.
         SearchNotAvailableError: If search data cannot be loaded.
     """
     _check_search_deps()
     import numpy as np  # noqa: PLC0415
 
-    embedder = _get_embedder()
-    index = _load_search_index()
+    model = _resolve_model(model)
+    index = _load_search_index(model)
 
-    prefixed_query = f"{EMBEDDING_QUERY_PREFIX}{query}"
-    query_vec = np.array(next(iter(embedder.embed([prefixed_query]))), dtype=np.float32)
+    query_vec = _embed_query(model, query)
     norm = np.linalg.norm(query_vec)
     if norm > 0:
         query_vec /= norm

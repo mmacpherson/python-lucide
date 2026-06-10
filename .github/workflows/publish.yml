@@ -65,6 +65,7 @@ jobs:
         fi
 
         LUCIDE_VERSION=$(sqlite3 "$SEARCH_DB" "SELECT value FROM metadata WHERE key='version';")
+        SCHEMA_VERSION=$(sqlite3 "$SEARCH_DB" "SELECT value FROM metadata WHERE key='schema_version';")
         RELEASE_TAG="search-v${LUCIDE_VERSION}"
         echo "Publishing search DB for Lucide v${LUCIDE_VERSION} → ${RELEASE_TAG}"
 
@@ -74,5 +75,9 @@ jobs:
             --title "Search data for Lucide v${LUCIDE_VERSION}" \
             --notes "Pre-built semantic search database for Lucide icons v${LUCIDE_VERSION}. Downloaded automatically by \`python-lucide[search]\` on first use."
 
-        gh release upload "$RELEASE_TAG" "$SEARCH_DB" --clobber
-        echo "✅ Uploaded search DB to release ${RELEASE_TAG}"
+        # Asset name carries the schema version so old package versions
+        # keep resolving the asset whose layout they understand
+        ASSET="lucide-search-v${SCHEMA_VERSION}.db"
+        cp "$SEARCH_DB" "$ASSET"
+        gh release upload "$RELEASE_TAG" "$ASSET" --clobber
+        echo "✅ Uploaded ${ASSET} to release ${RELEASE_TAG}"

@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from lucide import cli, search
-from lucide.config import DEFAULT_EMBEDDING_DIM
+from lucide.config import DEFAULT_SEARCH_MODEL_ID, EMBEDDING_MODELS
 
 
 @pytest.fixture
@@ -156,6 +156,7 @@ class TestMainSubcommands:
             assert result == 0
 
     def test_search_subcommand(self, tmp_path):
+        dim = EMBEDDING_MODELS[DEFAULT_SEARCH_MODEL_ID].dim
         search_db = tmp_path / "test-search.db"
         conn = sqlite3.connect(search_db)
         conn.execute(
@@ -164,40 +165,51 @@ class TestMainSubcommands:
         )
         conn.execute(
             "CREATE TABLE icon_embeddings"
-            " (name TEXT PRIMARY KEY, embedding BLOB, model TEXT)"
+            " (name TEXT, embedding BLOB, model TEXT, PRIMARY KEY (name, model))"
         )
         conn.execute(
             "CREATE TABLE icon_clusters (name TEXT, cluster_id INTEGER, theme TEXT)"
         )
         conn.execute("CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT)")
-        emb = (
-            np.random.default_rng(42)
-            .standard_normal(DEFAULT_EMBEDDING_DIM)
-            .astype(np.float32)
-        )
+        rng = np.random.default_rng(42)
+        emb = rng.standard_normal(dim).astype(np.float32)
         conn.execute(
             "INSERT INTO icon_descriptions VALUES (?, ?, ?)",
             ("heart", "A heart icon", "test"),
         )
         conn.execute(
             "INSERT INTO icon_embeddings VALUES (?, ?, ?)",
-            ("heart", emb.tobytes(), "test"),
+            ("heart", emb.tobytes(), DEFAULT_SEARCH_MODEL_ID),
         )
         conn.execute("INSERT INTO metadata VALUES ('version', 'test')")
         conn.commit()
         conn.close()
 
-        with mock.patch(
-            "sys.argv",
-            ["lucide", "search", "love", "--search-db", str(search_db)],
-        ):
-            result = cli.main()
+        class FakeEmbedder:
+            def embed(self, texts):
+                for _ in texts:
+                    yield rng.standard_normal(dim).astype(np.float32)
+
+        search._search_indexes.clear()
+        search._embedder_instances[DEFAULT_SEARCH_MODEL_ID] = FakeEmbedder()
+        try:
+            with (
+                mock.patch.dict("sys.modules", {"fastembed": mock.MagicMock()}),
+                mock.patch(
+                    "sys.argv",
+                    ["lucide", "search", "love", "--search-db", str(search_db)],
+                ),
+            ):
+                result = cli.main()
+        finally:
+            search._embedder_instances.clear()
+            search._search_indexes.clear()
         assert result == 0
 
     def test_search_subcommand_no_db(self, monkeypatch):
         monkeypatch.delenv("LUCIDE_SEARCH_DB_PATH", raising=False)
-        search._search_index = None
-        search._embedder_instance = None
+        search._search_indexes.clear()
+        search._embedder_instances.clear()
 
         with mock.patch(
             "sys.argv",

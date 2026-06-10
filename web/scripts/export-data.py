@@ -1,4 +1,4 @@
-"""Export icon data from SQLite databases to JSON for the web SPA.
+"""Export icon data from SQLite databases to JSON/binary for the web SPA.
 
 Reads from:
   - lucide-icons.db (SVGs)
@@ -8,6 +8,11 @@ Reads from:
 Writes:
   - public/data/icons.json
   - public/data/umap-coords.json
+  - public/data/embeddings-{model}.bin (one per embedding model)
+
+The embedding matrices are the exact vectors fastembed produced at build
+time — the browser only embeds the query, so Python and web search score
+against identical document vectors.
 """
 
 import json
@@ -18,6 +23,8 @@ from pathlib import Path
 import numpy as np
 import umap
 
+from lucide.config import DEFAULT_SEARCH_MODEL_ID, EMBEDDING_MODELS
+
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = REPO_ROOT / "src" / "lucide" / "data"
 ICONS_DB = DATA_DIR / "lucide-icons.db"
@@ -26,30 +33,50 @@ DESCRIPTIONS_JSONL = DATA_DIR / "gemini-icon-descriptions.jsonl"
 CLUSTERS_JSON = DATA_DIR / "lucide-icon-clusters.json"
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "public" / "data"
 
-MODEL_CONFIGS = [
-    {
-        "id": "minilm",
-        "dim": 384,
-        "file": "embeddings-minilm.bin",
-        "hfModel": "Xenova/all-MiniLM-L6-v2",
-        "queryPrefix": "",
-        "docPrefix": "",
-        "label": "Faster",
-    },
-    {
-        "id": "bge-small",
-        "dim": 384,
-        "file": "embeddings-bge-small.bin",
-        "hfModel": "Xenova/bge-small-en-v1.5",
-        # BGE v1.5 asymmetric retrieval: queries need this instruction, documents don't
-        "queryPrefix": "Represent this sentence for searching relevant passages: ",
-        "docPrefix": "",
-        "label": "Better",
-    },
-]
+
+def _web_models() -> list:
+    """Registry entries usable in the browser (server-only models excluded)."""
+    return [cfg for cfg in EMBEDDING_MODELS.values() if cfg.web_model]
 
 
-def export_icons() -> None:
+def _model_manifest() -> list[dict]:
+    """Build the web manifest model list from the shared registry."""
+    return [
+        {
+            "id": cfg.id,
+            "dim": cfg.dim,
+            "file": f"embeddings-{cfg.id}.bin",
+            "hfModel": cfg.web_model,
+            "pooling": cfg.pooling,
+            "dtype": cfg.web_dtype,
+            "queryPrefix": cfg.query_prefix,
+            "label": cfg.label,
+            "default": cfg.id == DEFAULT_SEARCH_MODEL_ID,
+        }
+        for cfg in _web_models()
+    ]
+
+
+def _export_names() -> list[str]:
+    """Icon names included in the export, in manifest order.
+
+    The embedding matrices are indexed positionally against icons.json, so
+    every exporter must use this exact list.
+    """
+    icons_conn = sqlite3.connect(f"file:{ICONS_DB}?mode=ro", uri=True)
+    svgs = {r[0] for r in icons_conn.execute("SELECT name FROM icons")}
+    icons_conn.close()
+
+    search_conn = sqlite3.connect(f"file:{SEARCH_DB}?mode=ro", uri=True)
+    described = {
+        r[0] for r in search_conn.execute("SELECT name FROM icon_descriptions")
+    }
+    search_conn.close()
+
+    return sorted(svgs & described)
+
+
+def export_icons(names: list[str]) -> None:
     """Export icon metadata and SVGs to icons.json."""
     icons_conn = sqlite3.connect(f"file:{ICONS_DB}?mode=ro", uri=True)
     search_conn = sqlite3.connect(f"file:{SEARCH_DB}?mode=ro", uri=True)
@@ -84,8 +111,6 @@ def export_icons() -> None:
 
     search_conn.close()
 
-    names = sorted(n for n in svgs if n in descriptions)
-
     icons = []
     for name in names:
         icons.append(
@@ -101,7 +126,7 @@ def export_icons() -> None:
 
     output = {
         "version": version,
-        "models": MODEL_CONFIGS,
+        "models": _model_manifest(),
         "icons": icons,
     }
 
@@ -109,6 +134,54 @@ def export_icons() -> None:
     out_path.write_text(json.dumps(output, ensure_ascii=False, separators=(",", ":")))
     size_mb = out_path.stat().st_size / 1024 / 1024
     print(f"Wrote {len(icons)} icons to {out_path} ({size_mb:.1f} MB)", file=sys.stderr)
+
+
+def export_embeddings(names: list[str]) -> None:
+    """Export per-model embedding matrices as raw float32 binaries.
+
+    Rows follow *names* order; vectors are L2-normalized so the web app can
+    score with a plain dot product.
+    """
+    conn = sqlite3.connect(f"file:{SEARCH_DB}?mode=ro", uri=True)
+    for cfg in _web_models():
+        model_id = cfg.id
+        rows = dict(
+            conn.execute(
+                "SELECT name, embedding FROM icon_embeddings WHERE model = ?",
+                (model_id,),
+            )
+        )
+        missing = [n for n in names if n not in rows]
+        if missing:
+            conn.close()
+            raise SystemExit(
+                f"Search DB has no {model_id!r} embeddings for {len(missing)} "
+                f"icons (e.g. {missing[:5]}); rebuild with 'make build-search'"
+            )
+
+        matrix = np.stack(
+            [np.frombuffer(rows[n], dtype=np.float32) for n in names]
+        ).astype(np.float32)
+        if matrix.shape[1] != cfg.dim:
+            conn.close()
+            raise SystemExit(
+                f"{model_id!r} embeddings are {matrix.shape[1]}d, expected "
+                f"{cfg.dim}d; rebuild with 'make build-search'"
+            )
+
+        norms = np.linalg.norm(matrix, axis=1, keepdims=True)
+        norms[norms == 0] = 1
+        matrix = (matrix / norms).astype(np.float32)
+
+        out_path = OUTPUT_DIR / f"embeddings-{model_id}.bin"
+        out_path.write_bytes(matrix.tobytes())
+        size_mb = out_path.stat().st_size / 1024 / 1024
+        print(
+            f"Wrote {matrix.shape[0]}x{matrix.shape[1]} {model_id} embeddings "
+            f"to {out_path} ({size_mb:.1f} MB)",
+            file=sys.stderr,
+        )
+    conn.close()
 
 
 def _load_cluster_coords() -> tuple[list[str], np.ndarray] | None:
@@ -139,7 +212,8 @@ def export_umap_coords() -> None:
     else:
         conn = sqlite3.connect(f"file:{SEARCH_DB}?mode=ro", uri=True)
         rows = conn.execute(
-            "SELECT name, embedding FROM icon_embeddings ORDER BY name"
+            "SELECT name, embedding FROM icon_embeddings WHERE model = ? ORDER BY name",
+            (DEFAULT_SEARCH_MODEL_ID,),
         ).fetchall()
         conn.close()
 
@@ -181,7 +255,9 @@ def export_umap_coords() -> None:
 def main() -> None:
     """Export all web app data files."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    export_icons()
+    names = _export_names()
+    export_icons(names)
+    export_embeddings(names)
     export_umap_coords()
 
 
