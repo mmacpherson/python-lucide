@@ -79,7 +79,10 @@
     }
   }
 
-  function layoutPoints() {
+  // Width/height are CSS pixels: the draw context is dpr-scaled, so laying
+  // out in device pixels would shift everything by dpr× and clip the plot
+  // on high-density (phone) screens.
+  function layoutPoints(width: number, height: number) {
     if (!Object.keys(coords).length) return;
 
     const xs = Object.values(coords).map((c) => c[0]);
@@ -90,8 +93,8 @@
     const rangeY = maxY - minY || 1;
 
     const pad = 40;
-    const w = canvas.width - pad * 2;
-    const h = canvas.height - pad * 2;
+    const w = width - pad * 2;
+    const h = height - pad * 2;
 
     points = manifest.icons
       .map((icon, idx) => {
@@ -126,7 +129,7 @@
     canvas.height = rect.height * dpr;
     ctx.scale(dpr, dpr);
 
-    layoutPoints();
+    layoutPoints(rect.width, rect.height);
 
     ctx.clearRect(0, 0, rect.width, rect.height);
     ctx.save();
@@ -456,6 +459,12 @@
 <style>
   .explore {
     flex: 1; display: flex; position: relative; z-index: 1; min-height: 0;
+    /* Cap at the viewport so the absolutely positioned canvas and the
+       scrollable cluster list stay bounded. max-height, not height: flex:1
+       sets flex-basis:0%, which makes height ignored on the main axis.
+       dvh tracks mobile browser chrome where supported. */
+    max-height: calc(100vh - var(--hdr-h));
+    max-height: calc(100dvh - var(--hdr-h));
   }
 
   /* ── Sidebar ─────────────────────────────────────────────────── */
@@ -531,7 +540,10 @@
     background: radial-gradient(circle at 50% 42%, var(--hl), transparent 60%);
   }
   canvas {
-    width: 100%; height: 100%; display: block;
+    /* Absolute, not height:100%: in the stacked (column) phone layout the
+       flexed parent height isn't "definite", so a percentage height falls
+       back to the buffer's intrinsic aspect and squashes the plot */
+    position: absolute; inset: 0; width: 100%; height: 100%; display: block;
     cursor: grab;
   }
   .canvas-loading {
@@ -568,4 +580,17 @@
   .tooltip strong { font-family: var(--font-mono); font-size: 13px; }
   .tooltip p { font-size: 12px; color: var(--tx2); line-height: 1.4; margin: 0; }
   .tooltip-cluster { display: inline-block; margin-top: 4px; font-size: 11px; }
+
+  /* Portrait phones: plot on top, cluster list scrolls below it.
+     column-reverse keeps the DOM order (list first) for keyboard users.
+     Must come after the base rules above to override them. */
+  @media (max-width: 700px) {
+    .explore { flex-direction: column-reverse; }
+    .ex-list {
+      width: 100%; max-height: 34vh;
+      border-right: none; border-top: 1px solid var(--bd);
+    }
+    .ex-canvas { min-height: 52vh; }
+    .ex-hint { display: none; }
+  }
 </style>

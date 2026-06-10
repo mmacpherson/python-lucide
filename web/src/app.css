@@ -57,6 +57,15 @@ body {
   position: relative;
 }
 
+/* Rendered header height (content + padding + border); keep in sync with
+   .hdr in App.svelte. Pages that must fit the viewport (Explore) subtract
+   it instead of relying on flex stretch, which leaves child heights
+   "indefinite" and breaks percentage sizing. */
+:root { --hdr-h: 66px; }
+@media (max-width: 600px) {
+  :root { --hdr-h: 62px; }
+}
+
 a { color: var(--ac); text-decoration: none; }
 a:hover { text-decoration: underline; }
 ::selection { background: var(--acs); }
