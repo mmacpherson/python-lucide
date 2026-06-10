@@ -51,10 +51,12 @@ jobs:
       if: github.event_name == 'release'
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
         uv sync --dev
-        make search-data
+        # The committed JSONL + clusters JSON are kept current by the weekly
+        # update workflow; the release only derives the DB from them (no
+        # Gemini calls, no theme drift from the committed clusters).
+        make build-search
 
         SEARCH_DB=src/lucide/data/lucide-search.db
         if [ ! -f "$SEARCH_DB" ]; then
