@@ -175,3 +175,17 @@ cython_debug/
 
 # Claude Code local settings
 .claude/
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
+
+# Web SPA (Svelte/Vite) — source lives on feat/semantic-search-web
+web/node_modules/
+web/public/data/
+docs/search/
+!web/src/lib/
+
+# Generated embedding/cluster visualizations
+lucide-*-map.html
