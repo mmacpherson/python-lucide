@@ -124,7 +124,7 @@
 <style>
   .glow {
     position: fixed; top: -180px; left: 50%; transform: translateX(-50%);
-    width: 760px; height: 340px;
+    width: min(760px, 100vw); height: 340px;
     background: radial-gradient(ellipse at center, var(--glow), transparent 70%);
     pointer-events: none; z-index: 0;
   }
@@ -210,5 +210,14 @@
   }
   .toast.show {
     opacity: 1; transform: translateX(-50%) translateY(0);
+  }
+
+  @media (max-width: 600px) {
+    .hdr { padding: 12px 16px; }
+    .hdr-r { gap: 6px; }
+    /* The brand mark + nav still identify the app; the wordmark suffix
+       and icon-set version don't earn their width on a phone */
+    .wm-dim, .ver { display: none; }
+    .main { padding: 22px 16px 0; }
   }
 </style>

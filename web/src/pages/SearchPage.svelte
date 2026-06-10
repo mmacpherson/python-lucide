@@ -386,7 +386,7 @@
   }
   .meta-l { font-size: 13px; color: var(--tx2); }
   .meta-l b { color: var(--tx); font-weight: 700; }
-  .meta-r { display: flex; align-items: center; gap: 11px; }
+  .meta-r { display: flex; align-items: center; gap: 11px; flex-wrap: wrap; }
   .model { font-size: 11px; color: var(--tx3); }
   .mono { font-family: var(--font-mono); }
 
@@ -555,4 +555,10 @@
   .dim { color: var(--tx3); }
   .dim a { color: var(--tx2); }
   .dim a:hover { color: var(--tx); text-decoration: underline; }
+
+  @media (max-width: 640px) {
+    /* The full model filename is documented in the info popover; on a
+       phone it can't fit between the two toggles without wrapping badly */
+    .model { display: none; }
+  }
 </style>
