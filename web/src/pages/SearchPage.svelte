@@ -130,8 +130,16 @@
     return config?.hfModel.split("/").pop() ?? "";
   }
 
+  let modelInfoOpen = $state(false);
+
+  function handleWindowClick() {
+    modelInfoOpen = false;
+  }
+
   switchModel(manifest.models[0]);
 </script>
+
+<svelte:window onclick={handleWindowClick} />
 
 <main class="main">
   {#if loadError}
@@ -182,6 +190,25 @@
               onclick={() => switchModel(model)}
             >{model.label}</button>
           {/each}
+        </div>
+        <div class="info-wrap">
+          <button
+            class="info-btn"
+            aria-label="About the model toggle"
+            aria-expanded={modelInfoOpen}
+            onclick={(e) => { e.stopPropagation(); modelInfoOpen = !modelInfoOpen; }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          </button>
+          {#if modelInfoOpen}
+            <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
+            <div class="info-pop" onclick={(e) => e.stopPropagation()}>
+              <p>Search runs entirely in your browser: your query is embedded by a small neural net and matched against precomputed icon embeddings. Nothing is sent to a server.</p>
+              <p><b>Faster</b> uses <span class="mono">all-MiniLM-L6-v2</span> (~90&thinsp;MB) — quick to download, solid results.</p>
+              <p><b>Better</b> uses <span class="mono">bge-small-en-v1.5</span> (~130&thinsp;MB) — a larger model with noticeably stronger semantic ranking.</p>
+              <p>Each model downloads once on first use, then loads from browser cache.</p>
+            </div>
+          {/if}
         </div>
       </div>
     </div>
@@ -248,7 +275,7 @@
     {/if}
 
     <footer class="foot">
-      <span><b class="mono">python-lucide</b> &middot; {manifest.icons.length.toLocaleString()} icons shipped in SQLite</span>
+      <span>powered by <a class="repo mono" href="https://github.com/mmacpherson/python-lucide" target="_blank" rel="noopener">python-lucide</a> &middot; {manifest.icons.length.toLocaleString()} icons shipped in SQLite</span>
       <span class="dim">embeddings computed in-browser via <a href="https://huggingface.co/docs/transformers.js" target="_blank">transformers.js</a></span>
     </footer>
   {/if}
@@ -317,6 +344,30 @@
     box-shadow: 0 1px 3px rgba(0,0,0,.25);
   }
   .seg-b:disabled { cursor: wait; opacity: 0.7; }
+
+  /* ── Model info popover ─────────────────────────────────────── */
+  .info-wrap { position: relative; display: flex; }
+  .info-btn {
+    width: 26px; height: 26px; border-radius: 7px;
+    border: none; background: transparent; color: var(--tx3);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background .15s, color .15s;
+  }
+  .info-btn:hover, .info-btn[aria-expanded="true"] {
+    background: var(--surf2); color: var(--tx);
+  }
+  .info-pop {
+    position: absolute; top: calc(100% + 8px); right: 0;
+    width: 290px; z-index: 40;
+    background: var(--bg2); border: 1px solid var(--bd2);
+    border-radius: 12px; padding: 14px 16px;
+    box-shadow: var(--shadow);
+    font-size: 12.5px; color: var(--tx2); line-height: 1.55;
+    cursor: auto;
+  }
+  .info-pop p + p { margin-top: 8px; }
+  .info-pop b { color: var(--tx); }
+  .info-pop .mono { font-size: 11.5px; color: var(--tx); }
 
   /* ── Progress bar ────────────────────────────────────────────── */
   .progress-bar {
@@ -437,7 +488,8 @@
     border-top: 1px solid var(--bd); margin-top: 26px;
     flex-wrap: wrap;
   }
-  .foot b { color: var(--tx); }
+  .foot .repo { color: var(--tx); font-weight: 700; }
+  .foot .repo:hover { color: var(--ac); }
   .dim { color: var(--tx3); }
   .dim a { color: var(--tx2); }
   .dim a:hover { color: var(--tx); text-decoration: underline; }
