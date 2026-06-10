@@ -141,6 +141,21 @@
     "secure login with a password",
   ];
 
+  // Per-model overrides, curated the same way. The multilingual set mixes
+  // languages to demonstrate the model's coverage — these would retrieve
+  // junk on the English-only models, so they only appear here.
+  const EXAMPLES_BY_MODEL: Record<string, string[]> = {
+    multilingual: [
+      "viajar a algún lugar en avión",
+      "das Wetter wird kälter",
+      "パスワードで安全にログイン",
+      "庆祝一个重大成就",
+      "notifications are turned off",
+    ],
+  };
+
+  const examples = $derived(EXAMPLES_BY_MODEL[activeModelId] ?? EXAMPLES);
+
   function runExample(q: string) {
     query = q;
     doSearch(q);
@@ -184,7 +199,7 @@
     {#if !query && ready}
       <div class="examples">
         <span class="ex-label">Try</span>
-        {#each EXAMPLES as example}
+        {#each examples as example}
           <button class="chip" onclick={() => runExample(example)}>{example}</button>
         {/each}
       </div>
