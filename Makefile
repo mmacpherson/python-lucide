@@ -17,7 +17,7 @@ DESCRIPTIONS_JSONL := src/lucide/data/gemini-icon-descriptions.jsonl
 VENV_DIR := .venv
 
 # Phony targets prevent conflicts with files of the same name.
-.PHONY: help default env lucide-db describe build-search search-data lucide-db-full test install-hooks run-hooks-all-files check-lucide-version clean nuke
+.PHONY: help default env lucide-db describe build-search cluster search-data lucide-db-full test install-hooks run-hooks-all-files check-lucide-version clean nuke
 
 # Default target
 default: help
@@ -35,7 +35,8 @@ help:
 	@echo "                         Example: make lucide-db TAG=0.520.0"
 	@echo "  describe               Generate icon descriptions via VLM (requires GEMINI_API_KEY)."
 	@echo "  build-search           Build search SQLite DB from descriptions JSONL."
-	@echo "  search-data            Run describe + build-search."
+	@echo "  cluster                Regenerate semantic clusters from the search DB (requires GEMINI_API_KEY)."
+	@echo "  search-data            Run describe + build-search + cluster, then rebuild with fresh clusters."
 	@echo "  lucide-db-full         Build icons database + search data."
 	@echo "  test                   Run tests using pytest."
 	@echo "  install-hooks          Install pre-commit hooks."
@@ -71,7 +72,14 @@ build-search:
 	@echo "Building search DB from descriptions..."
 	$(LUCIDE_CMD) build-search --descriptions-file $(DESCRIPTIONS_JSONL) --clusters-file $(CLUSTERS_JSON) --icons-db $(DB_OUTPUT_PATH) -o $(SEARCH_DB_OUTPUT_PATH) -v
 
-search-data: describe build-search
+cluster:
+	@echo "Discovering and naming semantic clusters..."
+	$(LUCIDE_CMD) cluster --search-db $(SEARCH_DB_OUTPUT_PATH) -o $(CLUSTERS_JSON) -v
+
+# build-search runs twice: clustering needs the embeddings from the first
+# pass, then the DB is rebuilt so it carries the refreshed cluster data.
+search-data: describe build-search cluster
+	@$(MAKE) build-search
 
 lucide-db-full: lucide-db search-data
 

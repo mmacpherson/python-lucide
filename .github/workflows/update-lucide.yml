@@ -161,8 +161,10 @@ jobs:
         git config --local user.name "github-actions[bot]"
 
         git add src/lucide/config.py src/lucide/data/lucide-icons.db pyproject.toml .github/lucide-version.json
-        # Include descriptions JSONL if generated (search DB is built at publish time)
+        # Include descriptions JSONL and refreshed clusters if generated
+        # (search DB is built at publish time)
         [ -f src/lucide/data/gemini-icon-descriptions.jsonl ] && git add src/lucide/data/gemini-icon-descriptions.jsonl
+        [ -f src/lucide/data/lucide-icon-clusters.json ] && git add src/lucide/data/lucide-icon-clusters.json
         git commit -m "feat: Update Lucide icons to v${{ steps.version-check.outputs.latest-version }}
 
         Bumps package version to ${{ steps.version-bump.outputs.new-pkg-version }}.

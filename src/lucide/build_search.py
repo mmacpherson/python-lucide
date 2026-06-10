@@ -128,17 +128,21 @@ def _read_icon_metadata(icons_dir: pathlib.Path, name: str) -> dict[str, list[st
         return {"tags": [], "categories": []}
 
 
-def _build_metadata_line(icons_dir: pathlib.Path | None, name: str) -> str:
-    """Build the metadata portion of the VLM prompt."""
-    if icons_dir is None:
-        return ""
-    meta = _read_icon_metadata(icons_dir, name)
+def _format_metadata_line(meta: dict[str, list[str]]) -> str:
+    """Format tags/categories metadata for the VLM prompt."""
     parts = []
     if meta["tags"]:
         parts.append(f"Its existing tags are: {', '.join(meta['tags'])}.")
     if meta["categories"]:
         parts.append(f"Categories: {', '.join(meta['categories'])}.")
     return " ".join(parts)
+
+
+def _build_metadata_line(icons_dir: pathlib.Path | None, name: str) -> str:
+    """Build the metadata portion of the VLM prompt."""
+    if icons_dir is None:
+        return ""
+    return _format_metadata_line(_read_icon_metadata(icons_dir, name))
 
 
 # ---------------------------------------------------------------------------
@@ -152,7 +156,13 @@ def _render_svg_to_png(svg_content: str, size: int = 96) -> bytes:
     Renders at 4\u00d7 native size (96px from 24px source) for better VLM
     interpretation.
     """
-    import cairosvg  # noqa: PLC0415
+    try:
+        import cairosvg  # noqa: PLC0415
+    except ImportError:
+        raise ImportError(
+            "cairosvg is required to render icons for description generation. "
+            "Install dev dependencies with: uv sync --dev"
+        ) from None
 
     result: bytes = cairosvg.svg2png(
         bytestring=svg_content.encode("utf-8"),
@@ -403,9 +413,10 @@ def generate_descriptions(  # noqa: PLR0913, PLR0915
             return False
 
         png_data = _render_svg_to_png(svg_content)
-        metadata_line = _build_metadata_line(icons_dir, name)
-        prompt = VLM_PROMPT_TEMPLATE.format(name=name, metadata_line=metadata_line)
         meta = _read_icon_metadata(icons_dir, name)
+        prompt = VLM_PROMPT_TEMPLATE.format(
+            name=name, metadata_line=_format_metadata_line(meta)
+        )
 
         description = _call_gemini(prompt, png_data, api_key)
         if not description:
@@ -534,6 +545,27 @@ def _write_search_db(  # noqa: PLR0913
                     (icon_name, int(cid), theme),
                 )
 
+        # Icons absent from the clusters file entirely (vs. assigned to the
+        # noise cluster) mean the clusters predate these icons.
+        seen_by_clustering = {
+            icon_name
+            for cluster in cluster_data["clusters"].values()
+            for icon_name in cluster["icons"]
+        }
+        unclustered = [n for n in ordered_names if n not in seen_by_clustering]
+        if unclustered:
+            preview_limit = 20
+            preview = ", ".join(unclustered[:preview_limit])
+            if len(unclustered) > preview_limit:
+                preview += ", ..."
+            logger.warning(
+                "%d icons missing from clusters file %s — regenerate with"
+                " 'lucide cluster': %s",
+                len(unclustered),
+                clusters_path,
+                preview,
+            )
+
         # Metadata
         first = records[ordered_names[0]]
         resolved_version = version or first.get("lucide_version", "unknown")
@@ -599,7 +631,13 @@ def build_search_db(
         icons_db_path: Optional icons database for filtering and version.
         verbose: Verbose logging.
     """
-    from fastembed import TextEmbedding  # noqa: PLC0415
+    try:
+        from fastembed import TextEmbedding  # noqa: PLC0415
+    except ImportError:
+        raise ImportError(
+            "fastembed is required to build the search database. "
+            "Install with: pip install 'python-lucide[search]'"
+        ) from None
 
     records = load_descriptions_jsonl(jsonl_path)
     if not records:
@@ -616,6 +654,14 @@ def build_search_db(
         ordered_names = sorted(n for n in records if n in valid_names)
     else:
         ordered_names = sorted(records.keys())
+
+    if not ordered_names:
+        logger.warning(
+            "No descriptions in %s match icons in %s; nothing to build",
+            jsonl_path,
+            icons_db_path,
+        )
+        return
 
     logger.info("Building search DB from %d descriptions", len(ordered_names))
 

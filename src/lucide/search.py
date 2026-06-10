@@ -121,7 +121,7 @@ def _resolve_search_db(*, allow_download: bool = False) -> pathlib.Path | None:
             raise SearchNotAvailableError(
                 f"Failed to download search database: {e}\n"
                 f"URL: {url}\n"
-                "Build search data locally with: lucide-db --search-only"
+                "Build search data locally with: lucide build-search"
             ) from e
 
     return None
@@ -167,7 +167,7 @@ def _load_search_index() -> dict[str, Any]:
     if db_path is None:
         raise SearchNotAvailableError(
             "Search database not found. "
-            "Build search data locally with: lucide-db --search-only"
+            "Build search data locally with: lucide build-search"
         )
 
     uri = f"file:{db_path}?mode=ro"

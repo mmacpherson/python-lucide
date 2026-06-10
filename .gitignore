@@ -180,3 +180,12 @@ cython_debug/
 .dolt/
 *.db
 .beads-credential-key
+
+# Web SPA (Svelte/Vite) — source lives on feat/semantic-search-web
+web/node_modules/
+web/public/data/
+docs/search/
+!web/src/lib/
+
+# Generated embedding/cluster visualizations
+lucide-*-map.html

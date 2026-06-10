@@ -11,6 +11,7 @@ from .db import get_db_connection, get_default_db_path
 from .search import (
     SearchNotAvailableError,
     SearchResult,
+    get_icon_description,
     search_available,
     search_icons,
 )
@@ -21,6 +22,7 @@ __all__ = [
     "create_placeholder_svg",
     "get_db_connection",
     "get_default_db_path",
+    "get_icon_description",
     "get_icon_list",
     "lucide_icon",
     "search_available",

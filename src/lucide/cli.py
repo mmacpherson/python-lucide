@@ -171,12 +171,17 @@ def _create_database(
         cursor.execute(
             "CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
         )
-        cursor.execute("CREATE TABLE icon_tags (name TEXT NOT NULL, tag TEXT NOT NULL)")
         cursor.execute(
-            "CREATE TABLE icon_categories (name TEXT NOT NULL, category TEXT NOT NULL)"
+            "CREATE TABLE icon_tags"
+            " (name TEXT NOT NULL, tag TEXT NOT NULL, UNIQUE(name, tag))"
         )
         cursor.execute(
-            "CREATE TABLE icon_aliases (name TEXT NOT NULL, alias TEXT NOT NULL)"
+            "CREATE TABLE icon_categories"
+            " (name TEXT NOT NULL, category TEXT NOT NULL, UNIQUE(name, category))"
+        )
+        cursor.execute(
+            "CREATE TABLE icon_aliases"
+            " (name TEXT NOT NULL, alias TEXT NOT NULL, UNIQUE(name, alias))"
         )
 
         current_time = datetime.now().isoformat()
@@ -288,21 +293,24 @@ def _add_metadata_to_db(
         verbose: If True, prints progress.
     """
     json_files = list(icons_dir.glob("*.json"))
-    tag_count = 0
+    malformed_count = 0
     for json_file in json_files:
         name = json_file.stem
         if icons_to_include and name not in icons_to_include:
             continue
         try:
             data = json.loads(json_file.read_text())
-        except (json.JSONDecodeError, OSError):
+        except (json.JSONDecodeError, OSError) as e:
+            logger.warning("Skipping malformed metadata file %s: %s", json_file, e)
+            malformed_count += 1
             continue
 
         for tag in data.get("tags", []):
-            cursor.execute("INSERT INTO icon_tags VALUES (?, ?)", (name, tag))
-            tag_count += 1
+            cursor.execute("INSERT OR IGNORE INTO icon_tags VALUES (?, ?)", (name, tag))
         for cat in data.get("categories", []):
-            cursor.execute("INSERT INTO icon_categories VALUES (?, ?)", (name, cat))
+            cursor.execute(
+                "INSERT OR IGNORE INTO icon_categories VALUES (?, ?)", (name, cat)
+            )
         for alias_entry in data.get("aliases", []):
             alias_name = (
                 alias_entry
@@ -311,15 +319,23 @@ def _add_metadata_to_db(
             )
             if alias_name:
                 cursor.execute(
-                    "INSERT INTO icon_aliases VALUES (?, ?)",
+                    "INSERT OR IGNORE INTO icon_aliases VALUES (?, ?)",
                     (name, alias_name),
                 )
 
     if verbose:
+        counts = {
+            table: cursor.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            for table in ("icon_tags", "icon_categories", "icon_aliases")
+        }
         logger.info(
-            "Added metadata: %d tags from %d JSON files",
-            tag_count,
+            "Added metadata from %d JSON files: %d tags, %d categories,"
+            " %d aliases (%d malformed files skipped)",
             len(json_files),
+            counts["icon_tags"],
+            counts["icon_categories"],
+            counts["icon_aliases"],
+            malformed_count,
         )
 
 
@@ -636,8 +652,17 @@ def _cmd_cluster(args: argparse.Namespace) -> int:
 
     _setup_logging(args.verbose)
 
-    search_db = pathlib.Path(args.search_db or "src/lucide/data/lucide-search.db")
-    if not search_db.exists():
+    search_db: pathlib.Path | None
+    if args.search_db:
+        search_db = pathlib.Path(args.search_db)
+    else:
+        # Mirror `lucide search`: look for the search DB alongside the icons DB
+        from .db import get_default_db_path  # noqa: PLC0415
+
+        icons_db = get_default_db_path()
+        search_db = icons_db.parent / "lucide-search.db" if icons_db else None
+
+    if search_db is None or not search_db.exists():
         print(f"Search DB not found: {search_db}")
         print("Build it first with: lucide build-search")
         return 1
