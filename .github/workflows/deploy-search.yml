@@ -56,7 +56,7 @@ jobs:
         fi
         echo "Using release $TAG"
         # Asset name must match config.SEARCH_DB_URL_TEMPLATE
-        gh release download "$TAG" --pattern lucide-search-v2.db \
+        gh release download "$TAG" --pattern lucide-search.db \
           --output src/lucide/data/lucide-search.db
 
     - name: Set up Node

@@ -80,6 +80,26 @@ def _get_cache_dir() -> pathlib.Path:
     return cache_dir
 
 
+def _read_schema_version(path: pathlib.Path) -> int:
+    """Read the schema version a search DB declares about itself.
+
+    Returns 1 for pre-versioning databases (the key was introduced with
+    schema 2) and 0 for files that cannot be read as a search DB at all.
+    """
+    try:
+        uri = f"file:{path}?mode=ro"
+        conn = sqlite3.connect(uri, uri=True)
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT value FROM metadata WHERE key = 'schema_version'")
+            row = cursor.fetchone()
+            return int(row[0]) if row else 1
+        finally:
+            conn.close()
+    except (sqlite3.Error, ValueError):
+        return 0
+
+
 def _resolve_search_db(*, allow_download: bool = False) -> pathlib.Path | None:
     """Locate the search database file.
 
@@ -87,6 +107,10 @@ def _resolve_search_db(*, allow_download: bool = False) -> pathlib.Path | None:
         1. ``LUCIDE_SEARCH_DB_PATH`` environment variable
         2. Cached file in ``~/.cache/python-lucide/``
         3. Download from GitHub release (only when *allow_download* is True)
+
+    A cached file whose self-declared schema version doesn't match this
+    package's ``SEARCH_DB_SCHEMA_VERSION`` (e.g. left behind by a different
+    package version, or corrupted) is deleted and re-downloaded.
 
     Args:
         allow_download: If True, download the search DB when no local copy
@@ -97,7 +121,7 @@ def _resolve_search_db(*, allow_download: bool = False) -> pathlib.Path | None:
 
     Raises:
         SearchNotAvailableError: If *allow_download* is True but the download
-            fails.
+            fails or yields a DB with an incompatible schema.
     """
     env_path = os.environ.get("LUCIDE_SEARCH_DB_PATH")
     if env_path:
@@ -106,18 +130,17 @@ def _resolve_search_db(*, allow_download: bool = False) -> pathlib.Path | None:
             return path
 
     version = _get_icons_version()
-    cached = (
-        _get_cache_dir() / f"lucide-search-v{SEARCH_DB_SCHEMA_VERSION}-{version}.db"
-    )
+    cached = _get_cache_dir() / f"lucide-search-{version}.db"
     if cached.exists():
-        return cached
+        if _read_schema_version(cached) == SEARCH_DB_SCHEMA_VERSION:
+            return cached
+        cached.unlink()
 
     if allow_download:
         url = SEARCH_DB_URL_TEMPLATE.format(version=version)
         logger.info("Downloading search database from %s", url)
         try:
             urllib.request.urlretrieve(url, cached)
-            return cached
         except Exception as e:
             if cached.exists():
                 cached.unlink()
@@ -126,6 +149,17 @@ def _resolve_search_db(*, allow_download: bool = False) -> pathlib.Path | None:
                 f"URL: {url}\n"
                 "Build search data locally with: lucide build-search"
             ) from e
+        downloaded_schema = _read_schema_version(cached)
+        if downloaded_schema != SEARCH_DB_SCHEMA_VERSION:
+            cached.unlink()
+            raise SearchNotAvailableError(
+                f"Downloaded search database has schema {downloaded_schema}, "
+                f"but this version of python-lucide requires "
+                f"{SEARCH_DB_SCHEMA_VERSION}. The published search data may "
+                "not match this package version yet.\n"
+                "Build search data locally with: lucide build-search"
+            )
+        return cached
 
     return None
 

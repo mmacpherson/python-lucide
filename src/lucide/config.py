@@ -88,14 +88,14 @@ DEFAULT_SEARCH_MODEL_ID = "bge-small"
 DEFAULT_VLM_MODEL = "gemini-2.5-flash-lite"
 
 # Bumped when the search DB layout changes incompatibly (v2: multi-model
-# embeddings keyed by (name, model)). Baked into the release asset name and
-# the local cache filename so old package versions keep downloading the v1
-# asset untouched.
+# embeddings keyed by (name, model)). Recorded in the DB metadata and baked
+# into the local cache filename so a stale cache from an older package
+# version is never misread after an upgrade.
 SEARCH_DB_SCHEMA_VERSION = 2
 
 # URL template for downloading pre-built search data.
 # {version} is replaced with the Lucide icon-set version (e.g. "0.577.0").
 SEARCH_DB_URL_TEMPLATE = (
     "https://github.com/mmacpherson/python-lucide/releases/download/"
-    f"search-v{{version}}/lucide-search-v{SEARCH_DB_SCHEMA_VERSION}.db"
+    "search-v{version}/lucide-search.db"
 )
