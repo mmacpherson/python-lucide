@@ -34,6 +34,30 @@ GEMINI_API_URL = (
     "{model}:generateContent?key={api_key}"
 )
 
+# Generous bound for a "2-4 word" name; anything longer means the model
+# ignored the instruction (e.g. leaked its reasoning)
+MAX_THEME_LENGTH = 40
+
+
+def _sanitize_theme(raw: str) -> str | None:
+    """Validate a model-proposed theme name.
+
+    Despite the "Return ONLY the theme name" instruction, the model
+    occasionally returns its full chain-of-thought — two shipped clusters
+    once carried ~4k-char reasoning dumps as their theme. Reject anything
+    multi-line or implausibly long rather than trying to salvage it.
+
+    Args:
+        raw: The raw model response text.
+
+    Returns:
+        The cleaned theme name, or None if the response is unusable.
+    """
+    theme = raw.strip().strip("\"'").strip()
+    if not theme or "\n" in theme or len(theme) > MAX_THEME_LENGTH:
+        return None
+    return theme
+
 
 def _call_gemini_text(prompt: str, api_key: str) -> str | None:
     """Call Gemini API with a text-only prompt."""
@@ -164,16 +188,15 @@ def name_clusters(
         # Cap at 40 names to keep prompt short
         icon_names = ", ".join(icons[:40])
         prompt = NAMING_PROMPT_TEMPLATE.format(icon_names=icon_names)
-        theme = _call_gemini_text(prompt, api_key)
+        raw = _call_gemini_text(prompt, api_key)
+        theme = _sanitize_theme(raw) if raw else None
 
         if theme:
-            # Strip quotes if the model wraps it
-            theme = theme.strip("\"'")
             clusters[lid]["theme"] = theme
             logger.info("Cluster %s (%d icons): %s", lid, len(icons), theme)
         else:
             clusters[lid]["theme"] = f"Cluster {lid}"
-            logger.warning("Failed to name cluster %s", lid)
+            logger.warning("Failed to name cluster %s (raw response: %.80r)", lid, raw)
 
     return data
 
