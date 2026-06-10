@@ -3,3 +3,5 @@ description: Lucide icons as Python strings
 baseurl: /python-lucide
 url: https://mmacpherson.github.io
 theme: minima
+exclude:
+- search

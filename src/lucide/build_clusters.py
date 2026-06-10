@@ -183,9 +183,14 @@ def save_clusters_json(
     output_path: pathlib.Path,
 ) -> None:
     """Save cluster data to JSON."""
-    # Strip descriptions from the output to keep it lean
+    # Strip descriptions from the output to keep it lean; keep the UMAP
+    # coords so downstream exporters (the web explore map) reuse this
+    # projection instead of recomputing it.
     out = {
         "clusters": data["clusters"],
+        "coords": {
+            name: [round(c[0], 5), round(c[1], 5)] for name, c in data["coords"].items()
+        },
         "generated_at": datetime.now(tz=timezone.utc).isoformat(),
         "naming_model": CLUSTER_NAMING_MODEL,
     }
