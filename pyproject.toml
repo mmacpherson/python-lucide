@@ -144,8 +144,18 @@ convention = "google"
 [tool.uv.build-backend]
 # The module name differs from the normalized package name
 module-name = "lucide"
+# The search DB is a derived artifact published as a GitHub release asset
+# and downloaded on first use; never package it
+source-exclude = ["src/lucide/data/lucide-search.db"]
 # Include tests and database files in source distribution
 source-include = [
   "tests/**",
   "src/lucide/data/lucide-icons.db"
+]
+# Build-time data (descriptions, clusters) stays in the sdist/repo but out
+# of the runtime wheel
+wheel-exclude = [
+  "lucide/data/lucide-search.db",
+  "lucide/data/gemini-icon-descriptions.jsonl",
+  "lucide/data/lucide-icon-clusters.json"
 ]
