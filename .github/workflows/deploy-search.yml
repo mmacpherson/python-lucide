@@ -22,6 +22,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Normal runs finish in well under 10 minutes; a flaky download once
+    # hung a build for hours, so fail fast instead.
+    timeout-minutes: 15
     steps:
     - uses: actions/checkout@v6
 
@@ -36,10 +39,25 @@ jobs:
     - name: Install Python dependencies
       run: uv sync
 
-      # The search DB is not in git — derive it from the committed JSONL +
-      # clusters JSON. Embedding runs locally via fastembed; no API key needed.
-    - name: Build search database
-      run: make build-search
+      # The web app consumes the released search DB — the same asset pip
+      # users download — so browser search scores against byte-identical
+      # vectors and the deploy computes no embeddings at all. The latest
+      # search-v* release may lag the repo's data files; that staleness
+      # matches what installed packages see and heals on the next release.
+    - name: Download latest released search DB
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        TAG=$(gh release list --limit 100 --json tagName \
+          --jq '[.[] | select(.tagName | startswith("search-v"))][0].tagName')
+        if [ -z "$TAG" ]; then
+          echo "No search-v* release found" >&2
+          exit 1
+        fi
+        echo "Using release $TAG"
+        # Asset name must match config.SEARCH_DB_URL_TEMPLATE
+        gh release download "$TAG" --pattern lucide-search-v2.db \
+          --output src/lucide/data/lucide-search.db
 
     - name: Set up Node
       uses: actions/setup-node@v4
@@ -52,12 +70,8 @@ jobs:
       run: npm ci
       working-directory: web
 
-    - name: Export icon data
+    - name: Export icon data and embeddings
       run: uv run python web/scripts/export-data.py
-
-    - name: Compute embeddings
-      run: node scripts/compute-embeddings.mjs
-      working-directory: web
 
     - name: Build Vite app
       run: npm run build
@@ -87,6 +101,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
+    timeout-minutes: 10
     steps:
     - name: Deploy to GitHub Pages
       id: deployment

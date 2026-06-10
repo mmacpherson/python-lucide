@@ -3,14 +3,15 @@
 import json
 import sqlite3
 
+import fastembed
 import numpy as np
 import pytest
 
 from lucide import build_search
 from lucide.config import (
-    DEFAULT_EMBEDDING_DIM,
-    DEFAULT_EMBEDDING_MODEL,
     DEFAULT_VLM_MODEL,
+    EMBEDDING_MODELS,
+    SEARCH_DB_SCHEMA_VERSION,
 )
 
 # --- Fixtures ---
@@ -256,6 +257,38 @@ class TestGenerateDescriptions:
         assert records["star"]["description"] == "A star icon for testing"
 
 
+class _FakeTextEmbedding:
+    """Stand-in for fastembed so tests stay offline and fast.
+
+    Vectors are deterministic per (model, text) so identical inputs embed
+    identically across calls.
+    """
+
+    def __init__(self, model_name: str, **_kwargs):
+        self.model_name = model_name
+        self.dim = next(
+            cfg.dim
+            for cfg in EMBEDDING_MODELS.values()
+            if cfg.fastembed_model == model_name
+        )
+
+    def embed(self, texts):
+        for text in texts:
+            seed = abs(hash((self.model_name, text))) % (2**32)
+            rng = np.random.default_rng(seed)
+            yield rng.standard_normal(self.dim).astype(np.float32)
+
+
+@pytest.fixture
+def fake_fastembed(monkeypatch):
+    """Replace fastembed's TextEmbedding with the offline fake."""
+    monkeypatch.setattr(fastembed, "TextEmbedding", _FakeTextEmbedding)
+    return _FakeTextEmbedding
+
+
+MODEL_IDS = set(EMBEDDING_MODELS)
+
+
 @pytest.fixture
 def sample_clusters(tmp_path):
     """Create a clusters JSON file."""
@@ -274,6 +307,7 @@ def sample_clusters(tmp_path):
 
 
 class TestBuildSearchDb:
+    @pytest.mark.usefixtures("fake_fastembed")
     def test_builds_db_from_jsonl(self, sample_jsonl, search_db, sample_clusters):
         build_search.build_search_db(sample_jsonl, search_db, sample_clusters)
 
@@ -286,21 +320,22 @@ class TestBuildSearchDb:
         assert len(desc_rows) == 3
         assert desc_rows[0][0] == "circle"
 
-        # Check embeddings
+        # One embedding per icon per model
         emb_rows = conn.execute(
             "SELECT name, embedding, model FROM icon_embeddings"
         ).fetchall()
-        assert len(emb_rows) == 3
-        for row in emb_rows:
-            emb = np.frombuffer(row[1], dtype=np.float32)
-            assert emb.shape == (DEFAULT_EMBEDDING_DIM,)
-            assert row[2] == DEFAULT_EMBEDDING_MODEL
+        assert len(emb_rows) == 3 * len(MODEL_IDS)
+        for name, blob, model_id in emb_rows:
+            assert model_id in MODEL_IDS
+            emb = np.frombuffer(blob, dtype=np.float32)
+            assert emb.shape == (EMBEDDING_MODELS[model_id].dim,)
+            assert name in {"heart", "star", "circle"}
 
         # Check metadata
         meta = dict(conn.execute("SELECT key, value FROM metadata").fetchall())
         assert meta["version"] == "0.577.0"
-        assert meta["embedding_model"] == DEFAULT_EMBEDDING_MODEL
-        assert meta["embedding_dim"] == str(DEFAULT_EMBEDDING_DIM)
+        assert meta["schema_version"] == str(SEARCH_DB_SCHEMA_VERSION)
+        assert set(json.loads(meta["embedding_models"])) == MODEL_IDS
         assert "built_at" in meta
 
         # Check clusters were loaded
@@ -314,6 +349,7 @@ class TestBuildSearchDb:
 
         conn.close()
 
+    @pytest.mark.usefixtures("fake_fastembed")
     def test_rebuilds_from_scratch(self, sample_jsonl, search_db, sample_clusters):
         build_search.build_search_db(sample_jsonl, search_db, sample_clusters)
 
@@ -322,5 +358,7 @@ class TestBuildSearchDb:
 
         conn = sqlite3.connect(search_db)
         count = conn.execute("SELECT COUNT(*) FROM icon_descriptions").fetchone()[0]
+        emb_count = conn.execute("SELECT COUNT(*) FROM icon_embeddings").fetchone()[0]
         conn.close()
         assert count == 3
+        assert emb_count == 3 * len(MODEL_IDS)

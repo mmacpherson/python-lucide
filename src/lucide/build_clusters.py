@@ -19,6 +19,8 @@ from pydantic import BaseModel, field_validator
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
 
+from .config import DEFAULT_SEARCH_MODEL_ID
+
 logger = logging.getLogger(__name__)
 
 CLUSTER_NAMING_MODEL = "gemini-2.5-flash"
@@ -98,7 +100,9 @@ def discover_clusters(
         "SELECT e.name, e.embedding, d.description "
         "FROM icon_embeddings e "
         "JOIN icon_descriptions d ON e.name = d.name "
-        "ORDER BY e.name"
+        "WHERE e.model = ? "
+        "ORDER BY e.name",
+        (DEFAULT_SEARCH_MODEL_ID,),
     ).fetchall()
     conn.close()
 
@@ -294,8 +298,7 @@ def build_cluster_visualization(
     fig.update_layout(
         title={
             "text": (
-                "Lucide Icon Embedding Clusters \u2014 "
-                "themes discovered via HDBSCAN in 768d space"
+                "Lucide Icon Embedding Clusters \u2014 themes discovered via HDBSCAN"
             ),
             "font": {"size": 16},
         },

@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "export-data": "uv run python scripts/export-data.py",
-    "compute-embeddings": "node scripts/compute-embeddings.mjs"
+    "export-data": "uv run python scripts/export-data.py"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.0.0",

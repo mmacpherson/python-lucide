@@ -116,8 +116,8 @@ def main() -> int:
         # Need to reset the module caches
         from lucide import search
 
-        search._search_index = None
-        search._embedder_instance = None
+        search._search_indexes.clear()
+        search._embedder_instances.clear()
 
         # Monkey-patch version check to return our test version
         search._get_icons_version = lambda: "test"

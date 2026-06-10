@@ -3,9 +3,13 @@ export interface ModelConfig {
   dim: number;
   file: string;
   hfModel: string;
+  // Must match the pooling fastembed used to build the document vectors —
+  // mean-pooling a CLS-pooled model still "works" but degrades ranking
+  pooling: "mean" | "cls";
+  dtype: "fp32" | "fp16" | "q8";
   queryPrefix: string;
-  docPrefix: string;
   label: string;
+  default: boolean;
 }
 
 export interface IconData {

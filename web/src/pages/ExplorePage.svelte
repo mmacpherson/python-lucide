@@ -329,7 +329,7 @@
       if (!resp.ok) throw new Error(`Failed to fetch umap-coords.json: HTTP ${resp.status}`);
       coords = await resp.json();
 
-      const model = manifest.models[0];
+      const model = manifest.models.find((m) => m.default) ?? manifest.models[0];
       embeddingDim = model.dim;
       embeddingsMatrix = await loadEmbeddings(
         `${BASE}data/${model.file}?v=${manifest.version}`, manifest.icons.length, model.dim,

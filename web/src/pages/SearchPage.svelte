@@ -152,7 +152,7 @@
     modelInfoOpen = false;
   }
 
-  switchModel(manifest.models[0]);
+  switchModel(manifest.models.find((m) => m.default) ?? manifest.models[0]);
 </script>
 
 <svelte:window onclick={handleWindowClick} />
@@ -231,6 +231,7 @@
               <p>Search runs entirely in your browser: your query is embedded by a small neural net and matched against precomputed icon embeddings. Nothing is sent to a server.</p>
               <p><b>Faster</b> uses <span class="mono">all-MiniLM-L6-v2</span> (~90&thinsp;MB) — quick to download, solid results.</p>
               <p><b>Better</b> uses <span class="mono">bge-small-en-v1.5</span> (~130&thinsp;MB) — a larger model with noticeably stronger semantic ranking.</p>
+              <p><b>Multilingual</b> uses <span class="mono">paraphrase-multilingual-MiniLM-L12-v2</span> (~115&thinsp;MB) — search in 50+ languages (for English, Better ranks best).</p>
               <p>Each model downloads once on first use, then loads from browser cache.</p>
               <p>Tip: descriptive phrases ("waiting for a download") match better than single keywords.</p>
             </div>

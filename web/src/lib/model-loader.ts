@@ -22,7 +22,7 @@ export async function loadModel(
   }
 
   const extractor = await pipeline("feature-extraction", config.hfModel, {
-    dtype: "fp32",
+    dtype: config.dtype,
     progress_callback: (event: { status: string; progress?: number }) => {
       if (event.status === "progress" && event.progress != null && onProgress) {
         onProgress(event.progress);
@@ -43,7 +43,7 @@ export async function embed(
 
   const input = `${config.queryPrefix}${text}`;
   const output = await currentModel.extractor(input, {
-    pooling: "mean",
+    pooling: config.pooling,
     normalize: true,
   });
 
