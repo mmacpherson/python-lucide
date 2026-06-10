@@ -80,7 +80,7 @@ def sample_jsonl(jsonl_path):
             "name": name,
             "description": f"A {name} icon for testing",
             "model": DEFAULT_VLM_MODEL,
-            "prompt_template_hash": "test",
+            "prompt_template_hash": build_search._PROMPT_TEMPLATE_HASH,
             "lucide_version": "0.577.0",
             "tags": [],
             "categories": [],
@@ -217,6 +217,43 @@ class TestGenerateDescriptions:
             incremental=True,
         )
         assert count == 0  # All already exist
+
+    def test_incremental_regenerates_stale_prompt_hash(
+        self, main_db, sample_jsonl, icons_dir, monkeypatch
+    ):
+        records = build_search.load_descriptions_jsonl(sample_jsonl)
+        records["heart"]["prompt_template_hash"] = "0ld-pr0mpt-hash"
+        with open(sample_jsonl, "w") as f:
+            for rec in records.values():
+                f.write(json.dumps(rec) + "\n")
+
+        monkeypatch.setattr(
+            build_search,
+            "_call_gemini",
+            lambda prompt, image, key, **kw: "Regenerated description",
+        )
+        monkeypatch.setattr(
+            build_search,
+            "_render_svg_to_png",
+            lambda svg, **kw: b"\x89PNG fake data",
+        )
+
+        count = build_search.generate_descriptions(
+            main_db,
+            sample_jsonl,
+            icons_dir=icons_dir,
+            api_key="fake-key",
+            incremental=True,
+        )
+        assert count == 1  # Only the stale record is regenerated
+
+        records = build_search.load_descriptions_jsonl(sample_jsonl)
+        assert records["heart"]["description"] == "Regenerated description"
+        assert (
+            records["heart"]["prompt_template_hash"]
+            == build_search._PROMPT_TEMPLATE_HASH
+        )
+        assert records["star"]["description"] == "A star icon for testing"
 
 
 @pytest.fixture

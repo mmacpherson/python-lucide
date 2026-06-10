@@ -375,18 +375,32 @@ def generate_descriptions(  # noqa: PLR0913, PLR0915
     finally:
         main_conn.close()
 
-    # Ensure we have the Lucide repo for metadata
-    icons_dir = ensure_lucide_repo(lucide_version, repo_dir=icons_dir)
-
-    # Determine which icons need descriptions
+    # Determine which icons need descriptions: missing entirely, or generated
+    # with a stale prompt template / VLM model
     existing: set[str] = set()
     if incremental and jsonl_path.exists():
-        existing = set(load_descriptions_jsonl(jsonl_path).keys())
+        prior = load_descriptions_jsonl(jsonl_path)
+        existing = {
+            name
+            for name, rec in prior.items()
+            if rec.get("prompt_template_hash") == _PROMPT_TEMPLATE_HASH
+            and rec.get("model") == DEFAULT_VLM_MODEL
+        }
+        stale = len(prior) - len(existing)
+        if stale:
+            logger.info(
+                "%d descriptions were generated with a stale prompt template"
+                " or model; regenerating",
+                stale,
+            )
 
     names = [n for n in all_names if n not in existing]
     if not names:
         logger.info("All icons already have descriptions in %s", jsonl_path)
         return 0
+
+    # Ensure we have the Lucide repo for metadata
+    icons_dir = ensure_lucide_repo(lucide_version, repo_dir=icons_dir)
 
     logger.info("Generating descriptions for %d icons", len(names))
 
