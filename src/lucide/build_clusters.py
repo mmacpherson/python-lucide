@@ -13,26 +13,21 @@ import logging
 import os
 import pathlib
 import sqlite3
-import urllib.request
 from datetime import datetime, timezone
+
+from pydantic import BaseModel, field_validator
+from pydantic_ai import Agent
+from pydantic_ai.models import Model
 
 logger = logging.getLogger(__name__)
 
 CLUSTER_NAMING_MODEL = "gemini-2.5-flash"
 
-NAMING_PROMPT_TEMPLATE = """\
-Here are icon names that form a visual/semantic cluster: {icon_names}
-
-Give this cluster a short, evocative theme name (2-4 words).
-Be specific about what unifies these icons.
-Do not use generic labels like "UI elements" or "miscellaneous".
-
-Return ONLY the theme name, nothing else."""
-
-GEMINI_API_URL = (
-    "https://generativelanguage.googleapis.com/v1beta/models/"
-    "{model}:generateContent?key={api_key}"
-)
+NAMING_INSTRUCTIONS = """\
+You name clusters of icons. Given icon names that form a visual/semantic
+cluster, respond with a short, evocative theme name (2-4 words).
+Be specific about what unifies the icons.
+Do not use generic labels like "UI elements" or "miscellaneous"."""
 
 # Generous bound for a "2-4 word" name; anything longer means the model
 # ignored the instruction (e.g. leaked its reasoning)
@@ -42,10 +37,10 @@ MAX_THEME_LENGTH = 40
 def _sanitize_theme(raw: str) -> str | None:
     """Validate a model-proposed theme name.
 
-    Despite the "Return ONLY the theme name" instruction, the model
-    occasionally returns its full chain-of-thought — two shipped clusters
-    once carried ~4k-char reasoning dumps as their theme. Reject anything
-    multi-line or implausibly long rather than trying to salvage it.
+    Models occasionally return their full chain-of-thought instead of just
+    the name — two shipped clusters once carried ~4k-char reasoning dumps
+    as their theme. Reject anything multi-line or implausibly long rather
+    than trying to salvage it.
 
     Args:
         raw: The raw model response text.
@@ -59,29 +54,25 @@ def _sanitize_theme(raw: str) -> str | None:
     return theme
 
 
-def _call_gemini_text(prompt: str, api_key: str) -> str | None:
-    """Call Gemini API with a text-only prompt."""
-    payload = {"contents": [{"parts": [{"text": prompt}]}]}
-    body = json.dumps(payload).encode("utf-8")
-    url = GEMINI_API_URL.format(model=CLUSTER_NAMING_MODEL, api_key=api_key)
-    req = urllib.request.Request(
-        url,
-        data=body,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            result = json.loads(resp.read().decode("utf-8"))
-        candidates = result.get("candidates", [])
-        if candidates:
-            parts = candidates[0].get("content", {}).get("parts", [])
-            if parts:
-                text: str = parts[0].get("text", "")
-                return text.strip()
-    except Exception:
-        logger.warning("Gemini API call failed", exc_info=True)
-    return None
+class ClusterTheme(BaseModel):
+    """Structured output for cluster naming.
+
+    A failed validation here becomes a retry request to the model, so a
+    leaked chain-of-thought gets re-asked instead of stored or discarded.
+    """
+
+    theme: str
+
+    @field_validator("theme")
+    @classmethod
+    def _must_be_short_single_line(cls, value: str) -> str:
+        clean = _sanitize_theme(value)
+        if clean is None:
+            raise ValueError(
+                f"theme must be a single line of at most {MAX_THEME_LENGTH} "
+                "characters — return only the 2-4 word name itself"
+            )
+        return clean
 
 
 def discover_clusters(
@@ -164,19 +155,40 @@ def name_clusters(
     data: dict,
     *,
     api_key: str | None = None,
+    model: Model | None = None,
 ) -> dict:
-    """Name each cluster using Gemini Flash.
+    """Name each cluster using Gemini Flash via a Pydantic AI agent.
+
+    Output is validated by ``ClusterTheme``; an invalid response (e.g. a
+    leaked chain-of-thought) triggers an automatic retry instead of being
+    stored. Only after retries are exhausted does a cluster fall back to a
+    ``Cluster {id}`` placeholder.
 
     Args:
         data: Output from ``discover_clusters()``.
         api_key: Gemini API key. Falls back to ``GEMINI_API_KEY`` env var.
+        model: Model override, used by tests to avoid real API calls.
 
     Returns:
         The same data dict with ``theme`` populated for each cluster.
     """
-    api_key = api_key or os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        raise ValueError("Gemini API key required. Set GEMINI_API_KEY.")
+    if model is None:
+        from pydantic_ai.models.google import GoogleModel  # noqa: PLC0415
+        from pydantic_ai.providers.google import GoogleProvider  # noqa: PLC0415
+
+        api_key = api_key or os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            raise ValueError("Gemini API key required. Set GEMINI_API_KEY.")
+        model = GoogleModel(
+            CLUSTER_NAMING_MODEL, provider=GoogleProvider(api_key=api_key)
+        )
+
+    agent = Agent(
+        model,
+        output_type=ClusterTheme,
+        instructions=NAMING_INSTRUCTIONS,
+        output_retries=3,
+    )
 
     clusters = data["clusters"]
     for lid in sorted(clusters, key=lambda k: -len(clusters[k]["icons"])):
@@ -187,16 +199,15 @@ def name_clusters(
         icons = clusters[lid]["icons"]
         # Cap at 40 names to keep prompt short
         icon_names = ", ".join(icons[:40])
-        prompt = NAMING_PROMPT_TEMPLATE.format(icon_names=icon_names)
-        raw = _call_gemini_text(prompt, api_key)
-        theme = _sanitize_theme(raw) if raw else None
-
-        if theme:
-            clusters[lid]["theme"] = theme
-            logger.info("Cluster %s (%d icons): %s", lid, len(icons), theme)
-        else:
+        try:
+            result = agent.run_sync(f"Icon cluster: {icon_names}")
+            clusters[lid]["theme"] = result.output.theme
+            logger.info(
+                "Cluster %s (%d icons): %s", lid, len(icons), result.output.theme
+            )
+        except Exception:
             clusters[lid]["theme"] = f"Cluster {lid}"
-            logger.warning("Failed to name cluster %s (raw response: %.80r)", lid, raw)
+            logger.warning("Failed to name cluster %s", lid, exc_info=True)
 
     return data
 
