@@ -24,7 +24,11 @@ from pathlib import Path
 import numpy as np
 import umap
 
-from lucide.config import DEFAULT_SEARCH_MODEL_ID, EMBEDDING_MODELS
+from lucide.config import (
+    DEFAULT_SEARCH_MODEL_ID,
+    DEFAULT_WEB_MODEL_ID,
+    EMBEDDING_MODELS,
+)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = REPO_ROOT / "src" / "lucide" / "data"
@@ -52,7 +56,10 @@ def _model_manifest() -> list[dict]:
             "dtype": cfg.web_dtype,
             "queryPrefix": cfg.query_prefix,
             "label": cfg.label,
-            "default": cfg.id == DEFAULT_SEARCH_MODEL_ID,
+            "default": cfg.id == DEFAULT_WEB_MODEL_ID,
+            # The model whose embeddings produced the UMAP layout and
+            # clusters; Explore must use the same space for neighbor lines
+            "clusterSource": cfg.id == DEFAULT_SEARCH_MODEL_ID,
         }
         for cfg in _web_models()
     ]
