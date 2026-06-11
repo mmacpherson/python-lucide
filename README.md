@@ -61,7 +61,15 @@ lucide_icon("user", stroke="#ff6b6b")     # Hex colors work too
 
 ## Semantic Search
 
-Find icons by describing what you mean, not what they're called:
+Find icons by describing what you mean, not what they're called — in English
+or [50+ languages](https://mmacpherson.github.io/python-lucide/search/):
+
+<p align="center">
+  <a href="https://mmacpherson.github.io/python-lucide/search/">
+    <img src="https://raw.githubusercontent.com/mmacpherson/python-lucide/main/.github/images/search-english.png" width="49%" alt="Searching &quot;celebrate a big achievement&quot; returns trophy, award, medal, party-popper">
+    <img src="https://raw.githubusercontent.com/mmacpherson/python-lucide/main/.github/images/search-multilingual.png" width="49%" alt="Searching in Japanese with the multilingual model returns key, user-key, lock icons">
+  </a>
+</p>
 
 ```bash
 # One-off, no install (requires uv)
