@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from "svelte";
   import type { IconsManifest, IconData, ModelConfig, SearchResult } from "../lib/types";
   import { loadEmbeddings, search } from "../lib/embeddings";
   import { loadModel, embed } from "../lib/model-loader";
@@ -32,15 +33,52 @@
   let isLoading = $derived(modelProgress >= 0);
 
   // Browsing needs only icons.json, so the gallery renders immediately
-  // while the model (the slow download) streams in the background
+  // while the model (the slow download) streams in the background. The
+  // gallery also stays up while a just-typed query is still embedding —
+  // collapsing on the first keystroke would flash an empty page and leave
+  // the FLIP transition nothing to measure.
   type DisplayResult = { icon: IconData; score: number | null; index: number };
   let displayed: DisplayResult[] = $derived(
     results.length > 0
       ? results
-      : query.trim()
-        ? []
-        : manifest.icons.map((icon, index) => ({ icon, score: null, index })),
+      : manifest.icons.map((icon, index) => ({ icon, score: null, index })),
   );
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let cellsEl: HTMLElement | null = $state(null);
+
+  // Manual FLIP: cells that survive a state change glide from their old
+  // position to their new one (search gathers matches from their gallery
+  // spots; Gallery<->List morphs in place). Svelte's animate:flip only
+  // fires on each-block reorder, so it can't cover the view toggle.
+  // Removed cells vanish and added cells appear instantly — animating the
+  // ~1700-cell idle gallery would jank, hence the moved-cell cap.
+  async function withFlip(mutate: () => void) {
+    const cells = cellsEl ? ([...cellsEl.children] as HTMLElement[]) : [];
+    if (reduceMotion || cells.length === 0) {
+      mutate();
+      return;
+    }
+    const before = new Map<HTMLElement, DOMRect>();
+    for (const el of cells) before.set(el, el.getBoundingClientRect());
+    mutate();
+    await tick();
+    const moves: Array<[HTMLElement, number, number]> = [];
+    for (const [el, a] of before) {
+      if (!el.isConnected) continue;
+      const b = el.getBoundingClientRect();
+      const dx = a.left - b.left;
+      const dy = a.top - b.top;
+      if (dx || dy) moves.push([el, dx, dy]);
+    }
+    if (moves.length > 120) return;
+    for (const [el, dx, dy] of moves) {
+      el.animate(
+        [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }],
+        { duration: 250, easing: "cubic-bezier(0.215, 0.61, 0.355, 1)" },
+      );
+    }
+  }
 
   let similarIcons = $derived.by(() => {
     if (!selectedIcon) return [];
@@ -99,11 +137,13 @@
       const queryVec = await embed(q, config);
       if (gen !== generation) return;
       const hits = search(queryVec, embeddingsMatrix, config.dim, 50);
-      results = hits.map((h) => ({
-        icon: manifest.icons[h.index],
-        score: h.score,
-        index: h.index,
-      }));
+      await withFlip(() => {
+        results = hits.map((h) => ({
+          icon: manifest.icons[h.index],
+          score: h.score,
+          index: h.index,
+        }));
+      });
     } catch (e) {
       if (gen === generation) console.error("Search failed:", e);
     }
@@ -115,7 +155,7 @@
       if (query.trim()) {
         doSearch(query);
       } else {
-        results = [];
+        withFlip(() => { results = []; });
       }
     }, 150);
   }
@@ -124,14 +164,18 @@
 
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === "Escape") {
-      query = "";
-      results = [];
+      withFlip(() => {
+        query = "";
+        results = [];
+      });
     }
   }
 
   function clearSearch() {
-    query = "";
-    results = [];
+    withFlip(() => {
+      query = "";
+      results = [];
+    });
     inputRef?.focus();
   }
 
@@ -229,8 +273,8 @@
       </div>
       <div class="meta-r">
         <div class="seg">
-          <button class="seg-b" class:on={dense} onclick={() => dense = true}>Gallery</button>
-          <button class="seg-b" class:on={!dense} onclick={() => dense = false}>List</button>
+          <button class="seg-b" class:on={dense} onclick={() => withFlip(() => { dense = true; })}>Gallery</button>
+          <button class="seg-b" class:on={!dense} onclick={() => withFlip(() => { dense = false; })}>List</button>
         </div>
         <span class="meta-div" aria-hidden="true"></span>
         <div class="seg">
@@ -282,16 +326,17 @@
     {/if}
 
     {#if displayed.length > 0}
-      <div class={dense ? 'grid' : 'list'}>
+      <div class={dense ? 'grid' : 'list'} bind:this={cellsEl}>
         {#each displayed as result (result.icon.name)}
           {@const scorePercent = result.score == null ? null : Math.round(result.score * 100)}
-          {#if dense}
-            <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
-            <div
-              class="cell"
-              class:sel={selectedIcon?.name === result.icon.name}
-              onclick={() => selectedIcon = result.icon}
-            >
+          <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
+          <div
+            class="cell"
+            class:row={!dense}
+            class:sel={selectedIcon?.name === result.icon.name}
+            onclick={() => selectedIcon = result.icon}
+          >
+            {#if dense}
               {#if scorePercent != null}
                 <span class="cell-m">{scorePercent}</span>
               {/if}
@@ -301,14 +346,7 @@
               <span class="cell-icon">{@html result.icon.svg}</span>
               <span class="cell-n">{result.icon.name}</span>
               <span class="cell-dot" style="background: {clusterColor(clusterColors, result.icon.cluster)}"></span>
-            </div>
-          {:else}
-            <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
-            <div
-              class="cell row"
-              class:sel={selectedIcon?.name === result.icon.name}
-              onclick={() => selectedIcon = result.icon}
-            >
+            {:else}
               <span class="cell-tile">
                 <span class="cell-tile-icon">{@html result.icon.svg}</span>
               </span>
@@ -325,14 +363,9 @@
               <button class="copy row-copy" onclick={(e) => { e.stopPropagation(); copyText(result.icon.name, `Copied "${result.icon.name}"`); }} title="Copy name" aria-label="Copy icon name">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
               </button>
-            </div>
-          {/if}
+            {/if}
+          </div>
         {/each}
-      </div>
-    {:else if query && ready}
-      <div class="empty">
-        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m13.5 8.5-5 5"/><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <p>No icons match "{query}".</p>
       </div>
     {/if}
 
@@ -565,9 +598,6 @@
   }
   .cell.row:hover .row-copy { opacity: 1; }
 
-  /* ── Empty / loading ─────────────────────────────────────────── */
-  .empty { text-align: center; padding: 70px 0; color: var(--tx2); }
-  .empty p { margin-top: 12px; font-size: 14px; }
   .error {
     color: #ff6b6b; padding: 16px;
     background: #2a1515; border-radius: 8px;
