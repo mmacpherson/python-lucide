@@ -55,16 +55,11 @@ class EmbeddingModelConfig:
     label: str = ""
 
 
+# Two models, not three: at q8 bge-small is 33 MB, close enough to
+# all-MiniLM's 22 MB that a separate "Faster" tier bought nothing —
+# evaluated against bge-base and arctic-embed-m (both ~104 MB q8) too,
+# and neither beat bge-small on this corpus.
 EMBEDDING_MODELS: dict[str, EmbeddingModelConfig] = {
-    "minilm": EmbeddingModelConfig(
-        id="minilm",
-        fastembed_model="sentence-transformers/all-MiniLM-L6-v2",
-        web_model="Xenova/all-MiniLM-L6-v2",
-        dim=384,
-        pooling="mean",
-        web_dtype="q8",
-        label="Faster",
-    ),
     "bge-small": EmbeddingModelConfig(
         id="bge-small",
         fastembed_model="BAAI/bge-small-en-v1.5",
@@ -73,7 +68,7 @@ EMBEDDING_MODELS: dict[str, EmbeddingModelConfig] = {
         pooling="cls",
         web_dtype="q8",
         query_prefix="Represent this sentence for searching relevant passages: ",
-        label="Better",
+        label="English",
     ),
     "multilingual": EmbeddingModelConfig(
         id="multilingual",
@@ -87,11 +82,6 @@ EMBEDDING_MODELS: dict[str, EmbeddingModelConfig] = {
 }
 
 DEFAULT_SEARCH_MODEL_ID = "bge-small"
-
-# The web app starts on the smallest model so first paint is a ~22 MB
-# download instead of ~33 MB; users opt into heavier models via the toggle.
-# Python keeps the strongest default since there's no download trade-off.
-DEFAULT_WEB_MODEL_ID = "minilm"
 
 # VLM used to generate icon descriptions at build time
 DEFAULT_VLM_MODEL = "gemini-2.5-flash-lite"
