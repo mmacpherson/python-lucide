@@ -606,7 +606,9 @@ def _cmd_search(args: argparse.Namespace) -> int:
         print("No results found.")
         return 0
 
-    show_icons = _terminal_supports_graphics()
+    show_icons, graphics_tip = _graphics_support()
+    if graphics_tip:
+        print(graphics_tip, file=sys.stderr)
     svgs: dict[str, str] = {}
     if show_icons:
         svgs = _load_svgs_for_results([r.name for r in results])
@@ -617,36 +619,70 @@ def _cmd_search(args: argparse.Namespace) -> int:
     cyan = "\033[38;2;100;200;220m"
 
     for r in results:
-        if show_icons and r.name in svgs:
-            _display_kitty_image(svgs[r.name])
-        print(f"  {bold}{cyan}{r.name}{reset}  {dim}{r.score:.0%}{reset}")
+        prefix = "  "
+        if show_icons:
+            drawn = r.name in svgs and _display_kitty_image(svgs[r.name])
+            # The image sits in columns 1-2 (cursor untouched, C=1), so
+            # step over it to keep names aligned whether or not it drew
+            prefix = "\033[3C" if drawn else "   "
+        print(f"{prefix}{bold}{cyan}{r.name}{reset}  {dim}{r.score:.0%}{reset}")
         if args.verbose and r.description:
             print(f"    {dim}{r.description[:100]}{reset}")
-        if show_icons:
-            print()
 
     return 0
 
 
-def _terminal_supports_graphics() -> bool:
-    """Check if the terminal supports the Kitty graphics protocol.
+def _graphics_support() -> tuple[bool, str | None]:
+    """Decide whether to render inline icons via the Kitty graphics protocol.
 
-    Note: tmux passthrough (allow-passthrough on) theoretically supports
-    Kitty graphics, but cursor positioning is unreliable. Disabled for
-    now — see python-lucide-TODO (beads).
+    Returns:
+        A ``(show_icons, tip)`` pair. *tip* is a one-line stderr hint for
+        the cases where the terminal could show icons but something the
+        user can fix is in the way (tmux passthrough off, cairosvg not
+        installed) — silently dropping the feature proved confusing.
     """
     import os  # noqa: PLC0415
 
-    # tmux blocks reliable graphics rendering
-    if os.environ.get("TMUX") or "screen" in os.environ.get("TERM", ""):
-        return False
-
     term = os.environ.get("TERM_PROGRAM", "")
-    if term in ("ghostty", "kitty", "WezTerm"):
-        return True
-    if os.environ.get("GHOSTTY_RESOURCES_DIR"):
-        return True
-    return "kitty" in os.environ.get("TERM", "")
+    host_capable = (
+        term in ("ghostty", "kitty", "WezTerm")
+        or bool(os.environ.get("GHOSTTY_RESOURCES_DIR"))
+        or bool(os.environ.get("KITTY_WINDOW_ID"))
+        or "kitty" in os.environ.get("TERM", "")
+    )
+    if not host_capable:
+        return False, None
+
+    if os.environ.get("TMUX") and not _tmux_allows_passthrough():
+        return False, (
+            "Tip: your terminal can show icons inline, but tmux blocks "
+            "them — run: tmux set -g allow-passthrough on"
+        )
+
+    try:
+        import cairosvg  # noqa: F401, PLC0415
+    except ImportError:
+        return False, (
+            "Tip: your terminal can show icons inline — install cairosvg "
+            "to enable (pip install cairosvg, or uvx --with cairosvg)."
+        )
+
+    return True, None
+
+
+def _tmux_allows_passthrough() -> bool:
+    """Check whether the current tmux pane permits escape passthrough."""
+    try:
+        proc = subprocess.run(
+            ["tmux", "show", "-Apv", "allow-passthrough"],
+            capture_output=True,
+            text=True,
+            timeout=2,
+            check=False,
+        )
+    except Exception:
+        return False
+    return proc.stdout.strip() in ("on", "all")
 
 
 def _load_svgs_for_results(names: list[str]) -> dict[str, str]:
@@ -666,30 +702,45 @@ def _load_svgs_for_results(names: list[str]) -> dict[str, str]:
     return svgs
 
 
-def _display_kitty_image(svg_content: str) -> None:
-    """Render an SVG and display it inline via the Kitty graphics protocol."""
+def _display_kitty_image(svg_content: str) -> bool:
+    """Render an SVG as a one-row inline image at the cursor position.
+
+    Emits with ``C=1`` so the cursor stays put and the caller controls
+    layout with ordinary cursor movement — which is also what makes tmux
+    passthrough safe: tmux never sees the image escape, and everything
+    that *does* move the cursor goes through tmux normally.
+
+    Returns:
+        True if an image escape was written.
+    """
     import base64  # noqa: PLC0415
-    import sys  # noqa: PLC0415
+    import os  # noqa: PLC0415
 
     try:
         import cairosvg  # noqa: PLC0415
     except ImportError:
-        return
+        return False
 
     try:
         # Insert a white background rect so icons show on any terminal bg
         bg_rect = '<rect width="100%" height="100%" fill="white" rx="3"/>'
         padded_svg = svg_content.replace(">", f">{bg_rect}", 1)
+        # Rendered larger than displayed; the terminal downscales, which
+        # keeps strokes crisp on hidpi displays
         png_data: bytes = cairosvg.svg2png(
             bytestring=padded_svg.encode("utf-8"),
-            output_width=48,
-            output_height=48,
+            output_width=96,
+            output_height=96,
         )
         b64 = base64.b64encode(png_data).decode("ascii")
-        sys.stdout.write(f"\033_Gf=100,t=d,a=T,r=2,c=4,q=2;{b64}\033\\\n")
+        seq = f"\033_Gf=100,t=d,a=T,r=1,c=2,C=1,q=2;{b64}\033\\"
+        if os.environ.get("TMUX"):
+            seq = "\033Ptmux;" + seq.replace("\033", "\033\033") + "\033\\"
+        sys.stdout.write(seq)
         sys.stdout.flush()
     except Exception:
-        pass
+        return False
+    return True
 
 
 def _cmd_cluster(args: argparse.Namespace) -> int:
