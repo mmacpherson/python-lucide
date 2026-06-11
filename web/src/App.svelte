@@ -81,7 +81,14 @@
     <!-- Svelte trims a leading space inside the span, so keep it outside -->
     <span class="wm">Lucide{" "}<span class="wm-dim">Semantic Search</span></span>
     {#if manifest}
-      <span class="ver mono">v{manifest.version}</span>
+      <!-- Lucide tags releases without a "v" prefix -->
+      <a
+        class="ver mono"
+        href="https://github.com/lucide-icons/lucide/releases/tag/{manifest.version}"
+        target="_blank"
+        rel="noopener"
+        title="Lucide {manifest.version} release notes"
+      >v{manifest.version}</a>
     {/if}
   </div>
   <div class="hdr-r">
@@ -156,7 +163,8 @@
     white-space: nowrap;
   }
   .wm-dim { color: var(--tx2); font-weight: 500; }
-  .ver { font-size: 11px; color: var(--tx3); margin-left: 2px; }
+  .ver { font-size: 11px; color: var(--tx3); margin-left: 2px; text-decoration: none; }
+  .ver:hover { color: var(--tx); text-decoration: underline; }
   .mono { font-family: var(--font-mono); }
 
   .hdr-r { display: flex; align-items: center; gap: 12px; }
