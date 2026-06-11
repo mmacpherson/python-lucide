@@ -666,6 +666,13 @@ def _graphics_support() -> tuple[bool, str | None]:
             "Tip: your terminal can show icons inline — install cairosvg "
             "to enable (pip install cairosvg, or uvx --with cairosvg)."
         )
+    except OSError:
+        # cairosvg is installed but the native cairo library is absent;
+        # cairocffi raises OSError (not ImportError) from its dlopen
+        return False, (
+            "Tip: inline icons need the cairo system library "
+            "(e.g. apt install libcairo2, or brew install cairo)."
+        )
 
     return True, None
 
@@ -718,7 +725,7 @@ def _display_kitty_image(svg_content: str) -> bool:
 
     try:
         import cairosvg  # noqa: PLC0415
-    except ImportError:
+    except (ImportError, OSError):
         return False
 
     try:

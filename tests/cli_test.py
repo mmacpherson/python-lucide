@@ -311,3 +311,20 @@ class TestInlineIcons:
     def test_missing_cairosvg_returns_false(self):
         with mock.patch.dict("sys.modules", {"cairosvg": None}):
             assert cli._display_kitty_image(self.SVG) is False
+
+    def test_broken_native_cairo_tips_system_library(self, monkeypatch):
+        import builtins  # noqa: PLC0415
+
+        monkeypatch.setenv("GHOSTTY_RESOURCES_DIR", "/usr/share/ghostty")
+        real_import = builtins.__import__
+
+        def fake_import(name, *args, **kwargs):
+            # cairocffi raises OSError from dlopen when libcairo is absent
+            if name == "cairosvg":
+                raise OSError("no library called 'cairo-2' was found")
+            return real_import(name, *args, **kwargs)
+
+        monkeypatch.setattr(builtins, "__import__", fake_import)
+        show, tip = cli._graphics_support()
+        assert show is False
+        assert "cairo system library" in tip
