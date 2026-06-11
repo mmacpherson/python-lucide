@@ -1,7 +1,13 @@
 import { pipeline, type FeatureExtractionPipeline } from "@huggingface/transformers";
 import type { ModelConfig } from "./types";
 
-export type ProgressCallback = (progress: number) => void;
+export interface LoadProgress {
+  percent: number;
+  loadedBytes: number;
+  totalBytes: number;
+}
+
+export type ProgressCallback = (progress: LoadProgress) => void;
 
 interface LoadedModel {
   config: ModelConfig;
@@ -21,11 +27,35 @@ export async function loadModel(
     currentModel = null;
   }
 
+  // transformers.js reports progress per file (config, tokenizer, onnx
+  // weights); aggregate so the UI can show a single MB counter instead of
+  // a bar that restarts for each file
+  const files = new Map<string, { loaded: number; total: number }>();
   const extractor = await pipeline("feature-extraction", config.hfModel, {
     dtype: config.dtype,
-    progress_callback: (event: { status: string; progress?: number }) => {
-      if (event.status === "progress" && event.progress != null && onProgress) {
-        onProgress(event.progress);
+    progress_callback: (event: {
+      status: string;
+      file?: string;
+      loaded?: number;
+      total?: number;
+    }) => {
+      if (event.status !== "progress" || !event.file || !onProgress) return;
+      files.set(event.file, {
+        loaded: event.loaded ?? 0,
+        total: event.total ?? 0,
+      });
+      let loaded = 0;
+      let total = 0;
+      for (const f of files.values()) {
+        loaded += f.loaded;
+        total += f.total;
+      }
+      if (total > 0) {
+        onProgress({
+          percent: (loaded / total) * 100,
+          loadedBytes: loaded,
+          totalBytes: total,
+        });
       }
     },
   });

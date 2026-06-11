@@ -21,6 +21,7 @@
   let query = $state("");
   let activeModelId = $state("");
   let modelProgress = $state(-1);
+  let loadBytes: { loaded: number; total: number } | null = $state(null);
   let embeddingsMatrix: Float32Array | null = $state(null);
   let ready = $state(false);
   let loadError = $state("");
@@ -29,6 +30,17 @@
   let inputRef: HTMLInputElement | null = $state(null);
 
   let isLoading = $derived(modelProgress >= 0);
+
+  // Browsing needs only icons.json, so the gallery renders immediately
+  // while the model (the slow download) streams in the background
+  type DisplayResult = { icon: IconData; score: number | null; index: number };
+  let displayed: DisplayResult[] = $derived(
+    results.length > 0
+      ? results
+      : query.trim()
+        ? []
+        : manifest.icons.map((icon, index) => ({ icon, score: null, index })),
+  );
 
   let similarIcons = $derived.by(() => {
     if (!selectedIcon) return [];
@@ -45,22 +57,29 @@
     const gen = ++generation;
     ready = false;
     modelProgress = 0;
+    loadBytes = null;
     activeModelId = config.id;
 
     try {
       const [emb] = await Promise.all([
         loadEmbeddings(`${BASE}data/${config.file}?v=${manifest.version}`, manifest.icons.length, config.dim),
-        loadModel(config, (p) => { if (gen === generation) modelProgress = p; }),
+        loadModel(config, (p) => {
+          if (gen !== generation) return;
+          modelProgress = p.percent;
+          loadBytes = { loaded: p.loadedBytes, total: p.totalBytes };
+        }),
       ]);
       if (gen !== generation) return;
       embeddingsMatrix = emb;
       modelProgress = -1;
+      loadBytes = null;
       ready = true;
       if (query) await doSearch(query);
     } catch (e) {
       if (gen !== generation) return;
       loadError = `Failed to load model: ${e}`;
       modelProgress = -1;
+      loadBytes = null;
     }
   }
 
@@ -204,10 +223,8 @@
       <div class="meta-l">
         {#if results.length > 0}
           <span><b>{results.length}</b> results <span class="dim">&middot; ranked by meaning</span></span>
-        {:else if !query && ready}
+        {:else if !query}
           <span><b>{manifest.icons.length.toLocaleString()}</b> icons</span>
-        {:else if !ready}
-          <span>Loading model...</span>
         {/if}
       </div>
       <div class="meta-r">
@@ -254,12 +271,20 @@
       <div class="progress-bar">
         <div class="progress-fill" style="width: {modelProgress}%"></div>
       </div>
+      <div class="progress-label">
+        {#if loadBytes}
+          Downloading search model &mdash; {Math.round(loadBytes.loaded / 1e6)} / {Math.round(loadBytes.total / 1e6)} MB
+          <span class="dim">&middot; one-time, cached for your next visit</span>
+        {:else}
+          Loading search model&hellip;
+        {/if}
+      </div>
     {/if}
 
-    {#if results.length > 0}
+    {#if displayed.length > 0}
       <div class={dense ? 'grid' : 'list'}>
-        {#each results as result (result.icon.name)}
-          {@const scorePercent = Math.round(result.score * 100)}
+        {#each displayed as result (result.icon.name)}
+          {@const scorePercent = result.score == null ? null : Math.round(result.score * 100)}
           {#if dense}
             <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
             <div
@@ -267,7 +292,9 @@
               class:sel={selectedIcon?.name === result.icon.name}
               onclick={() => selectedIcon = result.icon}
             >
-              <span class="cell-m">{scorePercent}</span>
+              {#if scorePercent != null}
+                <span class="cell-m">{scorePercent}</span>
+              {/if}
               <button class="copy" onclick={(e) => { e.stopPropagation(); copyText(result.icon.name, `Copied "${result.icon.name}"`); }} title="Copy name" aria-label="Copy icon name">
                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
               </button>
@@ -292,7 +319,9 @@
                   {result.icon.cluster}
                 </span>
               </span>
-              <span class="cell-m static">{scorePercent}%</span>
+              {#if scorePercent != null}
+                <span class="cell-m static">{scorePercent}%</span>
+              {/if}
               <button class="copy row-copy" onclick={(e) => { e.stopPropagation(); copyText(result.icon.name, `Copied "${result.icon.name}"`); }} title="Copy name" aria-label="Copy icon name">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
               </button>
@@ -304,10 +333,6 @@
       <div class="empty">
         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m13.5 8.5-5 5"/><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         <p>No icons match "{query}".</p>
-      </div>
-    {:else if !ready}
-      <div class="empty">
-        <p>Loading model...</p>
       </div>
     {/if}
 
@@ -439,8 +464,12 @@
   /* ── Progress bar ────────────────────────────────────────────── */
   .progress-bar {
     height: 3px; background: var(--bd);
-    border-radius: 2px; margin-bottom: 16px; overflow: hidden;
+    border-radius: 2px; margin-bottom: 8px; overflow: hidden;
   }
+  .progress-label {
+    font-size: 12px; color: var(--tx2); margin-bottom: 16px;
+  }
+  .progress-label .dim { color: var(--tx3); }
   .progress-fill {
     height: 100%; background: var(--ac);
     transition: width 0.2s ease-out; border-radius: 2px;
@@ -460,6 +489,10 @@
     border-radius: 12px; cursor: pointer;
     transition: transform .12s, border-color .12s, background .12s;
     color: var(--tx);
+    /* The idle gallery renders all ~1700 icons; skip layout/paint for
+       offscreen cells so first render stays fast on phones */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 96px;
   }
   .cell:hover {
     background: var(--surf2); border-color: var(--bd2);
