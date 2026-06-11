@@ -125,11 +125,6 @@
     }
   }
 
-  function activeModelLabel(): string {
-    const config = manifest.models.find((m) => m.id === activeModelId);
-    return config?.hfModel.split("/").pop() ?? "";
-  }
-
   // Curated with scripts/eval-prompts.mjs: each retrieves clearly relevant
   // icons in the top results, and shows that descriptive phrases beat
   // single keywords
@@ -220,7 +215,7 @@
           <button class="seg-b" class:on={dense} onclick={() => dense = true}>Gallery</button>
           <button class="seg-b" class:on={!dense} onclick={() => dense = false}>List</button>
         </div>
-        <span class="model mono">{activeModelLabel()}</span>
+        <span class="meta-div" aria-hidden="true"></span>
         <div class="seg">
           {#each manifest.models as model}
             <button
@@ -243,7 +238,8 @@
           {#if modelInfoOpen}
             <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
             <div class="info-pop" onclick={(e) => e.stopPropagation()}>
-              <p>Search runs entirely in your browser: your query is embedded by a small neural net and matched against precomputed icon embeddings. Nothing is sent to a server.</p>
+              <p>Search matches your words by meaning, not exact keywords — and it all happens on your device. Nothing you type is sent to a server.</p>
+              <p>Under the hood, a small neural net (an embedding model) running in your browser compares your query against precomputed descriptions of every icon.</p>
               <p><b>English</b> uses <span class="mono">bge-small-en-v1.5</span> (~33&thinsp;MB) — strong semantic ranking, quick to download.</p>
               <p><b>Multilingual</b> uses <span class="mono">paraphrase-multilingual-MiniLM-L12-v2</span> (~115&thinsp;MB) — search in 50+ languages (for English queries, the English model ranks best).</p>
               <p>Each model downloads once on first use, then loads from browser cache.</p>
@@ -386,7 +382,9 @@
   .meta-l { font-size: 13px; color: var(--tx2); }
   .meta-l b { color: var(--tx); font-weight: 700; }
   .meta-r { display: flex; align-items: center; gap: 11px; flex-wrap: wrap; }
-  .model { font-size: 11px; color: var(--tx3); }
+  /* The view and model toggles are unrelated controls; a hairline keeps
+     them from reading as one segmented group */
+  .meta-div { width: 1px; height: 18px; background: var(--bd2); }
   .mono { font-family: var(--font-mono); }
 
   .seg {
@@ -425,6 +423,14 @@
     box-shadow: var(--shadow);
     font-size: 12.5px; color: var(--tx2); line-height: 1.55;
     cursor: auto;
+  }
+  /* When the meta row wraps, the info button can land at the viewport's
+     left edge — anchoring to the button would push the popover off-screen,
+     so anchor to the full-width row instead */
+  @media (max-width: 640px) {
+    .meta-r { position: relative; }
+    .info-wrap { position: static; }
+    .info-pop { width: auto; left: 0; right: 0; }
   }
   .info-pop p + p { margin-top: 8px; }
   .info-pop b { color: var(--tx); }
@@ -555,9 +561,4 @@
   .dim a { color: var(--tx2); }
   .dim a:hover { color: var(--tx); text-decoration: underline; }
 
-  @media (max-width: 640px) {
-    /* The full model filename is documented in the info popover; on a
-       phone it can't fit between the two toggles without wrapping badly */
-    .model { display: none; }
-  }
 </style>
