@@ -529,6 +529,40 @@ def _cmd_build_search(args: argparse.Namespace) -> int:
     return 0
 
 
+def _first_run_downloads(model: str) -> list[str]:
+    """Human-readable one-time downloads the next search will trigger.
+
+    Best-effort: peeks at fastembed's model cache and the search-DB cache;
+    any surprise in their layout just means the notice is skipped.
+    """
+    from .search import search_available  # noqa: PLC0415
+
+    pending = []
+    try:
+        from fastembed import TextEmbedding  # noqa: PLC0415
+        from fastembed.common.utils import define_cache_dir  # noqa: PLC0415
+
+        fastembed_name = EMBEDDING_MODELS[model].fastembed_model
+        meta = next(
+            m
+            for m in TextEmbedding.list_supported_models()
+            if m["model"] == fastembed_name
+        )
+        hf_repo = (meta.get("sources") or {}).get("hf") or ""
+        size_mb = round(meta["size_in_GB"] * 1000)
+        model_dir = (
+            pathlib.Path(define_cache_dir(None))
+            / f"models--{hf_repo.replace('/', '--')}"
+        )
+        if hf_repo and not model_dir.exists():
+            pending.append(f"embedding model (~{size_mb} MB)")
+    except Exception:
+        pass
+    if not search_available():
+        pending.append("search index (11 MB)")
+    return pending
+
+
 def _cmd_search(args: argparse.Namespace) -> int:
     """Handle ``lucide search``."""
     import os  # noqa: PLC0415
@@ -548,6 +582,19 @@ def _cmd_search(args: argparse.Namespace) -> int:
             candidate = icons_db.parent / "lucide-search.db"
             if candidate.exists():
                 os.environ["LUCIDE_SEARCH_DB_PATH"] = str(candidate)
+
+    # Downloading without a token is expected here; the hf_xet download
+    # backend's HF_TOKEN nudge reads like an error mid-download, so keep
+    # warnings from its logger out of the way
+    logging.getLogger("hf_xet").setLevel(logging.ERROR)
+
+    pending = _first_run_downloads(args.model)
+    if pending:
+        print(
+            f"First run: downloading {' and '.join(pending)} — "
+            "cached for future searches.",
+            file=sys.stderr,
+        )
 
     try:
         results = search_icons(args.query, limit=args.limit, model=args.model)
@@ -572,7 +619,7 @@ def _cmd_search(args: argparse.Namespace) -> int:
     for r in results:
         if show_icons and r.name in svgs:
             _display_kitty_image(svgs[r.name])
-        print(f"  {bold}{cyan}{r.name}{reset}  {dim}{r.score:.3f}{reset}")
+        print(f"  {bold}{cyan}{r.name}{reset}  {dim}{r.score:.0%}{reset}")
         if args.verbose and r.description:
             print(f"    {dim}{r.description[:100]}{reset}")
         if show_icons:
