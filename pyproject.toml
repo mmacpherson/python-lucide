@@ -44,7 +44,7 @@ requires-python = ">=3.10"
 version = "0.4.0"
 
 [project.optional-dependencies]
-search = ["fastembed>=0.4.0"]
+search = ["cairosvg>=2.7.0", "fastembed>=0.4.0"]
 
 [project.scripts]
 check-lucide-version = "lucide.dev_utils:print_version_status"

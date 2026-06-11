@@ -96,7 +96,9 @@ keywords. Options:
   best for English)
 - `--limit N` — number of results; `--verbose` — include each icon's description
 - In terminals supporting the Kitty graphics protocol (kitty, Ghostty,
-  WezTerm), the icons themselves render inline with the results.
+  WezTerm), the icons themselves render inline with the results — inside
+  tmux too, with `tmux set -g allow-passthrough on`. (Rendering uses the
+  cairo system library; if it's missing, the CLI prints a hint.)
 
 The first search downloads the embedding model (~67 MB) and the pre-built
 search index (11 MB); both are cached, and every search after that runs

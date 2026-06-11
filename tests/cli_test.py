@@ -223,3 +223,108 @@ class TestMainSubcommands:
         ):
             result = cli.main()
         assert result == 1
+
+
+class TestInlineIcons:
+    GRAPHICS_ENV_VARS = (
+        "TERM_PROGRAM",
+        "GHOSTTY_RESOURCES_DIR",
+        "KITTY_WINDOW_ID",
+        "TERM",
+        "TMUX",
+    )
+
+    @pytest.fixture(autouse=True)
+    def clean_env(self, monkeypatch):
+        for var in self.GRAPHICS_ENV_VARS:
+            monkeypatch.delenv(var, raising=False)
+
+    def test_plain_terminal_no_icons_no_tip(self, monkeypatch):
+        monkeypatch.setenv("TERM", "xterm-256color")
+        show, tip = cli._graphics_support()
+        assert show is False
+        assert tip is None
+
+    def test_ghostty_enables_icons(self, monkeypatch):
+        monkeypatch.setenv("GHOSTTY_RESOURCES_DIR", "/usr/share/ghostty")
+        show, tip = cli._graphics_support()
+        assert show is True
+        assert tip is None
+
+    def test_tmux_without_passthrough_tips_instead(self, monkeypatch):
+        monkeypatch.setenv("GHOSTTY_RESOURCES_DIR", "/usr/share/ghostty")
+        monkeypatch.setenv("TMUX", "/tmp/tmux-1000/default,1234,0")
+        with mock.patch.object(cli, "_tmux_allows_passthrough", return_value=False):
+            show, tip = cli._graphics_support()
+        assert show is False
+        assert "allow-passthrough" in tip
+
+    def test_tmux_with_passthrough_enables_icons(self, monkeypatch):
+        monkeypatch.setenv("GHOSTTY_RESOURCES_DIR", "/usr/share/ghostty")
+        monkeypatch.setenv("TMUX", "/tmp/tmux-1000/default,1234,0")
+        with mock.patch.object(cli, "_tmux_allows_passthrough", return_value=True):
+            show, tip = cli._graphics_support()
+        assert show is True
+        assert tip is None
+
+    def test_missing_cairosvg_tips_instead(self, monkeypatch):
+        monkeypatch.setenv("GHOSTTY_RESOURCES_DIR", "/usr/share/ghostty")
+        with mock.patch.dict("sys.modules", {"cairosvg": None}):
+            show, tip = cli._graphics_support()
+        assert show is False
+        assert "cairosvg" in tip
+
+    def test_tmux_passthrough_query_handles_missing_tmux(self):
+        with mock.patch.object(cli.subprocess, "run", side_effect=FileNotFoundError):
+            assert cli._tmux_allows_passthrough() is False
+
+    SVG = (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">'
+        '<circle cx="12" cy="12" r="9" stroke="black" fill="none"/></svg>'
+    )
+
+    def test_image_escape_bare(self, capfd):
+        pytest.importorskip("cairosvg")
+        assert cli._display_kitty_image(self.SVG) is True
+        out = capfd.readouterr().out
+        assert out.startswith("\033_G")
+        assert out.endswith("\033\\")
+        assert "C=1" in out and "r=1,c=2" in out
+
+    def test_image_escape_tmux_passthrough(self, capfd, monkeypatch):
+        pytest.importorskip("cairosvg")
+        monkeypatch.setenv("TMUX", "/tmp/tmux-1000/default,1234,0")
+        assert cli._display_kitty_image(self.SVG) is True
+        out = capfd.readouterr().out
+        assert out.startswith("\033Ptmux;")
+        assert out.endswith("\033\\")
+        body = out[len("\033Ptmux;") : -2]
+        # Inside the passthrough envelope every ESC must be doubled
+        i = 0
+        while i < len(body):
+            if body[i] == "\033":
+                assert body[i + 1] == "\033"
+                i += 2
+            else:
+                i += 1
+
+    def test_missing_cairosvg_returns_false(self):
+        with mock.patch.dict("sys.modules", {"cairosvg": None}):
+            assert cli._display_kitty_image(self.SVG) is False
+
+    def test_broken_native_cairo_tips_system_library(self, monkeypatch):
+        import builtins  # noqa: PLC0415
+
+        monkeypatch.setenv("GHOSTTY_RESOURCES_DIR", "/usr/share/ghostty")
+        real_import = builtins.__import__
+
+        def fake_import(name, *args, **kwargs):
+            # cairocffi raises OSError from dlopen when libcairo is absent
+            if name == "cairosvg":
+                raise OSError("no library called 'cairo-2' was found")
+            return real_import(name, *args, **kwargs)
+
+        monkeypatch.setattr(builtins, "__import__", fake_import)
+        show, tip = cli._graphics_support()
+        assert show is False
+        assert "cairo system library" in tip
