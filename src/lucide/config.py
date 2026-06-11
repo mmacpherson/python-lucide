@@ -35,8 +35,10 @@ class EmbeddingModelConfig:
         pooling: transformers.js pooling mode ("mean" or "cls").
         web_dtype: transformers.js quantization. Document vectors always
             come from fastembed (fp32), so a quantized browser model only
-            perturbs the query vector — q8 stays ~0.994 cosine to fp32,
-            which is ranking-equivalent, and roughly quarters the download.
+            perturbs the query vector — q8 stays ~0.985-0.996 cosine to
+            fp32 across our models, which is ranking-equivalent (top-1
+            changes are swaps between near-tied results), and roughly
+            quarters the download.
         query_prefix: Prefix prepended to queries (asymmetric retrieval).
         document_prefix: Prefix prepended to documents at build time.
         label: Human-facing label for the web UI model toggle.
@@ -60,6 +62,7 @@ EMBEDDING_MODELS: dict[str, EmbeddingModelConfig] = {
         web_model="Xenova/all-MiniLM-L6-v2",
         dim=384,
         pooling="mean",
+        web_dtype="q8",
         label="Faster",
     ),
     "bge-small": EmbeddingModelConfig(
@@ -68,6 +71,7 @@ EMBEDDING_MODELS: dict[str, EmbeddingModelConfig] = {
         web_model="Xenova/bge-small-en-v1.5",
         dim=384,
         pooling="cls",
+        web_dtype="q8",
         query_prefix="Represent this sentence for searching relevant passages: ",
         label="Better",
     ),
@@ -83,6 +87,11 @@ EMBEDDING_MODELS: dict[str, EmbeddingModelConfig] = {
 }
 
 DEFAULT_SEARCH_MODEL_ID = "bge-small"
+
+# The web app starts on the smallest model so first paint is a ~22 MB
+# download instead of ~33 MB; users opt into heavier models via the toggle.
+# Python keeps the strongest default since there's no download trade-off.
+DEFAULT_WEB_MODEL_ID = "minilm"
 
 # VLM used to generate icon descriptions at build time
 DEFAULT_VLM_MODEL = "gemini-2.5-flash-lite"

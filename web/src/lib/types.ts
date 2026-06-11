@@ -10,6 +10,8 @@ export interface ModelConfig {
   queryPrefix: string;
   label: string;
   default: boolean;
+  /** Model whose embeddings produced the UMAP layout and clusters */
+  clusterSource: boolean;
 }
 
 export interface IconData {
