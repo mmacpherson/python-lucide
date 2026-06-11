@@ -18,6 +18,7 @@ in your Python projects, with no javascript in sight.
 
 ## Features
 - 🎨 **Access 1600+ Lucide icons** directly from Python
+- 🔍 **Semantic search** - find icons by meaning, in the terminal or [in the browser](https://mmacpherson.github.io/python-lucide/search/)
 - 🛠 **Customize icons** with classes, sizes, colors, and other SVG attributes
 - 🚀 **Framework-friendly** with examples for FastHTML, Flask, Django, and more
 - 📦 **Lightweight** with minimal dependencies
@@ -57,6 +58,53 @@ lucide_icon("user", stroke="blue")        # Blue outline
 lucide_icon("user", fill="currentColor")  # Inherit color from CSS
 lucide_icon("user", stroke="#ff6b6b")     # Hex colors work too
 ```
+
+## Semantic Search
+
+Find icons by describing what you mean, not what they're called:
+
+```bash
+# One-off, no install (requires uv)
+uvx --from "python-lucide[search]" lucide search "celebrate a big achievement"
+
+# Or install the search extra
+pip install "python-lucide[search]"
+lucide search "waiting for a download"
+```
+
+```
+trophy        67%
+award         65%
+medal         65%
+party-popper  62%
+```
+
+Icons are matched against AI-generated descriptions using the same embedding
+model the [web app](https://mmacpherson.github.io/python-lucide/search/) uses,
+so descriptive phrases ("an idea just occurred to me") work better than
+keywords. Options:
+
+- `--model multilingual` — search in 50+ languages (default `bge-small` ranks
+  best for English)
+- `--limit N` — number of results; `--verbose` — include each icon's description
+- In terminals supporting the Kitty graphics protocol (kitty, Ghostty,
+  WezTerm), the icons themselves render inline with the results.
+
+The first search downloads the embedding model (~67 MB) and the pre-built
+search index (11 MB); both are cached, and every search after that runs
+locally in well under a second.
+
+The same search is available as a Python API:
+
+```python
+from lucide.search import search_icons
+
+for r in search_icons("secure login", limit=5):
+    print(r.name, r.score)
+```
+
+Prefer not to install anything? The [browser version](https://mmacpherson.github.io/python-lucide/search/)
+runs the whole pipeline client-side.
 
 ## Framework Integration Examples
 

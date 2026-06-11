@@ -280,7 +280,7 @@ def search_icons(
     """Search for icons by natural language query.
 
     On the first call the search database is downloaded and cached in
-    ``~/.cache/python-lucide/``.  The embedding model (~35-130 MB depending
+    ``~/.cache/python-lucide/``.  The embedding model (~67-220 MB depending
     on *model*) is also downloaded once by *fastembed*.
 
     Args:
