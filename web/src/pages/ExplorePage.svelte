@@ -15,7 +15,7 @@
   } = $props();
 
   let canvas: HTMLCanvasElement;
-  let searchInput = $state("");
+
   let coords: Record<string, [number, number]> = {};
   let loaded = $state(false);
   let loadError = $state("");
@@ -24,7 +24,7 @@
 
   let selectedIcons: Set<string> = $state(new Set());
   let neighborIcons: Set<string> = $state(new Set());
-  let searchHighlight: Set<string> = $state(new Set());
+  let clusterHighlight: Set<string> = $state(new Set());
   let hoveredIcon: IconData | null = $state(null);
   let hoveredPos = $state({ x: 0, y: 0 });
 
@@ -137,8 +137,8 @@
     ctx.scale(transform.scale, transform.scale);
 
     const hasSelection = selectedIcons.size > 0;
-    const hasSearch = searchHighlight.size > 0;
-    const dimmed = hasSelection || hasSearch;
+    const hasCluster = clusterHighlight.size > 0;
+    const dimmed = hasSelection || hasCluster;
 
     if (hasSelection) {
       ctx.strokeStyle = "rgba(109, 108, 245, 0.15)";
@@ -161,14 +161,14 @@
     for (const p of points) {
       const isSelected = selectedIcons.has(p.icon.name);
       const isNeighbor = neighborIcons.has(p.icon.name);
-      const isSearchHit = searchHighlight.has(p.icon.name);
+      const isClusterHit = clusterHighlight.has(p.icon.name);
 
       let alpha = dimmed ? 0.1 : 0.7;
       let scale = 1;
 
       if (isSelected) { alpha = 1; scale = 1.5; }
       else if (isNeighbor) { alpha = 0.85; scale = 1.2; }
-      else if (isSearchHit) { alpha = 0.95; scale = 1.3; }
+      else if (isClusterHit) { alpha = 0.95; scale = 1.3; }
 
       ctx.globalAlpha = alpha;
 
@@ -189,7 +189,7 @@
         ctx.beginPath();
         ctx.arc(p.x, p.y, half * scale + 2 / transform.scale, 0, Math.PI * 2);
         ctx.stroke();
-      } else if (isSearchHit) {
+      } else if (isClusterHit) {
         ctx.strokeStyle = "rgb(255, 200, 60)";
         ctx.lineWidth = 1.5 / transform.scale;
         ctx.beginPath();
@@ -304,49 +304,23 @@
     scheduleDraw();
   }
 
-  // Two distinct highlight modes: typing filters icons by metadata
-  // substring; clicking a cluster selects exactly its members. Each
-  // activation clears the other so the count always has one meaning.
+  // Radio-style cluster selection: one cluster at a time, clicking the
+  // active one (or the chip above the list) clears it
   let activeCluster: string | null = $state(null);
 
-  function handleSearch() {
-    activeCluster = null;
-    const q = searchInput.trim().toLowerCase();
-    if (!q) { searchHighlight = new Set(); draw(); return; }
-    const hits = new Set<string>();
-    for (const icon of manifest.icons) {
-      if (
-        icon.name.includes(q) ||
-        icon.description.toLowerCase().includes(q) ||
-        icon.tags.some((t) => t.includes(q)) ||
-        icon.cluster.toLowerCase().includes(q)
-      ) hits.add(icon.name);
-    }
-    searchHighlight = hits;
-    draw();
-  }
-
   function toggleCluster(theme: string) {
-    if (activeCluster === theme) { clearFilter(); return; }
+    if (activeCluster === theme) { clearCluster(); return; }
     activeCluster = theme;
-    searchInput = "";
-    searchHighlight = new Set(
+    clusterHighlight = new Set(
       manifest.icons.filter((i) => i.cluster === theme).map((i) => i.name),
     );
     draw();
   }
 
-  function clearFilter() {
+  function clearCluster() {
     activeCluster = null;
-    searchInput = "";
-    searchHighlight = new Set();
+    clusterHighlight = new Set();
     draw();
-  }
-
-  let searchTimeout: ReturnType<typeof setTimeout> | null = null;
-  function handleSearchInput() {
-    if (searchTimeout) clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(handleSearch, 150);
   }
 
   async function loadData() {
@@ -390,25 +364,17 @@
 
 <div class="explore">
   <div class="ex-list">
-    <div class="ex-filter">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-      <input
-        type="text"
-        bind:value={searchInput}
-        oninput={handleSearchInput}
-        placeholder="Filter icons..."
-      />
-      {#if searchHighlight.size > 0}
-        <span class="ex-count">{searchHighlight.size}</span>
-      {/if}
-      {#if searchInput || activeCluster}
-        <button class="ex-clear" onclick={clearFilter} aria-label="Clear filter">
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </button>
-      {/if}
-    </div>
+    {#if activeCluster}
+      {@const ac = clusters.find((c) => c.theme === activeCluster)}
+      <button class="active-chip" onclick={clearCluster} aria-label="Clear cluster selection">
+        <span class="dot" style="background: {ac?.color}"></span>
+        <span class="chip-name">{activeCluster}</span>
+        <span class="ex-count">{clusterHighlight.size}</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    {/if}
 
-    <div class="ex-h mono">{clusters.length} clusters</div>
+    <div class="ex-h mono">{clusters.length} clusters &middot; click to highlight</div>
 
     {#if selectedIcons.size > 0}
       <div class="sel-panel">
@@ -503,27 +469,23 @@
     padding: 18px 14px; overflow: auto;
     display: flex; flex-direction: column;
   }
-  .ex-filter {
+  .active-chip {
     display: flex; align-items: center; gap: 9px;
     background: var(--surf); border: 1px solid var(--bd);
     border-radius: 9px; padding: 9px 11px; margin-bottom: 16px;
+    cursor: pointer; color: var(--tx3); font-family: var(--font);
+    width: 100%; text-align: left;
   }
-  .ex-filter input {
-    flex: 1; border: none; outline: none; background: transparent;
-    color: var(--tx); font-family: var(--font); font-size: 13px;
+  .active-chip:hover { border-color: var(--bd2); color: var(--tx); }
+  .chip-name {
+    flex: 1; font-size: 12.5px; color: var(--tx);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .ex-filter input::placeholder { color: var(--tx3); }
   .ex-count {
     font-family: var(--font-mono); font-size: 11px;
     color: var(--ac); background: var(--acs);
     padding: 1px 6px; border-radius: 4px;
   }
-  .ex-clear {
-    display: flex; align-items: center; justify-content: center;
-    border: none; background: transparent; padding: 0;
-    color: var(--tx3); cursor: pointer;
-  }
-  .ex-clear:hover { color: var(--tx); }
   .ex-h {
     font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase;
     color: var(--tx3); margin: 0 0 10px 4px;
