@@ -305,6 +305,7 @@
               <p><b>Multilingual</b> uses <span class="mono">paraphrase-multilingual-MiniLM-L12-v2</span> (~115&thinsp;MB) — search in 50+ languages (for English queries, the English model ranks best).</p>
               <p>Each model downloads once on first use, then loads from browser cache.</p>
               <p>Tip: descriptive phrases ("waiting for a download") match better than single keywords.</p>
+              <p>Built on <a href="https://github.com/mmacpherson/python-lucide" target="_blank" rel="noopener">python-lucide</a> — the same search is available in Python and on the command line.</p>
             </div>
           {/if}
         </div>
@@ -492,6 +493,7 @@
   }
   .info-pop p + p { margin-top: 8px; }
   .info-pop b { color: var(--tx); }
+  .info-pop a { color: var(--tx); text-decoration: underline; }
   .info-pop .mono { font-size: 11.5px; color: var(--tx); }
 
   /* ── Progress bar ────────────────────────────────────────────── */
