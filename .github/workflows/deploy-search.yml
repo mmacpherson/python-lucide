@@ -6,7 +6,6 @@ on:
     paths:
     - src/lucide/data/**
     - web/**
-    - docs/**
     - .github/workflows/deploy-search.yml
   workflow_dispatch:
 
@@ -80,20 +79,12 @@ jobs:
     - name: Setup Pages
       uses: actions/configure-pages@v5
 
-    - name: Build Jekyll
-      uses: actions/jekyll-build-pages@v1
-      with:
-        source: docs
-        destination: ./_site
-
-      # Jekyll excludes search/ — copy the Vite output back in. The Jekyll
-      # action runs in a Docker container as root, so _site is root-owned
-      # and the copy needs sudo.
-    - name: Merge search app into site
-      run: sudo cp -r docs/search _site/search
-
+      # The Vite build is the whole site: the app at the root, plus the
+      # /search/ redirect stub from web/public (old PyPI READMEs link there)
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
+      with:
+        path: web/dist
 
   deploy:
     environment:

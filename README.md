@@ -18,7 +18,7 @@ in your Python projects, with no javascript in sight.
 
 ## Features
 - 🎨 **Access 1600+ Lucide icons** directly from Python
-- 🔍 **Semantic search** - find icons by meaning, in the terminal or [in the browser](https://mmacpherson.github.io/python-lucide/search/)
+- 🔍 **Semantic search** - find icons by meaning, in the terminal or [in the browser](https://mmacpherson.github.io/python-lucide/)
 - 🛠 **Customize icons** with classes, sizes, colors, and other SVG attributes
 - 🚀 **Framework-friendly** with examples for FastHTML, Flask, Django, and more
 - 📦 **Lightweight** with minimal dependencies
@@ -62,10 +62,10 @@ lucide_icon("user", stroke="#ff6b6b")     # Hex colors work too
 ## Semantic Search
 
 Find icons by describing what you mean, not what they're called — in English
-or [50+ languages](https://mmacpherson.github.io/python-lucide/search/):
+or [50+ languages](https://mmacpherson.github.io/python-lucide/):
 
 <p align="center">
-  <a href="https://mmacpherson.github.io/python-lucide/search/">
+  <a href="https://mmacpherson.github.io/python-lucide/">
     <img src="https://raw.githubusercontent.com/mmacpherson/python-lucide/main/.github/images/search-english.png" width="49%" alt="Searching &quot;celebrate a big achievement&quot; returns trophy, award, medal, party-popper">
     <img src="https://raw.githubusercontent.com/mmacpherson/python-lucide/main/.github/images/search-multilingual.png" width="49%" alt="Searching in Japanese with the multilingual model returns key, user-key, lock icons">
   </a>
@@ -89,7 +89,7 @@ list. (Rendering uses the cairo system library; if it's missing, the
 CLI prints a hint.)
 
 Icons are matched against AI-generated descriptions using the same embedding
-model the [web app](https://mmacpherson.github.io/python-lucide/search/) uses,
+model the [web app](https://mmacpherson.github.io/python-lucide/) uses,
 so descriptive phrases ("an idea just occurred to me") work better than
 keywords. Options:
 
@@ -110,7 +110,7 @@ for r in search_icons("secure login", limit=5):
     print(r.name, r.score)
 ```
 
-Prefer not to install anything? The [browser version](https://mmacpherson.github.io/python-lucide/search/)
+Prefer not to install anything? The [browser version](https://mmacpherson.github.io/python-lucide/)
 runs the whole pipeline client-side.
 
 ## Framework Integration Examples
