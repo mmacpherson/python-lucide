@@ -80,12 +80,13 @@ pip install "python-lucide[search]"
 lucide search "waiting for a download"
 ```
 
-```
-trophy        67%
-award         65%
-medal         65%
-party-popper  62%
-```
+<img src="https://raw.githubusercontent.com/mmacpherson/python-lucide/main/.github/images/search-cli.png" width="360" alt="Terminal output of lucide search: each result icon renders inline next to its name and match score">
+
+In terminals supporting the Kitty graphics protocol (kitty, Ghostty,
+WezTerm), the icons render inline as above — inside tmux too, with
+`tmux set -g allow-passthrough on`. Elsewhere you get the plain text
+list. (Rendering uses the cairo system library; if it's missing, the
+CLI prints a hint.)
 
 Icons are matched against AI-generated descriptions using the same embedding
 model the [web app](https://mmacpherson.github.io/python-lucide/search/) uses,
@@ -95,10 +96,6 @@ keywords. Options:
 - `--model multilingual` — search in 50+ languages (default `bge-small` ranks
   best for English)
 - `--limit N` — number of results; `--verbose` — include each icon's description
-- In terminals supporting the Kitty graphics protocol (kitty, Ghostty,
-  WezTerm), the icons themselves render inline with the results — inside
-  tmux too, with `tmux set -g allow-passthrough on`. (Rendering uses the
-  cairo system library; if it's missing, the CLI prints a hint.)
 
 The first search downloads the embedding model (~67 MB) and the pre-built
 search index (11 MB); both are cached, and every search after that runs
