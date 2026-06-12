@@ -34,9 +34,11 @@ jobs:
         # Test that the built package can be installed and imported
         uv run --with ./dist/*.whl --no-project -- python -c "import lucide; print('✅ Package imports successfully')"
 
+      # --check-url skips files already on PyPI, so a release-created run
+      # after a manual dispatch (or a re-run) doesn't fail on duplicates
     - name: Publish package to PyPI
       run: |
-        uv publish
+        uv publish --check-url https://pypi.org/simple/
 
     # Optional: Create GitHub Release with assets
     - name: Upload assets to GitHub Release
