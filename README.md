@@ -73,11 +73,11 @@ or [50+ languages](https://mmacpherson.github.io/python-lucide/search/):
 
 ```bash
 # One-off, no install (requires uv)
-uvx --from "python-lucide[search]" lucide search "celebrate a big achievement"
+uvx --from "python-lucide[search]" lucide search "waiting for a download"
 
 # Or install the search extra
 pip install "python-lucide[search]"
-lucide search "waiting for a download"
+lucide search "celebrate a big achievement"
 ```
 
 <img src="https://raw.githubusercontent.com/mmacpherson/python-lucide/main/.github/images/search-cli.png" width="360" alt="Terminal output of lucide search: each result icon renders inline next to its name and match score">
