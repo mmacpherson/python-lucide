@@ -266,7 +266,7 @@
     <div class="meta">
       <div class="meta-l">
         {#if results.length > 0}
-          <span><b>{results.length}</b> results <span class="dim">&middot; ranked by meaning</span></span>
+          <span><b>{results.length}</b> results <span class="dim">&middot; ranked by similarity</span></span>
         {:else if !query}
           <span><b>{manifest.icons.length.toLocaleString()}</b> icons</span>
         {/if}

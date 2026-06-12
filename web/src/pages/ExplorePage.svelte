@@ -304,7 +304,13 @@
     scheduleDraw();
   }
 
+  // Two distinct highlight modes: typing filters icons by metadata
+  // substring; clicking a cluster selects exactly its members. Each
+  // activation clears the other so the count always has one meaning.
+  let activeCluster: string | null = $state(null);
+
   function handleSearch() {
+    activeCluster = null;
     const q = searchInput.trim().toLowerCase();
     if (!q) { searchHighlight = new Set(); draw(); return; }
     const hits = new Set<string>();
@@ -317,6 +323,23 @@
       ) hits.add(icon.name);
     }
     searchHighlight = hits;
+    draw();
+  }
+
+  function toggleCluster(theme: string) {
+    if (activeCluster === theme) { clearFilter(); return; }
+    activeCluster = theme;
+    searchInput = "";
+    searchHighlight = new Set(
+      manifest.icons.filter((i) => i.cluster === theme).map((i) => i.name),
+    );
+    draw();
+  }
+
+  function clearFilter() {
+    activeCluster = null;
+    searchInput = "";
+    searchHighlight = new Set();
     draw();
   }
 
@@ -373,10 +396,15 @@
         type="text"
         bind:value={searchInput}
         oninput={handleSearchInput}
-        placeholder="Filter clusters..."
+        placeholder="Filter icons..."
       />
       {#if searchHighlight.size > 0}
         <span class="ex-count">{searchHighlight.size}</span>
+      {/if}
+      {#if searchInput || activeCluster}
+        <button class="ex-clear" onclick={clearFilter} aria-label="Clear filter">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
       {/if}
     </div>
 
@@ -409,7 +437,8 @@
       {#each clusters as cl}
         <button
           class="ex-item"
-          onclick={() => { searchInput = cl.theme; handleSearch(); }}
+          class:active={activeCluster === cl.theme}
+          onclick={() => toggleCluster(cl.theme)}
         >
           <span class="dot" style="background: {cl.color}"></span>
           <span class="ex-name">{cl.theme}</span>
@@ -489,6 +518,12 @@
     color: var(--ac); background: var(--acs);
     padding: 1px 6px; border-radius: 4px;
   }
+  .ex-clear {
+    display: flex; align-items: center; justify-content: center;
+    border: none; background: transparent; padding: 0;
+    color: var(--tx3); cursor: pointer;
+  }
+  .ex-clear:hover { color: var(--tx); }
   .ex-h {
     font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase;
     color: var(--tx3); margin: 0 0 10px 4px;
@@ -507,6 +542,7 @@
     font-family: var(--font); text-align: left;
   }
   .ex-item:hover { background: var(--surf2); color: var(--tx); }
+  .ex-item.active { background: var(--acs); color: var(--tx); }
   .dot { width: 8px; height: 8px; border-radius: 8px; flex: 0 0 auto; }
   .ex-name {
     flex: 1; font-size: 12.5px;
