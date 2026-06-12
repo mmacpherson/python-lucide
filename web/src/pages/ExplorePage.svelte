@@ -434,7 +434,7 @@
     {:else if !loaded}
       <div class="canvas-loading">Loading embedding space...</div>
     {/if}
-    <div class="ex-hint">Click to select &middot; Shift+click multi-select &middot; Scroll to zoom &middot; Drag to pan</div>
+    <div class="ex-hint">Click an icon to see its nearest neighbors &middot; Shift+click multi-select &middot; Scroll to zoom &middot; Drag to pan</div>
   </div>
 </div>
 
@@ -561,7 +561,7 @@
   }
   .retry:hover { background: #ff6b6b; color: #fff; }
   .ex-hint {
-    position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
     font-size: 11.5px; color: var(--tx3); white-space: nowrap; pointer-events: none;
   }
 
