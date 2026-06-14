@@ -266,7 +266,7 @@
     <div class="meta">
       <div class="meta-l">
         {#if results.length > 0}
-          <span><b>{results.length}</b> results <span class="dim">&middot; ranked by similarity</span></span>
+          <span>top <b>{results.length}</b> results <span class="dim">&middot; ranked by similarity</span></span>
         {:else if !query}
           <span><b>{manifest.icons.length.toLocaleString()}</b> icons</span>
         {/if}
@@ -277,7 +277,7 @@
           <button class="seg-b" class:on={!dense} onclick={() => withFlip(() => { dense = false; })}>List</button>
         </div>
         <span class="meta-div" aria-hidden="true"></span>
-        <div class="seg">
+        <div class="seg quiet">
           {#each manifest.models as model}
             <button
               class="seg-b"
@@ -345,8 +345,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
               </button>
               <span class="cell-icon">{@html result.icon.svg}</span>
-              <span class="cell-n">{result.icon.name}</span>
-              <span class="cell-dot" style="background: {clusterColor(clusterColors, result.icon.cluster)}"></span>
+              <span class="cell-n" title={result.icon.name}>{result.icon.name}</span>
             {:else}
               <span class="cell-tile">
                 <span class="cell-tile-icon">{@html result.icon.svg}</span>
@@ -462,6 +461,10 @@
     box-shadow: 0 1px 3px rgba(0,0,0,.25);
   }
   .seg-b:disabled { cursor: wait; opacity: 0.7; }
+  .quiet .seg-b.on {
+    color: var(--ac); background: var(--acs);
+    box-shadow: none; border: 1px solid var(--ac);
+  }
 
   /* ── Model info popover ─────────────────────────────────────── */
   .info-wrap { position: relative; display: flex; }
@@ -547,10 +550,6 @@
     max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .cell-dot {
-    position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%);
-    width: 5px; height: 5px; border-radius: 5px;
-  }
-  .cell-dot.static {
     position: static; transform: none;
     width: 6px; height: 6px; flex: 0 0 auto;
   }
