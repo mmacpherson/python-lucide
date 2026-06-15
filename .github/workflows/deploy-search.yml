@@ -82,7 +82,7 @@ jobs:
       # The Vite build is the whole site: the app at the root, plus the
       # /search/ redirect stub from web/public (old PyPI READMEs link there)
     - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v5
       with:
         path: web/dist
 
