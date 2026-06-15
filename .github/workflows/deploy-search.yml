@@ -77,7 +77,7 @@ jobs:
       working-directory: web
 
     - name: Setup Pages
-      uses: actions/configure-pages@v5
+      uses: actions/configure-pages@v6
 
       # The Vite build is the whole site: the app at the root, plus the
       # /search/ redirect stub from web/public (old PyPI READMEs link there)
