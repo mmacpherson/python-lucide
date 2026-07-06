@@ -9,6 +9,9 @@ dev = [
   "hdbscan>=0.8.0",
   "mypy-extensions>=1.0.0",
   "mypy>=1.0.0",
+  # Floor keeps the resolver off ancient numba/llvmlite, which fail to build
+  # from source when numpy resolves above modern numba's cap.
+  "numba>=0.60",
   "plotly>=5.0.0",
   "pre-commit>=3.0.0",
   "pydantic-ai-slim[google]>=1.0.0",
