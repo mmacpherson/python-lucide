@@ -134,8 +134,12 @@ jobs:
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
-        echo "🔍 Generating semantic search data for new icons..."
-        make search-data
+        if [ -z "$GEMINI_API_KEY" ]; then
+          echo "⚠️ GEMINI_API_KEY not set — skipping search data so the icon update can still land. New icons will be missing from semantic search until the key is restored."
+        else
+          echo "🔍 Generating semantic search data for new icons..."
+          make search-data
+        fi
         SEARCH_DB=src/lucide/data/lucide-search.db
         if [ -f "$SEARCH_DB" ]; then
           DESC_COUNT=$(sqlite3 "$SEARCH_DB" "SELECT COUNT(*) FROM icon_descriptions;")
