@@ -134,9 +134,22 @@ jobs:
       if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        GH_TOKEN: ${{ github.token }}
       run: |
         if [ -z "$GEMINI_API_KEY" ]; then
-          echo "⚠️ GEMINI_API_KEY not set — skipping search data so the icon update can still land. New icons will be missing from semantic search until the key is restored."
+          echo "::warning::GEMINI_API_KEY not set — skipping search data so the icon update can still land. New icons will be missing from semantic search until the key is restored."
+          # A green run with a buried warning is how the last outage stayed
+          # invisible for 5 weeks — file the ci-failure issue even on success.
+          title="CI failure: ${{ github.workflow }} (GEMINI_API_KEY missing)"
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          existing=$(gh issue list --repo "${{ github.repository }}" --label ci-failure --state open \
+            --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "${{ github.repository }}" --body "Still missing: $run_url"
+          else
+            gh issue create --repo "${{ github.repository }}" --label ci-failure --title "$title" \
+              --body "GEMINI_API_KEY repo secret is not set. Icon updates still land, but new icons are skipped from semantic search. Restore from sops key PYTHON_LUCIDE_CI_GEMINI_API_KEY (secrets/infrastructure/llm-providers.sops.yaml). Run: $run_url"
+          fi
         else
           echo "🔍 Generating semantic search data for new icons..."
           make search-data
