@@ -232,7 +232,7 @@ def save_clusters_json(
         "generated_at": datetime.now(tz=timezone.utc).isoformat(),
         "naming_model": CLUSTER_NAMING_MODEL,
     }
-    output_path.write_text(json.dumps(out, indent=2, ensure_ascii=False))
+    output_path.write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n")
     logger.info("Saved clusters to %s", output_path)
 
 
