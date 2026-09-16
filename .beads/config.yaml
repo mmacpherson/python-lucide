@@ -53,4 +53,4 @@
 # - github.org
 # - github.repo
 
-sync.remote: "git+ssh://git@github.com/mmacpherson/python-lucide.git"
+sync.remote: git+ssh://git@github.com/mmacpherson/python-lucide.git
