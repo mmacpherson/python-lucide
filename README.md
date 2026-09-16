@@ -73,6 +73,29 @@ outside `__main__`. To see them during development, run your application with
 `python -W default::DeprecationWarning app.py`. Existing databases without
 deprecation metadata still resolve aliases without warnings.
 
+### Database source and builds
+
+The repository tracks `src/lucide/data/lucide-icons.sql`: a deterministic SQL
+export with sorted tables and rows. The generated `.db` is ignored by Git.
+The volatile `created_at` build timestamp is omitted from SQL; the upstream
+version and all icon content, tags, categories, and alias metadata are retained.
+
+`uv sync` reconstructs the local database as part of the editable build.
+After changing branches or SQL, run `uv sync` again; SQL changes invalidate uv's
+editable-build cache. `make restore-db` also restores a missing local database
+without downloading icons. Source-only development via `PYTHONPATH=src` can
+bootstrap it with `python build_support.py restore` before importing the package.
+
+`make lucide-db TAG=1.45.0` downloads the selected upstream release, rebuilds
+SQLite, and exports the updated SQL for review. Commit the SQL file alongside
+the version and generated search-data changes. Use this target rather than
+editing SQL or committing a generated database.
+
+Packaging uses a Hatchling build hook: source distributions contain SQL and the
+build helpers; wheels contain the reconstructed, validated SQLite database.
+Wheel installation and runtime need no reconstruction, writes, downloads, or
+additional dependencies. The separate search database remains a release asset.
+
 ## Semantic Search
 
 Find icons by describing what you mean, not what they're called — in English

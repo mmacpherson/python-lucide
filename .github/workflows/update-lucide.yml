@@ -178,7 +178,7 @@ jobs:
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
 
-        git add src/lucide/config.py src/lucide/data/lucide-icons.db pyproject.toml .github/lucide-version.json
+        git add src/lucide/config.py src/lucide/data/lucide-icons.sql pyproject.toml .github/lucide-version.json
         # Include descriptions JSONL and refreshed clusters if generated
         # (search DB is built at publish time)
         [ -f src/lucide/data/gemini-icon-descriptions.jsonl ] && git add src/lucide/data/gemini-icon-descriptions.jsonl

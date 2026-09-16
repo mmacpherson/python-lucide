@@ -1,6 +1,6 @@
 [build-system]
-build-backend = "uv_build"
-requires = ["uv_build>=0.8.3,<0.13.0"]
+build-backend = "hatchling.build"
+requires = ["hatchling>=1.27,<2"]
 
 [dependency-groups]
 dev = [
@@ -61,6 +61,17 @@ lucide-db = "lucide.cli:main_legacy_db"
 "Homepage" = "https://github.com/mmacpherson/python-lucide"
 "Source Code" = "https://github.com/mmacpherson/python-lucide"
 
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
+
+[tool.hatch.build.targets.sdist]
+exclude = ["*.db"]
+include = ["src/", "tests/", "build_support.py", "hatch_build.py", "Makefile", "README.md", "LICENSE"]
+
+[tool.hatch.build.targets.wheel]
+exclude = ["*.db", "*.sql", "src/lucide/data/gemini-icon-descriptions.jsonl", "src/lucide/data/lucide-icon-clusters.json"]
+packages = ["src/lucide"]
+
 [tool.mypy]
 check_untyped_defs = true
 disallow_incomplete_defs = true
@@ -88,7 +99,7 @@ module = "tests.*"
 
 [tool.pytest.ini_options]
 addopts = "--cov=lucide --cov-report=term-missing --cov-report=xml --cov-report=html"
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 testpaths = ["tests"]
 xfail_strict = true
 
@@ -147,21 +158,6 @@ section-order = [
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
-[tool.uv.build-backend]
-# The module name differs from the normalized package name
-module-name = "lucide"
-# The search DB is a derived artifact published as a GitHub release asset
-# and downloaded on first use; never package it
-source-exclude = ["src/lucide/data/lucide-search.db"]
-# Include tests and database files in source distribution
-source-include = [
-  "tests/**",
-  "src/lucide/data/lucide-icons.db"
-]
-# Build-time data (descriptions, clusters) stays in the sdist/repo but out
-# of the runtime wheel
-wheel-exclude = [
-  "lucide/data/lucide-search.db",
-  "lucide/data/gemini-icon-descriptions.jsonl",
-  "lucide/data/lucide-icon-clusters.json"
-]
+[tool.uv]
+# SQL edits must invalidate uv's cached editable build too.
+cache-keys = [{ file = "pyproject.toml" }, { file = "hatch_build.py" }, { file = "build_support.py" }, { file = "src/lucide/data/lucide-icons.sql" }]
