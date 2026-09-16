@@ -172,7 +172,7 @@ def lucide_icon(
     """Fetches a Lucide icon SVG from the database with caching.
 
     Args:
-        icon_name: Name of the Lucide icon to fetch.
+        icon_name: Canonical name or alias of the Lucide icon to fetch.
         cls: Optional CSS class string to apply/append to the SVG element.
              Multiple classes can be space-separated.
         fallback_text: Optional text to display if the icon is not found.
@@ -197,6 +197,20 @@ def lucide_icon(
             cursor = conn.cursor()
             cursor.execute("SELECT svg FROM icons WHERE name = ?", (icon_name,))
             row = cursor.fetchone()
+
+            if row is None:
+                # Older/custom databases may predate alias metadata.
+                has_aliases = cursor.execute(
+                    "SELECT 1 FROM sqlite_master "
+                    "WHERE type = 'table' AND name = 'icon_aliases'"
+                ).fetchone()
+                if has_aliases:
+                    row = cursor.execute(
+                        "SELECT icons.svg FROM icon_aliases "
+                        "JOIN icons ON icons.name = icon_aliases.name "
+                        "WHERE icon_aliases.alias = ?",
+                        (icon_name,),
+                    ).fetchone()
 
             if not row or not row[0]:
                 logger.warning(f"Lucide icon '{icon_name}' not found in database.")

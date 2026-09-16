@@ -3,6 +3,7 @@ import contextlib
 import re
 import sqlite3
 import xml.etree.ElementTree as ET
+from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -68,6 +69,61 @@ def get_svg_root(svg_string: str) -> ET.Element:
 
 
 # --- Test Cases ---
+
+
+@pytest.mark.parametrize(
+    ("alias", "canonical"),
+    [
+        ("album", "square-bookmark"),
+        ("book-marked", "book-bookmark"),
+        ("building-2", "building-complex"),
+        ("flip-horizontal-2", "triangles-centerline-dashed-horizontal"),
+        ("flip-vertical-2", "triangles-centerline-dashed-vertical"),
+    ],
+)
+def test_renamed_icons_render_from_bundled_database(alias, canonical, monkeypatch):
+    bundled_db = Path(core.__file__).parent / "data" / "lucide-icons.db"
+    monkeypatch.setattr(db, "get_default_db_path", lambda: bundled_db)
+    core.lucide_icon.cache_clear()
+    try:
+        root = get_svg_root(
+            core.lucide_icon(alias, cls="custom", width=32, stroke="red")
+        )
+        expected = get_svg_root(core.lucide_icon(canonical))
+        assert root.get("data-missing-icon") is None
+        assert [ET.tostring(child) for child in root] == [
+            ET.tostring(child) for child in expected
+        ]
+        assert root.get("width") == "32"
+        assert root.get("stroke") == "red"
+        assert {"custom", f"lucide-{alias}", f"lucide-{alias}-icon"} <= set(
+            root.get("class", "").split()
+        )
+    finally:
+        core.lucide_icon.cache_clear()
+
+
+def test_canonical_icon_wins_over_conflicting_alias(mock_db_path_fixture):
+    with sqlite3.connect(mock_db_path_fixture) as conn:
+        conn.execute("CREATE TABLE icon_aliases (name TEXT, alias TEXT)")
+        conn.execute("INSERT INTO icon_aliases VALUES ('square', 'circle')")
+    core.lucide_icon.cache_clear()
+    root = get_svg_root(core.lucide_icon("circle"))
+    assert root.find(SVG_NAMESPACE + "circle") is not None
+    assert root.find(SVG_NAMESPACE + "rect") is None
+
+
+@pytest.mark.parametrize("icon_name", ["missing-alias", "dangling-alias"])
+def test_unresolved_alias_uses_normal_placeholder(mock_db_path_fixture, icon_name):
+    with sqlite3.connect(mock_db_path_fixture) as conn:
+        conn.execute("CREATE TABLE icon_aliases (name TEXT, alias TEXT)")
+        conn.execute("INSERT INTO icon_aliases VALUES ('absent', 'dangling-alias')")
+    core.lucide_icon.cache_clear()
+    result = core.lucide_icon(icon_name, fallback_text="Missing")
+    root = get_svg_root(result)
+    assert root.get("data-missing-icon") == icon_name
+    assert root.find(SVG_NAMESPACE + "text").text == "Missing"
+    assert "DB Error" not in result
 
 
 def test_lucide_icon_existing_no_modification(mock_db_path_fixture):
@@ -378,6 +434,7 @@ def test_lucide_icon_not_found_placeholder(mock_db_path_fixture):
     icon_name = "non-existent-icon-123"
     icon_str = core.lucide_icon(icon_name)
 
+    assert "DB Error" not in icon_str  # Older databases have no icon_aliases table.
     assert isinstance(icon_str, str)
     root = get_svg_root(icon_str)
     assert root.tag == SVG_NAMESPACE + "svg"
