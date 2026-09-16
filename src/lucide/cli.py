@@ -185,7 +185,9 @@ def _create_database(
         )
         cursor.execute(
             "CREATE TABLE icon_aliases"
-            " (name TEXT NOT NULL, alias TEXT NOT NULL, UNIQUE(name, alias))"
+            " (name TEXT NOT NULL, alias TEXT NOT NULL,"
+            " deprecated INTEGER NOT NULL DEFAULT 0,"
+            " deprecation_reason TEXT NOT NULL DEFAULT '', UNIQUE(name, alias))"
         )
 
         current_time = datetime.now().isoformat()
@@ -316,15 +318,20 @@ def _add_metadata_to_db(
                 "INSERT OR IGNORE INTO icon_categories VALUES (?, ?)", (name, cat)
             )
         for alias_entry in data.get("aliases", []):
-            alias_name = (
-                alias_entry
-                if isinstance(alias_entry, str)
-                else alias_entry.get("name", "")
+            alias_data = (
+                {"name": alias_entry} if isinstance(alias_entry, str) else alias_entry
             )
+            alias_name = alias_data.get("name", "")
             if alias_name:
                 cursor.execute(
-                    "INSERT OR IGNORE INTO icon_aliases VALUES (?, ?)",
-                    (name, alias_name),
+                    "INSERT OR IGNORE INTO icon_aliases "
+                    "(name, alias, deprecated, deprecation_reason) VALUES (?, ?, ?, ?)",
+                    (
+                        name,
+                        alias_name,
+                        bool(alias_data.get("deprecated", False)),
+                        alias_data.get("deprecationReason", ""),
+                    ),
                 )
 
     if verbose:

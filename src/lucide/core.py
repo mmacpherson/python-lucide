@@ -8,6 +8,7 @@ This module provides functions to retrieve Lucide icons from a SQLite database.
 import functools
 import logging
 import sqlite3
+import warnings
 import xml.etree.ElementTree as ET
 
 from .config import DEFAULT_ICON_CACHE_SIZE
@@ -200,17 +201,30 @@ def lucide_icon(
 
             if row is None:
                 # Older/custom databases may predate alias metadata.
-                has_aliases = cursor.execute(
-                    "SELECT 1 FROM sqlite_master "
-                    "WHERE type = 'table' AND name = 'icon_aliases'"
-                ).fetchone()
-                if has_aliases:
+                alias_columns = {
+                    column[1]
+                    for column in cursor.execute("PRAGMA table_info(icon_aliases)")
+                }
+                if alias_columns:
+                    deprecated_column = (
+                        "icon_aliases.deprecated"
+                        if "deprecated" in alias_columns
+                        else "0"
+                    )
                     row = cursor.execute(
-                        "SELECT icons.svg FROM icon_aliases "
+                        f"SELECT icons.svg, icons.name, {deprecated_column} "
+                        "FROM icon_aliases "
                         "JOIN icons ON icons.name = icon_aliases.name "
                         "WHERE icon_aliases.alias = ?",
                         (icon_name,),
                     ).fetchone()
+                    if row and row[2]:
+                        warnings.warn(
+                            f"Lucide icon '{icon_name}' is a deprecated alias; "
+                            f"use '{row[1]}' instead.",
+                            DeprecationWarning,
+                            stacklevel=2,
+                        )
 
             if not row or not row[0]:
                 logger.warning(f"Lucide icon '{icon_name}' not found in database.")
@@ -231,6 +245,9 @@ def lucide_icon(
                 stroke_linejoin=stroke_linejoin,
             )
 
+    except DeprecationWarning:
+        # Respect applications that promote deprecation warnings to errors.
+        raise
     except sqlite3.Error as e:
         logger.error(f"Database query error for icon '{icon_name}': {e}")
         return create_placeholder_svg(icon_name, fallback_text, f"DB Error: {e}")

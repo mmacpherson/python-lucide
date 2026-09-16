@@ -1,3 +1,4 @@
+import json
 import pathlib
 import sqlite3
 import subprocess
@@ -14,6 +15,49 @@ from lucide.config import DEFAULT_SEARCH_MODEL_ID, EMBEDDING_MODELS
 def temp_output_path(tmp_path):
     """Create a temporary path for the output database."""
     return tmp_path / "test-output.db"
+
+
+@pytest.mark.parametrize("included", [set(), {"square-bookmark"}, {"circle"}])
+def test_database_build_preserves_upstream_alias_metadata(tmp_path, included):
+    icons_dir = tmp_path / "icons"
+    icons_dir.mkdir()
+    for name in ("square-bookmark", "circle"):
+        (icons_dir / f"{name}.svg").write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg"/>'
+        )
+    (icons_dir / "square-bookmark.json").write_text(
+        json.dumps(
+            {
+                "aliases": [
+                    "bookmark-square",
+                    {"name": "saved-square", "deprecated": False},
+                    {
+                        "name": "album",
+                        "deprecated": True,
+                        "deprecationReason": "alias.name",
+                    },
+                ]
+            }
+        )
+    )
+    output = tmp_path / "icons.db"
+    assert cli._create_database(output, icons_dir, included, tag="test")
+    with sqlite3.connect(output) as conn:
+        rows = conn.execute(
+            "SELECT name, alias, deprecated, deprecation_reason "
+            "FROM icon_aliases ORDER BY alias"
+        ).fetchall()
+        expected = (
+            []
+            if included == {"circle"}
+            else [
+                ("square-bookmark", "album", 1, "alias.name"),
+                ("square-bookmark", "bookmark-square", 0, ""),
+                ("square-bookmark", "saved-square", 0, ""),
+            ]
+        )
+        assert rows == expected
+        assert conn.execute("PRAGMA integrity_check").fetchone() == ("ok",)
 
 
 def test_download_and_build_db_basic(temp_output_path):

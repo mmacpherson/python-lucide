@@ -2,6 +2,7 @@
 import contextlib
 import re
 import sqlite3
+import warnings
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from unittest import mock
@@ -86,9 +87,13 @@ def test_renamed_icons_render_from_bundled_database(alias, canonical, monkeypatc
     monkeypatch.setattr(db, "get_default_db_path", lambda: bundled_db)
     core.lucide_icon.cache_clear()
     try:
-        root = get_svg_root(
-            core.lucide_icon(alias, cls="custom", width=32, stroke="red")
-        )
+        with pytest.warns(
+            DeprecationWarning, match=f"use '{canonical}' instead"
+        ) as caught:
+            root = get_svg_root(
+                core.lucide_icon(alias, cls="custom", width=32, stroke="red")
+            )
+        assert caught[0].filename == __file__
         expected = get_svg_root(core.lucide_icon(canonical))
         assert root.get("data-missing-icon") is None
         assert [ET.tostring(child) for child in root] == [
@@ -124,6 +129,39 @@ def test_unresolved_alias_uses_normal_placeholder(mock_db_path_fixture, icon_nam
     assert root.get("data-missing-icon") == icon_name
     assert root.find(SVG_NAMESPACE + "text").text == "Missing"
     assert "DB Error" not in result
+
+
+@pytest.mark.parametrize("with_deprecation_metadata", [True, False])
+def test_non_deprecated_and_legacy_aliases_render_quietly(
+    mock_db_path_fixture, with_deprecation_metadata
+):
+    with sqlite3.connect(mock_db_path_fixture) as conn:
+        conn.execute("CREATE TABLE icon_aliases (name TEXT, alias TEXT)")
+        conn.execute("INSERT INTO icon_aliases VALUES ('circle', 'round')")
+        if with_deprecation_metadata:
+            conn.execute(
+                "ALTER TABLE icon_aliases ADD COLUMN deprecated INTEGER DEFAULT 0"
+            )
+    core.lucide_icon.cache_clear()
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        for name in ("round", "circle"):
+            root = get_svg_root(core.lucide_icon(name))
+            assert root.find(SVG_NAMESPACE + "circle") is not None
+    assert not caught
+
+
+def test_deprecated_alias_warning_can_be_promoted_to_error(mock_db_path_fixture):
+    with sqlite3.connect(mock_db_path_fixture) as conn:
+        conn.execute(
+            "CREATE TABLE icon_aliases (name TEXT, alias TEXT, deprecated INTEGER)"
+        )
+        conn.execute("INSERT INTO icon_aliases VALUES ('circle', 'round', 1)")
+    core.lucide_icon.cache_clear()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        with pytest.raises(DeprecationWarning, match="use 'circle' instead"):
+            core.lucide_icon("round")
 
 
 def test_lucide_icon_existing_no_modification(mock_db_path_fixture):
