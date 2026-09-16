@@ -2,7 +2,9 @@
 import contextlib
 import re
 import sqlite3
+import warnings
 import xml.etree.ElementTree as ET
+from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -68,6 +70,98 @@ def get_svg_root(svg_string: str) -> ET.Element:
 
 
 # --- Test Cases ---
+
+
+@pytest.mark.parametrize(
+    ("alias", "canonical"),
+    [
+        ("album", "square-bookmark"),
+        ("book-marked", "book-bookmark"),
+        ("building-2", "building-complex"),
+        ("flip-horizontal-2", "triangles-centerline-dashed-horizontal"),
+        ("flip-vertical-2", "triangles-centerline-dashed-vertical"),
+    ],
+)
+def test_renamed_icons_render_from_bundled_database(alias, canonical, monkeypatch):
+    bundled_db = Path(core.__file__).parent / "data" / "lucide-icons.db"
+    monkeypatch.setattr(db, "get_default_db_path", lambda: bundled_db)
+    core.lucide_icon.cache_clear()
+    try:
+        with pytest.warns(
+            DeprecationWarning, match=f"use '{canonical}' instead"
+        ) as caught:
+            root = get_svg_root(
+                core.lucide_icon(alias, cls="custom", width=32, stroke="red")
+            )
+        assert caught[0].filename == __file__
+        expected = get_svg_root(core.lucide_icon(canonical))
+        assert root.get("data-missing-icon") is None
+        assert [ET.tostring(child) for child in root] == [
+            ET.tostring(child) for child in expected
+        ]
+        assert root.get("width") == "32"
+        assert root.get("stroke") == "red"
+        assert {"custom", f"lucide-{alias}", f"lucide-{alias}-icon"} <= set(
+            root.get("class", "").split()
+        )
+    finally:
+        core.lucide_icon.cache_clear()
+
+
+def test_canonical_icon_wins_over_conflicting_alias(mock_db_path_fixture):
+    with sqlite3.connect(mock_db_path_fixture) as conn:
+        conn.execute("CREATE TABLE icon_aliases (name TEXT, alias TEXT)")
+        conn.execute("INSERT INTO icon_aliases VALUES ('square', 'circle')")
+    core.lucide_icon.cache_clear()
+    root = get_svg_root(core.lucide_icon("circle"))
+    assert root.find(SVG_NAMESPACE + "circle") is not None
+    assert root.find(SVG_NAMESPACE + "rect") is None
+
+
+@pytest.mark.parametrize("icon_name", ["missing-alias", "dangling-alias"])
+def test_unresolved_alias_uses_normal_placeholder(mock_db_path_fixture, icon_name):
+    with sqlite3.connect(mock_db_path_fixture) as conn:
+        conn.execute("CREATE TABLE icon_aliases (name TEXT, alias TEXT)")
+        conn.execute("INSERT INTO icon_aliases VALUES ('absent', 'dangling-alias')")
+    core.lucide_icon.cache_clear()
+    result = core.lucide_icon(icon_name, fallback_text="Missing")
+    root = get_svg_root(result)
+    assert root.get("data-missing-icon") == icon_name
+    assert root.find(SVG_NAMESPACE + "text").text == "Missing"
+    assert "DB Error" not in result
+
+
+@pytest.mark.parametrize("with_deprecation_metadata", [True, False])
+def test_non_deprecated_and_legacy_aliases_render_quietly(
+    mock_db_path_fixture, with_deprecation_metadata
+):
+    with sqlite3.connect(mock_db_path_fixture) as conn:
+        conn.execute("CREATE TABLE icon_aliases (name TEXT, alias TEXT)")
+        conn.execute("INSERT INTO icon_aliases VALUES ('circle', 'round')")
+        if with_deprecation_metadata:
+            conn.execute(
+                "ALTER TABLE icon_aliases ADD COLUMN deprecated INTEGER DEFAULT 0"
+            )
+    core.lucide_icon.cache_clear()
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        for name in ("round", "circle"):
+            root = get_svg_root(core.lucide_icon(name))
+            assert root.find(SVG_NAMESPACE + "circle") is not None
+    assert not caught
+
+
+def test_deprecated_alias_warning_can_be_promoted_to_error(mock_db_path_fixture):
+    with sqlite3.connect(mock_db_path_fixture) as conn:
+        conn.execute(
+            "CREATE TABLE icon_aliases (name TEXT, alias TEXT, deprecated INTEGER)"
+        )
+        conn.execute("INSERT INTO icon_aliases VALUES ('circle', 'round', 1)")
+    core.lucide_icon.cache_clear()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        with pytest.raises(DeprecationWarning, match="use 'circle' instead"):
+            core.lucide_icon("round")
 
 
 def test_lucide_icon_existing_no_modification(mock_db_path_fixture):
@@ -378,6 +472,7 @@ def test_lucide_icon_not_found_placeholder(mock_db_path_fixture):
     icon_name = "non-existent-icon-123"
     icon_str = core.lucide_icon(icon_name)
 
+    assert "DB Error" not in icon_str  # Older databases have no icon_aliases table.
     assert isinstance(icon_str, str)
     root = get_svg_root(icon_str)
     assert root.tag == SVG_NAMESPACE + "svg"

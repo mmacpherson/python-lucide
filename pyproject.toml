@@ -26,7 +26,7 @@ dev = [
 ]
 
 [project]
-authors = [{name = "Mike Macpherson"}]
+authors = [{ name = "Mike Macpherson" }]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
@@ -42,11 +42,11 @@ classifiers = [
 dependencies = []
 description = "A Python package for working with Lucide icons"
 keywords = ["lucide", "icons", "svg", "sqlite"]
-license = {text = "MIT"}
+license = { text = "MIT" }
 name = "python-lucide"
 readme = "README.md"
 requires-python = ">=3.10"
-version = "0.5.4"
+version = "0.5.5"
 
 [project.optional-dependencies]
 search = ["cairosvg>=2.7.0", "fastembed>=0.4.0"]

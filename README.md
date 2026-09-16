@@ -59,6 +59,20 @@ lucide_icon("user", fill="currentColor")  # Inherit color from CSS
 lucide_icon("user", stroke="#ff6b6b")     # Hex colors work too
 ```
 
+### Renamed icons and aliases
+
+Every database build imports Lucide's alias mappings and deprecation metadata
+from the selected upstream release. For example, `lucide_icon("album")` resolves
+to `square-bookmark`, while keeping the requested name in its CSS classes.
+Canonical names take precedence over aliases.
+
+Aliases marked deprecated by Lucide emit a standard Python `DeprecationWarning`
+with the recommended replacement. Ordinary aliases do not warn. Warnings occur
+on uncached renders and follow Python's warning filters; they are normally hidden
+outside `__main__`. To see them during development, run your application with
+`python -W default::DeprecationWarning app.py`. Existing databases without
+deprecation metadata still resolve aliases without warnings.
+
 ## Semantic Search
 
 Find icons by describing what you mean, not what they're called — in English

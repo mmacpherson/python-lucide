@@ -8,6 +8,7 @@ This module provides functions to retrieve Lucide icons from a SQLite database.
 import functools
 import logging
 import sqlite3
+import warnings
 import xml.etree.ElementTree as ET
 
 from .config import DEFAULT_ICON_CACHE_SIZE
@@ -172,7 +173,7 @@ def lucide_icon(
     """Fetches a Lucide icon SVG from the database with caching.
 
     Args:
-        icon_name: Name of the Lucide icon to fetch.
+        icon_name: Canonical name or alias of the Lucide icon to fetch.
         cls: Optional CSS class string to apply/append to the SVG element.
              Multiple classes can be space-separated.
         fallback_text: Optional text to display if the icon is not found.
@@ -198,6 +199,33 @@ def lucide_icon(
             cursor.execute("SELECT svg FROM icons WHERE name = ?", (icon_name,))
             row = cursor.fetchone()
 
+            if row is None:
+                # Older/custom databases may predate alias metadata.
+                alias_columns = {
+                    column[1]
+                    for column in cursor.execute("PRAGMA table_info(icon_aliases)")
+                }
+                if alias_columns:
+                    deprecated_column = (
+                        "icon_aliases.deprecated"
+                        if "deprecated" in alias_columns
+                        else "0"
+                    )
+                    row = cursor.execute(
+                        f"SELECT icons.svg, icons.name, {deprecated_column} "
+                        "FROM icon_aliases "
+                        "JOIN icons ON icons.name = icon_aliases.name "
+                        "WHERE icon_aliases.alias = ?",
+                        (icon_name,),
+                    ).fetchone()
+                    if row and row[2]:
+                        warnings.warn(
+                            f"Lucide icon '{icon_name}' is a deprecated alias; "
+                            f"use '{row[1]}' instead.",
+                            DeprecationWarning,
+                            stacklevel=2,
+                        )
+
             if not row or not row[0]:
                 logger.warning(f"Lucide icon '{icon_name}' not found in database.")
                 return create_placeholder_svg(icon_name, fallback_text)
@@ -217,6 +245,9 @@ def lucide_icon(
                 stroke_linejoin=stroke_linejoin,
             )
 
+    except DeprecationWarning:
+        # Respect applications that promote deprecation warnings to errors.
+        raise
     except sqlite3.Error as e:
         logger.error(f"Database query error for icon '{icon_name}': {e}")
         return create_placeholder_svg(icon_name, fallback_text, f"DB Error: {e}")
