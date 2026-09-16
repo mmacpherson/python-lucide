@@ -30,6 +30,19 @@ pip install python-lucide
 ```
 This installs the package with a pre-built database of all Lucide icons, ready to use immediately.
 
+The core package supports Python 3.10–3.15, with 3.15 currently tested on its
+release candidate. Rendering, aliases, and SQL-backed package builds are covered
+by a required Python 3.15 CI job. Use Python 3.10–3.14 for the optional `[search]`
+extra and full development tooling for now: ONNX Runtime and several clustering
+dependencies do not yet provide compatible Python 3.15 wheels.
+
+To run the core tests on Python 3.15 from a source checkout:
+
+```bash
+uv sync --python 3.15 --no-dev --group test-core
+uv run --no-sync python -m pytest tests/core_test.py tests/db_source_test.py
+```
+
 ## Quick Start
 ```python
 from lucide import lucide_icon
