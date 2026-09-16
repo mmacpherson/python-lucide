@@ -30,6 +30,7 @@ def test_database_build_preserves_upstream_alias_metadata(tmp_path, included):
             {
                 "aliases": [
                     "bookmark-square",
+                    "bookmark-square",
                     {"name": "saved-square", "deprecated": False},
                     {
                         "name": "album",
@@ -58,6 +59,20 @@ def test_database_build_preserves_upstream_alias_metadata(tmp_path, included):
         )
         assert rows == expected
         assert conn.execute("PRAGMA integrity_check").fetchone() == ("ok",)
+
+
+def test_database_build_rejects_ambiguous_aliases(tmp_path, caplog):
+    icons_dir = tmp_path / "icons"
+    icons_dir.mkdir()
+    for name in ("circle", "square"):
+        (icons_dir / f"{name}.svg").write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg"/>'
+        )
+        (icons_dir / f"{name}.json").write_text(
+            json.dumps({"aliases": ["shared-alias"]})
+        )
+    assert not cli._create_database(tmp_path / "icons.db", icons_dir, set())
+    assert "UNIQUE constraint failed: icon_aliases.alias" in caplog.text
 
 
 def test_download_and_build_db_basic(temp_output_path):

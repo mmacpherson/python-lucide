@@ -56,6 +56,32 @@ def test_bundled_source_round_trips_exactly(tmp_path):
         ).fetchone() == ("square-bookmark", 1, "alias.name")
 
 
+def test_restored_database_rejects_ambiguous_aliases(tmp_path):
+    database = tmp_path / "icons.db"
+    restore_database(SQL_SOURCE, database)
+    with (
+        contextlib.closing(sqlite3.connect(database)) as conn,
+        pytest.raises(sqlite3.IntegrityError, match=r"icon_aliases\.alias"),
+    ):
+        conn.execute("INSERT INTO icon_aliases(name, alias) VALUES('circle', 'album')")
+
+
+@pytest.mark.parametrize(
+    ("table", "column", "value"),
+    [("icon_tags", "tag", "book"), ("icon_categories", "category", "text")],
+)
+def test_reverse_metadata_lookups_use_covering_indexes(tmp_path, table, column, value):
+    database = tmp_path / "icons.db"
+    restore_database(SQL_SOURCE, database)
+    with contextlib.closing(sqlite3.connect(database)) as conn:
+        query = f"SELECT name FROM {table} WHERE {column} = ? ORDER BY name"
+        assert conn.execute(query, (value,)).fetchall()
+        plan = conn.execute("EXPLAIN QUERY PLAN " + query, (value,)).fetchall()
+        details = " ".join(row[3] for row in plan)
+        assert "USING COVERING INDEX" in details
+        assert "TEMP B-TREE" not in details
+
+
 @pytest.mark.parametrize("corruption", ["syntax", "empty", "dangling", "version"])
 def test_invalid_source_preserves_previous_database(tmp_path, corruption):
     database = tmp_path / "icons.db"

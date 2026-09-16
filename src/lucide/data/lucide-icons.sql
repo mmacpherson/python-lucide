@@ -50368,7 +50368,7 @@ INSERT INTO "icons" VALUES('zoom-out','<svg
 ');
 CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 INSERT INTO "metadata" VALUES('version','1.45.0');
-CREATE INDEX idx_alias ON icon_aliases(alias);
-CREATE INDEX idx_category ON icon_categories(category);
-CREATE INDEX idx_tag ON icon_tags(tag);
+CREATE UNIQUE INDEX idx_alias ON icon_aliases(alias);
+CREATE INDEX idx_category ON icon_categories(category, name);
+CREATE INDEX idx_tag ON icon_tags(tag, name);
 COMMIT;
