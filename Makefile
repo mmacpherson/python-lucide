@@ -17,7 +17,7 @@ DESCRIPTIONS_JSONL := src/lucide/data/gemini-icon-descriptions.jsonl
 VENV_DIR := .venv
 
 # Phony targets prevent conflicts with files of the same name.
-.PHONY: help default env lucide-db describe build-search cluster search-data lucide-db-full test install-hooks run-hooks-all-files check-lucide-version clean nuke
+.PHONY: help default env lucide-db restore-db describe build-search cluster search-data lucide-db-full test install-hooks run-hooks-all-files check-lucide-version clean nuke
 
 # Default target
 default: help
@@ -33,6 +33,7 @@ help:
 	@echo "  lucide-db              (Re)builds the Lucide icon database into $(DB_OUTPUT_PATH)."
 	@echo "                         Uses TAG=$(TAG). Default TAG is read from src/lucide/config.py (currently $(DEFAULT_LUCIDE_TAG))."
 	@echo "                         Example: make lucide-db TAG=0.520.0"
+	@echo "  restore-db             Restore SQLite from the checked-in SQL without downloading icons."
 	@echo "  describe               Generate icon descriptions via VLM (requires GEMINI_API_KEY)."
 	@echo "  build-search           Build search SQLite DB from descriptions JSONL."
 	@echo "  cluster                Regenerate semantic clusters from the search DB (requires GEMINI_API_KEY)."
@@ -60,7 +61,11 @@ lucide-db:
 	@echo "Building Lucide icon database with tag $(TAG) into $(DB_OUTPUT_PATH)..."
 	@mkdir -p src/lucide/data # Ensure data directory exists
 	$(LUCIDE_CMD) db -o $(DB_OUTPUT_PATH) -t $(TAG) -v
+	$(UV_CMD) run --no-sync python build_support.py export
 	@echo "Database build complete: $(DB_OUTPUT_PATH)"
+
+restore-db:
+	$(UV_CMD) run python build_support.py restore
 
 describe:
 	@echo "Generating icon descriptions..."

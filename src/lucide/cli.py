@@ -163,6 +163,7 @@ def _create_database(
     if verbose:
         logger.info("Creating SQLite database: %s", output_path)
 
+    conn = None
     try:
         conn = sqlite3.connect(output_path)
         cursor = conn.cursor()
@@ -207,10 +208,10 @@ def _create_database(
         # Populate tags, categories, and aliases from JSON sidecar files
         _add_metadata_to_db(cursor, icons_dir, icons_to_include, verbose)
 
-        # Indexes for search
-        cursor.execute("CREATE INDEX idx_tag ON icon_tags(tag)")
-        cursor.execute("CREATE INDEX idx_category ON icon_categories(category)")
-        cursor.execute("CREATE INDEX idx_alias ON icon_aliases(alias)")
+        cursor.execute("CREATE INDEX idx_tag ON icon_tags(tag, name)")
+        cursor.execute("CREATE INDEX idx_category ON icon_categories(category, name)")
+        # Validate after loading so INSERT OR IGNORE cannot hide ambiguous aliases.
+        cursor.execute("CREATE UNIQUE INDEX idx_alias ON icon_aliases(alias)")
 
         conn.commit()
         cursor.execute("VACUUM")
@@ -225,8 +226,6 @@ def _create_database(
         )
         _report_database_results(report_data)
 
-        conn.close()
-
         if verbose:
             logger.info("Database created successfully at: %s", output_path)
         else:
@@ -239,6 +238,9 @@ def _create_database(
     except Exception as e:
         logger.error("Error building database: %s", e)
         return False
+    finally:
+        if conn is not None:
+            conn.close()
 
 
 def _add_icons_to_db(
