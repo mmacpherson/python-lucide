@@ -66,6 +66,13 @@ from the selected upstream release. For example, `lucide_icon("album")` resolves
 to `square-bookmark`, while keeping the requested name in its CSS classes.
 Canonical names take precedence over aliases.
 
+Prefer the current canonical name in new code:
+
+```python
+lucide_icon("square-bookmark")  # Preferred name
+lucide_icon("album")            # Still works; deprecated upstream alias
+```
+
 Aliases marked deprecated by Lucide emit a standard Python `DeprecationWarning`
 with the recommended replacement. Ordinary aliases do not warn. Warnings occur
 on uncached renders and follow Python's warning filters; they are normally hidden
