@@ -119,7 +119,7 @@ def test_clean_source_build_produces_installable_wheel_and_rebuildable_sdist(tmp
     )
     assert not list(checkout.rglob("*.db"))
     subprocess.run(
-        ["uv", "build", "--no-sources"],
+        ["uv", "build", "--no-sources", "--python", sys.executable],
         cwd=checkout,
         check=True,
         capture_output=True,

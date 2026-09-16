@@ -30,6 +30,21 @@ pip install python-lucide
 ```
 This installs the package with a pre-built database of all Lucide icons, ready to use immediately.
 
+Python 3.10–3.14 are supported. **Python 3.15 support is experimental:** core
+rendering, aliases, and SQL-backed package builds pass tests on 3.15 RC2 and have
+a dedicated CI job, but semantic search is currently unsupported because ONNX
+Runtime does not yet provide compatible wheels. Core installation remains
+available on 3.15; full support will be advertised once search is validated too.
+Use Python 3.10–3.14 for search and full development tooling. HDBSCAN and UMAP's
+dependencies affect cluster generation during development, not ordinary searches.
+
+To run the core tests on Python 3.15 from a source checkout:
+
+```bash
+uv sync --python 3.15 --no-dev --group test-core
+uv run --no-sync python -m pytest tests/core_test.py tests/db_source_test.py
+```
+
 ## Quick Start
 ```python
 from lucide import lucide_icon
@@ -123,6 +138,16 @@ uvx --from "python-lucide[search]" lucide search "waiting for a download"
 pip install "python-lucide[search]"
 lucide search "celebrate a big achievement"
 ```
+
+If your application uses Python 3.15, run the search CLI separately under Python
+3.14, or use the [browser search](https://mmacpherson.github.io/python-lucide/):
+
+```bash
+uvx --python 3.14 --from "python-lucide[search]" lucide search "payment"
+```
+
+This runs the CLI in a separate environment; calling `search_icons()` from your
+application still requires a supported Python version with the search extra.
 
 <img src="https://raw.githubusercontent.com/mmacpherson/python-lucide/main/.github/images/search-cli.png" width="360" alt="Terminal output of lucide search: each result icon renders inline next to its name and match score">
 

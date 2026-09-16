@@ -4,6 +4,7 @@ requires = ["hatchling>=1.27,<2"]
 
 [dependency-groups]
 dev = [
+  { include-group = "test-core" },
   "cairosvg>=2.7.0",
   "fastembed>=0.4.0",
   "hdbscan>=0.8.0",
@@ -17,13 +18,12 @@ dev = [
   # Cap below 2: pydantic-ai v2 removed Agent(output_retries=...), which
   # build_clusters.py relies on. Lift the cap when migrating to the v2 API.
   "pydantic-ai-slim[google]>=1.0.0,<2",
-  "pytest-cov>=4.0.0",
-  "pytest>=7.0.0",
   "ruff>=0.1.0",
   "types-setuptools>=80.9.0.20250529",
   "typing-extensions>=4.1.0",
   "umap-learn>=0.5.0"
 ]
+test-core = ["pytest-cov>=4.0.0", "pytest>=7.0.0"]
 
 [project]
 authors = [{ name = "Mike Macpherson" }]
