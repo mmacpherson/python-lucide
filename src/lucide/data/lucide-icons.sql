@@ -745,6 +745,9 @@ INSERT INTO "icon_categories" VALUES('briefcase-conveyor-belt','transportation')
 INSERT INTO "icon_categories" VALUES('briefcase-conveyor-belt','travel');
 INSERT INTO "icon_categories" VALUES('briefcase-medical','medical');
 INSERT INTO "icon_categories" VALUES('briefcase-medical','transportation');
+INSERT INTO "icon_categories" VALUES('briefcase-plus','account');
+INSERT INTO "icon_categories" VALUES('briefcase-plus','files');
+INSERT INTO "icon_categories" VALUES('briefcase-plus','transportation');
 INSERT INTO "icon_categories" VALUES('bring-to-front','design');
 INSERT INTO "icon_categories" VALUES('bring-to-front','layout');
 INSERT INTO "icon_categories" VALUES('broccoli','food-beverage');
@@ -1878,6 +1881,8 @@ INSERT INTO "icon_categories" VALUES('hourglass-cog','tools');
 INSERT INTO "icon_categories" VALUES('house','buildings');
 INSERT INTO "icon_categories" VALUES('house','home');
 INSERT INTO "icon_categories" VALUES('house','navigation');
+INSERT INTO "icon_categories" VALUES('house-cog','buildings');
+INSERT INTO "icon_categories" VALUES('house-cog','home');
 INSERT INTO "icon_categories" VALUES('house-heart','buildings');
 INSERT INTO "icon_categories" VALUES('house-heart','home');
 INSERT INTO "icon_categories" VALUES('house-heart','medical');
@@ -2059,8 +2064,14 @@ INSERT INTO "icon_categories" VALUES('lightbulb-off','photography');
 INSERT INTO "icon_categories" VALUES('lighthouse','buildings');
 INSERT INTO "icon_categories" VALUES('lighthouse','navigation');
 INSERT INTO "icon_categories" VALUES('lighthouse','travel');
+INSERT INTO "icon_categories" VALUES('line-dot-bottom-vertical','development');
+INSERT INTO "icon_categories" VALUES('line-dot-bottom-vertical','navigation');
+INSERT INTO "icon_categories" VALUES('line-dot-left-horizontal','development');
+INSERT INTO "icon_categories" VALUES('line-dot-left-horizontal','navigation');
 INSERT INTO "icon_categories" VALUES('line-dot-right-horizontal','development');
 INSERT INTO "icon_categories" VALUES('line-dot-right-horizontal','navigation');
+INSERT INTO "icon_categories" VALUES('line-dot-top-vertical','development');
+INSERT INTO "icon_categories" VALUES('line-dot-top-vertical','navigation');
 INSERT INTO "icon_categories" VALUES('line-squiggle','design');
 INSERT INTO "icon_categories" VALUES('line-squiggle','math');
 INSERT INTO "icon_categories" VALUES('line-squiggle','shapes');
@@ -3336,6 +3347,10 @@ INSERT INTO "icon_categories" VALUES('square-sigma','math');
 INSERT INTO "icon_categories" VALUES('square-sigma','text');
 INSERT INTO "icon_categories" VALUES('square-slash','development');
 INSERT INTO "icon_categories" VALUES('square-slash','math');
+INSERT INTO "icon_categories" VALUES('square-sparkles','files');
+INSERT INTO "icon_categories" VALUES('square-sparkles','multimedia');
+INSERT INTO "icon_categories" VALUES('square-sparkles','photography');
+INSERT INTO "icon_categories" VALUES('square-sparkles','text');
 INSERT INTO "icon_categories" VALUES('square-split-horizontal','layout');
 INSERT INTO "icon_categories" VALUES('square-split-vertical','layout');
 INSERT INTO "icon_categories" VALUES('square-square','layout');
@@ -6353,6 +6368,21 @@ INSERT INTO "icon_tags" VALUES('briefcase-conveyor-belt','travel');
 INSERT INTO "icon_tags" VALUES('briefcase-medical','doctor');
 INSERT INTO "icon_tags" VALUES('briefcase-medical','first aid');
 INSERT INTO "icon_tags" VALUES('briefcase-medical','medicine');
+INSERT INTO "icon_tags" VALUES('briefcase-plus','add');
+INSERT INTO "icon_tags" VALUES('briefcase-plus','bag');
+INSERT INTO "icon_tags" VALUES('briefcase-plus','baggage');
+INSERT INTO "icon_tags" VALUES('briefcase-plus','briefcase');
+INSERT INTO "icon_tags" VALUES('briefcase-plus','business');
+INSERT INTO "icon_tags" VALUES('briefcase-plus','career');
+INSERT INTO "icon_tags" VALUES('briefcase-plus','create');
+INSERT INTO "icon_tags" VALUES('briefcase-plus','employment');
+INSERT INTO "icon_tags" VALUES('briefcase-plus','folder');
+INSERT INTO "icon_tags" VALUES('briefcase-plus','increase');
+INSERT INTO "icon_tags" VALUES('briefcase-plus','new');
+INSERT INTO "icon_tags" VALUES('briefcase-plus','plus');
+INSERT INTO "icon_tags" VALUES('briefcase-plus','portfolio');
+INSERT INTO "icon_tags" VALUES('briefcase-plus','professional');
+INSERT INTO "icon_tags" VALUES('briefcase-plus','work');
 INSERT INTO "icon_tags" VALUES('bring-to-front','bring');
 INSERT INTO "icon_tags" VALUES('bring-to-front','forward');
 INSERT INTO "icon_tags" VALUES('bring-to-front','front');
@@ -10904,6 +10934,14 @@ INSERT INTO "icon_tags" VALUES('house','building');
 INSERT INTO "icon_tags" VALUES('house','home');
 INSERT INTO "icon_tags" VALUES('house','living');
 INSERT INTO "icon_tags" VALUES('house','residence');
+INSERT INTO "icon_tags" VALUES('house-cog','automation');
+INSERT INTO "icon_tags" VALUES('house-cog','building');
+INSERT INTO "icon_tags" VALUES('house-cog','configuration');
+INSERT INTO "icon_tags" VALUES('house-cog','gear');
+INSERT INTO "icon_tags" VALUES('house-cog','home');
+INSERT INTO "icon_tags" VALUES('house-cog','property');
+INSERT INTO "icon_tags" VALUES('house-cog','residence');
+INSERT INTO "icon_tags" VALUES('house-cog','settings');
 INSERT INTO "icon_tags" VALUES('house-heart','abode');
 INSERT INTO "icon_tags" VALUES('house-heart','building');
 INSERT INTO "icon_tags" VALUES('house-heart','healthy living');
@@ -11527,6 +11565,29 @@ INSERT INTO "icon_tags" VALUES('lighthouse','shore');
 INSERT INTO "icon_tags" VALUES('lighthouse','signal');
 INSERT INTO "icon_tags" VALUES('lighthouse','tower');
 INSERT INTO "icon_tags" VALUES('lighthouse','wayfinding');
+INSERT INTO "icon_tags" VALUES('line-dot-bottom-vertical','code');
+INSERT INTO "icon_tags" VALUES('line-dot-bottom-vertical','control');
+INSERT INTO "icon_tags" VALUES('line-dot-bottom-vertical','first');
+INSERT INTO "icon_tags" VALUES('line-dot-bottom-vertical','start');
+INSERT INTO "icon_tags" VALUES('line-dot-bottom-vertical','station');
+INSERT INTO "icon_tags" VALUES('line-dot-bottom-vertical','version');
+INSERT INTO "icon_tags" VALUES('line-dot-bottom-vertical','waypoint');
+INSERT INTO "icon_tags" VALUES('line-dot-left-horizontal','arrow');
+INSERT INTO "icon_tags" VALUES('line-dot-left-horizontal','code');
+INSERT INTO "icon_tags" VALUES('line-dot-left-horizontal','dot');
+INSERT INTO "icon_tags" VALUES('line-dot-left-horizontal','first');
+INSERT INTO "icon_tags" VALUES('line-dot-left-horizontal','horizontal');
+INSERT INTO "icon_tags" VALUES('line-dot-left-horizontal','left');
+INSERT INTO "icon_tags" VALUES('line-dot-left-horizontal','line');
+INSERT INTO "icon_tags" VALUES('line-dot-left-horizontal','navigation');
+INSERT INTO "icon_tags" VALUES('line-dot-left-horizontal','pointer');
+INSERT INTO "icon_tags" VALUES('line-dot-left-horizontal','shape');
+INSERT INTO "icon_tags" VALUES('line-dot-left-horizontal','start');
+INSERT INTO "icon_tags" VALUES('line-dot-left-horizontal','station');
+INSERT INTO "icon_tags" VALUES('line-dot-left-horizontal','stop');
+INSERT INTO "icon_tags" VALUES('line-dot-left-horizontal','symbol');
+INSERT INTO "icon_tags" VALUES('line-dot-left-horizontal','version control');
+INSERT INTO "icon_tags" VALUES('line-dot-left-horizontal','waypoint');
 INSERT INTO "icon_tags" VALUES('line-dot-right-horizontal','code');
 INSERT INTO "icon_tags" VALUES('line-dot-right-horizontal','end');
 INSERT INTO "icon_tags" VALUES('line-dot-right-horizontal','last');
@@ -11534,6 +11595,18 @@ INSERT INTO "icon_tags" VALUES('line-dot-right-horizontal','station');
 INSERT INTO "icon_tags" VALUES('line-dot-right-horizontal','stop');
 INSERT INTO "icon_tags" VALUES('line-dot-right-horizontal','version control');
 INSERT INTO "icon_tags" VALUES('line-dot-right-horizontal','waypoint');
+INSERT INTO "icon_tags" VALUES('line-dot-top-vertical','arrow');
+INSERT INTO "icon_tags" VALUES('line-dot-top-vertical','code');
+INSERT INTO "icon_tags" VALUES('line-dot-top-vertical','control');
+INSERT INTO "icon_tags" VALUES('line-dot-top-vertical','direction');
+INSERT INTO "icon_tags" VALUES('line-dot-top-vertical','end');
+INSERT INTO "icon_tags" VALUES('line-dot-top-vertical','indicator');
+INSERT INTO "icon_tags" VALUES('line-dot-top-vertical','last');
+INSERT INTO "icon_tags" VALUES('line-dot-top-vertical','pointer');
+INSERT INTO "icon_tags" VALUES('line-dot-top-vertical','station');
+INSERT INTO "icon_tags" VALUES('line-dot-top-vertical','stop');
+INSERT INTO "icon_tags" VALUES('line-dot-top-vertical','version');
+INSERT INTO "icon_tags" VALUES('line-dot-top-vertical','waypoint');
 INSERT INTO "icon_tags" VALUES('line-squiggle','annotate');
 INSERT INTO "icon_tags" VALUES('line-squiggle','art');
 INSERT INTO "icon_tags" VALUES('line-squiggle','curve');
@@ -16931,6 +17004,9 @@ INSERT INTO "icon_tags" VALUES('square-slash','git');
 INSERT INTO "icon_tags" VALUES('square-slash','ignored');
 INSERT INTO "icon_tags" VALUES('square-slash','or');
 INSERT INTO "icon_tags" VALUES('square-slash','shortcut');
+INSERT INTO "icon_tags" VALUES('square-sparkles','photo');
+INSERT INTO "icon_tags" VALUES('square-sparkles','picture');
+INSERT INTO "icon_tags" VALUES('square-sparkles','sparkles');
 INSERT INTO "icon_tags" VALUES('square-split-horizontal','divide');
 INSERT INTO "icon_tags" VALUES('square-split-horizontal','split');
 INSERT INTO "icon_tags" VALUES('square-split-vertical','divide');
@@ -23356,6 +23432,23 @@ INSERT INTO "icons" VALUES('briefcase-medical','<svg
   <rect width="20" height="14" x="2" y="6" rx="2" />
 </svg>
 ');
+INSERT INTO "icons" VALUES('briefcase-plus','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M13.354 20H4a2 2 0 01-2-2V8a2 2 0 012-2h16a2 2 0 012 2v3.354" />
+  <path d="M16 11.354V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+  <path d="M16 17h6" />
+  <path d="M19 14v6" />
+</svg>
+');
 INSERT INTO "icons" VALUES('bring-to-front','<svg
   xmlns="http://www.w3.org/2000/svg"
   width="24"
@@ -24504,7 +24597,7 @@ INSERT INTO "icons" VALUES('card-sim','<svg
   <path d="M12 14v4" />
   <path d="M14.172 2a2 2 0 0 1 1.414.586l3.828 3.828A2 2 0 0 1 20 7.828V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" />
   <path d="M8 14h8" />
-  <rect x="8" y="10" width="8" height="8" rx="1" />
+  <rect x="8" y="10" width="8" height="8" rx="2" />
 </svg>
 ');
 INSERT INTO "icons" VALUES('carrot','<svg
@@ -34050,6 +34143,30 @@ INSERT INTO "icons" VALUES('house','<svg
   <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
 </svg>
 ');
+INSERT INTO "icons" VALUES('house-cog','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M10.584 21H5a2 2 0 01-2-2v-9a2 2 0 01.709-1.527l7-6a2 2 0 012.582 0l7 6A2 2 0 0121 10.001v.583" />
+  <path d="M14 12H10a1 1 0 00-1 1v8" />
+  <path d="m14.305 19.53.923-.382" />
+  <path d="m15.229 16.852-.924-.383" />
+  <path d="m16.852 15.228-.383-.923" />
+  <path d="m16.852 20.773-.383.924" />
+  <path d="m19.148 15.228.383-.923" />
+  <path d="m19.53 21.697-.382-.924" />
+  <path d="m20.773 16.852.922-.383" />
+  <path d="m20.773 19.148.922.383" />
+  <circle cx="18" cy="18" r="3" />
+</svg>
+');
 INSERT INTO "icons" VALUES('house-heart','<svg
   xmlns="http://www.w3.org/2000/svg"
   width="24"
@@ -35435,6 +35552,36 @@ INSERT INTO "icons" VALUES('lighthouse','<svg
   <path d="M8 7h8" />
 </svg>
 ');
+INSERT INTO "icons" VALUES('line-dot-bottom-vertical','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12 3v12" />
+  <circle cx="12" cy="18" r="3" />
+</svg>
+');
+INSERT INTO "icons" VALUES('line-dot-left-horizontal','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M9 12h12" />
+  <circle cx="6" cy="12" r="3" />
+</svg>
+');
 INSERT INTO "icons" VALUES('line-dot-right-horizontal','<svg
   xmlns="http://www.w3.org/2000/svg"
   width="24"
@@ -35448,6 +35595,21 @@ INSERT INTO "icons" VALUES('line-dot-right-horizontal','<svg
 >
   <path d="M 3 12 L 15 12" />
   <circle cx="18" cy="12" r="3" />
+</svg>
+');
+INSERT INTO "icons" VALUES('line-dot-top-vertical','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12 9v12" />
+  <circle cx="12" cy="6" r="3" />
 </svg>
 ');
 INSERT INTO "icons" VALUES('line-squiggle','<svg
@@ -36337,8 +36499,8 @@ INSERT INTO "icons" VALUES('mail-pen','<svg
   stroke-linecap="round"
   stroke-linejoin="round"
 >
-  <path d="M15.506 17.646A2 2 0 0015 18.5l-.837 2.87a.5.5 0 00.62.62l2.87-.837a2 2 0 00.854-.506l3.013-3.009a1 1 0 00-3.004-3.004z" />
-  <path d="M22 10.346V6a2 2 0 00-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2h6.396" />
+  <path d="M15.363 17.634a2 2 0 00-.506.854l-.837 2.87a.5.5 0 00.62.62l2.87-.837a2 2 0 00.854-.506l3.013-3.009a1 1 0 10-3.004-3.004z" />
+  <path d="M22 10.38V6a2 2 0 00-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2h6.25" />
   <path d="m22 7-8.991 5.727a2 2 0 01-2.009 0L2 7" />
 </svg>
 ');
@@ -36716,9 +36878,9 @@ INSERT INTO "icons" VALUES('map-pinned','<svg
   stroke-linecap="round"
   stroke-linejoin="round"
 >
-  <path d="M18 8c0 3.613-3.869 7.429-5.393 8.795a1 1 0 0 1-1.214 0C9.87 15.429 6 11.613 6 8a6 6 0 0 1 12 0" />
+  <path d="M18 8c0 3.613-3.869 7.429-5.393 8.795a1 1 0 01-1.214 0C9.87 15.429 6 11.613 6 8a6 6 0 0112 0" />
+  <path d="M4.474 15h-.197a1 1 0 00-.969.753l-1.097 4.35a1.5 1.5 0 001.444 1.898L20.344 22a1.5 1.5 0 001.446-1.897l-1.098-4.35a1 1 0 00-.969-.753h-.197" />
   <circle cx="12" cy="8" r="2" />
-  <path d="M8.714 14h-3.71a1 1 0 0 0-.948.683l-2.004 6A1 1 0 0 0 3 22h18a1 1 0 0 0 .948-1.316l-2-6a1 1 0 0 0-.949-.684h-3.712" />
 </svg>
 ');
 INSERT INTO "icons" VALUES('map-plus','<svg
@@ -45738,6 +45900,23 @@ INSERT INTO "icons" VALUES('square-slash','<svg
   <line x1="9" x2="15" y1="15" y2="9" />
 </svg>
 ');
+INSERT INTO "icons" VALUES('square-sparkles','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M11 15H7" />
+  <path d="M15.41 2.49a.6.6 0 011.18 0l.63 3.334a1.2 1.2 0 00.956.955l3.334.631a.6.6 0 010 1.18l-3.334.63a1.2 1.2 0 00-.955.956l-.631 3.334a.6.6 0 01-1.18 0l-.63-3.334a1.2 1.2 0 00-.956-.955L10.49 8.59a.6.6 0 010-1.18l3.334-.63a1.2 1.2 0 00.955-.956z" />
+  <path d="M21 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h6" />
+  <path d="M9 13v4" />
+</svg>
+');
 INSERT INTO "icons" VALUES('square-split-horizontal','<svg
   xmlns="http://www.w3.org/2000/svg"
   width="24"
@@ -50849,7 +51028,7 @@ INSERT INTO "icons" VALUES('zoom-out','<svg
 </svg>
 ');
 CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
-INSERT INTO "metadata" VALUES('version','1.47.0');
+INSERT INTO "metadata" VALUES('version','1.48.0');
 CREATE UNIQUE INDEX idx_alias ON icon_aliases(alias);
 CREATE INDEX idx_category ON icon_categories(category, name);
 CREATE INDEX idx_tag ON icon_tags(tag, name);
