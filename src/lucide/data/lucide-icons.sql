@@ -1761,6 +1761,7 @@ INSERT INTO "icon_categories" VALUES('grid-3x3','text');
 INSERT INTO "icon_categories" VALUES('grip','layout');
 INSERT INTO "icon_categories" VALUES('grip-horizontal','layout');
 INSERT INTO "icon_categories" VALUES('grip-vertical','layout');
+INSERT INTO "icon_categories" VALUES('groceries','food-beverage');
 INSERT INTO "icon_categories" VALUES('group','files');
 INSERT INTO "icon_categories" VALUES('guitar','multimedia');
 INSERT INTO "icon_categories" VALUES('ham','food-beverage');
@@ -1786,6 +1787,7 @@ INSERT INTO "icon_categories" VALUES('hand-platter','food-beverage');
 INSERT INTO "icon_categories" VALUES('hand-platter','people');
 INSERT INTO "icon_categories" VALUES('handbag','shopping');
 INSERT INTO "icon_categories" VALUES('handbag','transportation');
+INSERT INTO "icon_categories" VALUES('handle-bottom-right','design');
 INSERT INTO "icon_categories" VALUES('handshake','account');
 INSERT INTO "icon_categories" VALUES('handshake','communication');
 INSERT INTO "icon_categories" VALUES('handshake','finance');
@@ -1871,6 +1873,10 @@ INSERT INTO "icon_categories" VALUES('hexagon','development');
 INSERT INTO "icon_categories" VALUES('hexagon','shapes');
 INSERT INTO "icon_categories" VALUES('highlighter','design');
 INSERT INTO "icon_categories" VALUES('highlighter','text');
+INSERT INTO "icon_categories" VALUES('hiking-stick','nature');
+INSERT INTO "icon_categories" VALUES('hiking-stick','navigation');
+INSERT INTO "icon_categories" VALUES('hiking-stick','sports');
+INSERT INTO "icon_categories" VALUES('hiking-stick','travel');
 INSERT INTO "icon_categories" VALUES('hop','food-beverage');
 INSERT INTO "icon_categories" VALUES('hop-off','food-beverage');
 INSERT INTO "icon_categories" VALUES('hospital','buildings');
@@ -2049,6 +2055,9 @@ INSERT INTO "icon_categories" VALUES('leafy-green','food-beverage');
 INSERT INTO "icon_categories" VALUES('leafy-green','sustainability');
 INSERT INTO "icon_categories" VALUES('lectern','communication');
 INSERT INTO "icon_categories" VALUES('lectern','multimedia');
+INSERT INTO "icon_categories" VALUES('lens','photography');
+INSERT INTO "icon_categories" VALUES('lens','science');
+INSERT INTO "icon_categories" VALUES('lens','tools');
 INSERT INTO "icon_categories" VALUES('lens-concave','science');
 INSERT INTO "icon_categories" VALUES('lens-concave','shapes');
 INSERT INTO "icon_categories" VALUES('lens-concave','tools');
@@ -2171,6 +2180,9 @@ INSERT INTO "icon_categories" VALUES('mail-clock','mail');
 INSERT INTO "icon_categories" VALUES('mail-clock','notifications');
 INSERT INTO "icon_categories" VALUES('mail-clock','text');
 INSERT INTO "icon_categories" VALUES('mail-clock','time');
+INSERT INTO "icon_categories" VALUES('mail-dot','account');
+INSERT INTO "icon_categories" VALUES('mail-dot','mail');
+INSERT INTO "icon_categories" VALUES('mail-dot','text');
 INSERT INTO "icon_categories" VALUES('mail-minus','mail');
 INSERT INTO "icon_categories" VALUES('mail-open','mail');
 INSERT INTO "icon_categories" VALUES('mail-pen','mail');
@@ -2630,6 +2642,7 @@ INSERT INTO "icon_categories" VALUES('phone-incoming','arrows');
 INSERT INTO "icon_categories" VALUES('phone-incoming','communication');
 INSERT INTO "icon_categories" VALUES('phone-incoming','connectivity');
 INSERT INTO "icon_categories" VALUES('phone-incoming','devices');
+INSERT INTO "icon_categories" VALUES('phone-log','communication');
 INSERT INTO "icon_categories" VALUES('phone-missed','communication');
 INSERT INTO "icon_categories" VALUES('phone-missed','connectivity');
 INSERT INTO "icon_categories" VALUES('phone-missed','devices');
@@ -2957,12 +2970,14 @@ INSERT INTO "icon_categories" VALUES('scissors','tools');
 INSERT INTO "icon_categories" VALUES('scissors-line-dashed','design');
 INSERT INTO "icon_categories" VALUES('scissors-line-dashed','tools');
 INSERT INTO "icon_categories" VALUES('scooter','transportation');
+INSERT INTO "icon_categories" VALUES('scratch-blocks','development');
 INSERT INTO "icon_categories" VALUES('screen-share','communication');
 INSERT INTO "icon_categories" VALUES('screen-share','connectivity');
 INSERT INTO "icon_categories" VALUES('screen-share','devices');
 INSERT INTO "icon_categories" VALUES('screen-share-off','communication');
 INSERT INTO "icon_categories" VALUES('screen-share-off','connectivity');
 INSERT INTO "icon_categories" VALUES('screen-share-off','devices');
+INSERT INTO "icon_categories" VALUES('screw','tools');
 INSERT INTO "icon_categories" VALUES('scroll','development');
 INSERT INTO "icon_categories" VALUES('scroll','gaming');
 INSERT INTO "icon_categories" VALUES('scroll','text');
@@ -3061,6 +3076,11 @@ INSERT INTO "icon_categories" VALUES('shield-half','account');
 INSERT INTO "icon_categories" VALUES('shield-half','development');
 INSERT INTO "icon_categories" VALUES('shield-half','gaming');
 INSERT INTO "icon_categories" VALUES('shield-half','security');
+INSERT INTO "icon_categories" VALUES('shield-house','account');
+INSERT INTO "icon_categories" VALUES('shield-house','connectivity');
+INSERT INTO "icon_categories" VALUES('shield-house','development');
+INSERT INTO "icon_categories" VALUES('shield-house','home');
+INSERT INTO "icon_categories" VALUES('shield-house','security');
 INSERT INTO "icon_categories" VALUES('shield-keyhole','account');
 INSERT INTO "icon_categories" VALUES('shield-keyhole','development');
 INSERT INTO "icon_categories" VALUES('shield-keyhole','files');
@@ -3744,6 +3764,7 @@ INSERT INTO "icon_categories" VALUES('user-round-pen','account');
 INSERT INTO "icon_categories" VALUES('user-round-plus','account');
 INSERT INTO "icon_categories" VALUES('user-round-search','account');
 INSERT INTO "icon_categories" VALUES('user-round-search','social');
+INSERT INTO "icon_categories" VALUES('user-round-star','account');
 INSERT INTO "icon_categories" VALUES('user-round-x','account');
 INSERT INTO "icon_categories" VALUES('user-search','account');
 INSERT INTO "icon_categories" VALUES('user-search','social');
@@ -3898,6 +3919,9 @@ INSERT INTO "icon_categories" VALUES('wifi-cog','devices');
 INSERT INTO "icon_categories" VALUES('wifi-cog','files');
 INSERT INTO "icon_categories" VALUES('wifi-high','connectivity');
 INSERT INTO "icon_categories" VALUES('wifi-high','devices');
+INSERT INTO "icon_categories" VALUES('wifi-lock','connectivity');
+INSERT INTO "icon_categories" VALUES('wifi-lock','devices');
+INSERT INTO "icon_categories" VALUES('wifi-lock','security');
 INSERT INTO "icon_categories" VALUES('wifi-low','connectivity');
 INSERT INTO "icon_categories" VALUES('wifi-low','devices');
 INSERT INTO "icon_categories" VALUES('wifi-off','connectivity');
@@ -4650,7 +4674,6 @@ INSERT INTO "icon_tags" VALUES('asterisk','pencil');
 INSERT INTO "icon_tags" VALUES('asterisk','pointer');
 INSERT INTO "icon_tags" VALUES('asterisk','reference');
 INSERT INTO "icon_tags" VALUES('asterisk','sign');
-INSERT INTO "icon_tags" VALUES('asterisk','sterisk');
 INSERT INTO "icon_tags" VALUES('asterisk','symbol');
 INSERT INTO "icon_tags" VALUES('asterisk','symbolic');
 INSERT INTO "icon_tags" VALUES('asterisk','times');
@@ -5034,7 +5057,7 @@ INSERT INTO "icon_tags" VALUES('bangladeshi-taka','banknote');
 INSERT INTO "icon_tags" VALUES('bangladeshi-taka','bdt');
 INSERT INTO "icon_tags" VALUES('bangladeshi-taka','cash');
 INSERT INTO "icon_tags" VALUES('bangladeshi-taka','currency');
-INSERT INTO "icon_tags" VALUES('bangladeshi-taka','currencysymbol');
+INSERT INTO "icon_tags" VALUES('bangladeshi-taka','currency symbol');
 INSERT INTO "icon_tags" VALUES('bangladeshi-taka','ecommerce');
 INSERT INTO "icon_tags" VALUES('bangladeshi-taka','money');
 INSERT INTO "icon_tags" VALUES('bangladeshi-taka','payment');
@@ -6596,7 +6619,7 @@ INSERT INTO "icon_tags" VALUES('building-complex-plus','onboarding');
 INSERT INTO "icon_tags" VALUES('building-complex-plus','organisation');
 INSERT INTO "icon_tags" VALUES('building-complex-plus','organization');
 INSERT INTO "icon_tags" VALUES('building-complex-plus','property');
-INSERT INTO "icon_tags" VALUES('building-complex-plus','realestate');
+INSERT INTO "icon_tags" VALUES('building-complex-plus','real estate');
 INSERT INTO "icon_tags" VALUES('building-complex-plus','registration');
 INSERT INTO "icon_tags" VALUES('building-complex-plus','skyscraper');
 INSERT INTO "icon_tags" VALUES('building-complex-plus','startup');
@@ -6952,7 +6975,7 @@ INSERT INTO "icon_tags" VALUES('car-battery','electric');
 INSERT INTO "icon_tags" VALUES('car-battery','electricity');
 INSERT INTO "icon_tags" VALUES('car-battery','energy');
 INSERT INTO "icon_tags" VALUES('car-battery','power');
-INSERT INTO "icon_tags" VALUES('car-battery','powercell');
+INSERT INTO "icon_tags" VALUES('car-battery','power cell');
 INSERT INTO "icon_tags" VALUES('car-battery','transport');
 INSERT INTO "icon_tags" VALUES('car-battery','vehicle');
 INSERT INTO "icon_tags" VALUES('car-front','drive');
@@ -8016,7 +8039,7 @@ INSERT INTO "icon_tags" VALUES('cloud-backup','servers');
 INSERT INTO "icon_tags" VALUES('cloud-backup','storage');
 INSERT INTO "icon_tags" VALUES('cloud-backup','synchronise');
 INSERT INTO "icon_tags" VALUES('cloud-backup','synchronize');
-INSERT INTO "icon_tags" VALUES('cloud-backup','timemachine');
+INSERT INTO "icon_tags" VALUES('cloud-backup','time machine');
 INSERT INTO "icon_tags" VALUES('cloud-backup','transfer');
 INSERT INTO "icon_tags" VALUES('cloud-backup','upload');
 INSERT INTO "icon_tags" VALUES('cloud-check','completed');
@@ -8562,7 +8585,7 @@ INSERT INTO "icon_tags" VALUES('database-backup','memory');
 INSERT INTO "icon_tags" VALUES('database-backup','rotate');
 INSERT INTO "icon_tags" VALUES('database-backup','servers');
 INSERT INTO "icon_tags" VALUES('database-backup','storage');
-INSERT INTO "icon_tags" VALUES('database-backup','timemachine');
+INSERT INTO "icon_tags" VALUES('database-backup','time machine');
 INSERT INTO "icon_tags" VALUES('database-check','bytes');
 INSERT INTO "icon_tags" VALUES('database-check','check');
 INSERT INTO "icon_tags" VALUES('database-check','complete');
@@ -10596,6 +10619,22 @@ INSERT INTO "icon_tags" VALUES('grip-vertical','drag');
 INSERT INTO "icon_tags" VALUES('grip-vertical','grab');
 INSERT INTO "icon_tags" VALUES('grip-vertical','handle');
 INSERT INTO "icon_tags" VALUES('grip-vertical','move');
+INSERT INTO "icon_tags" VALUES('groceries','delivery');
+INSERT INTO "icon_tags" VALUES('groceries','farmer');
+INSERT INTO "icon_tags" VALUES('groceries','food');
+INSERT INTO "icon_tags" VALUES('groceries','grocery');
+INSERT INTO "icon_tags" VALUES('groceries','health');
+INSERT INTO "icon_tags" VALUES('groceries','larder');
+INSERT INTO "icon_tags" VALUES('groceries','market');
+INSERT INTO "icon_tags" VALUES('groceries','pantry');
+INSERT INTO "icon_tags" VALUES('groceries','paper bag');
+INSERT INTO "icon_tags" VALUES('groceries','produce');
+INSERT INTO "icon_tags" VALUES('groceries','provisions');
+INSERT INTO "icon_tags" VALUES('groceries','retail');
+INSERT INTO "icon_tags" VALUES('groceries','shop');
+INSERT INTO "icon_tags" VALUES('groceries','supermarket');
+INSERT INTO "icon_tags" VALUES('groceries','takeout');
+INSERT INTO "icon_tags" VALUES('groceries','vegetables');
 INSERT INTO "icon_tags" VALUES('group','cluster');
 INSERT INTO "icon_tags" VALUES('group','collection');
 INSERT INTO "icon_tags" VALUES('group','cubes');
@@ -10726,6 +10765,13 @@ INSERT INTO "icon_tags" VALUES('handbag','luggage');
 INSERT INTO "icon_tags" VALUES('handbag','purse');
 INSERT INTO "icon_tags" VALUES('handbag','tote');
 INSERT INTO "icon_tags" VALUES('handbag','travel');
+INSERT INTO "icon_tags" VALUES('handle-bottom-right','corner');
+INSERT INTO "icon_tags" VALUES('handle-bottom-right','drag');
+INSERT INTO "icon_tags" VALUES('handle-bottom-right','grab');
+INSERT INTO "icon_tags" VALUES('handle-bottom-right','handle');
+INSERT INTO "icon_tags" VALUES('handle-bottom-right','mouse');
+INSERT INTO "icon_tags" VALUES('handle-bottom-right','move');
+INSERT INTO "icon_tags" VALUES('handle-bottom-right','resize');
 INSERT INTO "icon_tags" VALUES('handshake','agreement');
 INSERT INTO "icon_tags" VALUES('handshake','assistance');
 INSERT INTO "icon_tags" VALUES('handshake','business');
@@ -10934,6 +10980,15 @@ INSERT INTO "icon_tags" VALUES('hexagon','node.js');
 INSERT INTO "icon_tags" VALUES('hexagon','shape');
 INSERT INTO "icon_tags" VALUES('highlighter','mark');
 INSERT INTO "icon_tags" VALUES('highlighter','text');
+INSERT INTO "icon_tags" VALUES('hiking-stick','backpacking');
+INSERT INTO "icon_tags" VALUES('hiking-stick','hiking');
+INSERT INTO "icon_tags" VALUES('hiking-stick','mountains');
+INSERT INTO "icon_tags" VALUES('hiking-stick','outdoors');
+INSERT INTO "icon_tags" VALUES('hiking-stick','pole');
+INSERT INTO "icon_tags" VALUES('hiking-stick','stick');
+INSERT INTO "icon_tags" VALUES('hiking-stick','trail');
+INSERT INTO "icon_tags" VALUES('hiking-stick','trekking');
+INSERT INTO "icon_tags" VALUES('hiking-stick','walking');
 INSERT INTO "icon_tags" VALUES('hop','beer');
 INSERT INTO "icon_tags" VALUES('hop','brewery');
 INSERT INTO "icon_tags" VALUES('hop','drink');
@@ -11518,6 +11573,23 @@ INSERT INTO "icon_tags" VALUES('leafy-green','vegetable');
 INSERT INTO "icon_tags" VALUES('lectern','podium');
 INSERT INTO "icon_tags" VALUES('lectern','pulpit');
 INSERT INTO "icon_tags" VALUES('lectern','stand');
+INSERT INTO "icon_tags" VALUES('lens','bubble');
+INSERT INTO "icon_tags" VALUES('lens','camera');
+INSERT INTO "icon_tags" VALUES('lens','contact lens');
+INSERT INTO "icon_tags" VALUES('lens','effect');
+INSERT INTO "icon_tags" VALUES('lens','focus');
+INSERT INTO "icon_tags" VALUES('lens','glass');
+INSERT INTO "icon_tags" VALUES('lens','magnify');
+INSERT INTO "icon_tags" VALUES('lens','optics');
+INSERT INTO "icon_tags" VALUES('lens','orb');
+INSERT INTO "icon_tags" VALUES('lens','photography');
+INSERT INTO "icon_tags" VALUES('lens','post-process');
+INSERT INTO "icon_tags" VALUES('lens','reflection');
+INSERT INTO "icon_tags" VALUES('lens','shader');
+INSERT INTO "icon_tags" VALUES('lens','translucent');
+INSERT INTO "icon_tags" VALUES('lens','transparent');
+INSERT INTO "icon_tags" VALUES('lens','visual');
+INSERT INTO "icon_tags" VALUES('lens','zoom');
 INSERT INTO "icon_tags" VALUES('lens-concave','concave');
 INSERT INTO "icon_tags" VALUES('lens-concave','curved');
 INSERT INTO "icon_tags" VALUES('lens-concave','eyeglass');
@@ -11628,7 +11700,7 @@ INSERT INTO "icon_tags" VALUES('lighthouse','harbor');
 INSERT INTO "icon_tags" VALUES('lighthouse','help');
 INSERT INTO "icon_tags" VALUES('lighthouse','landmark');
 INSERT INTO "icon_tags" VALUES('lighthouse','light');
-INSERT INTO "icon_tags" VALUES('lighthouse','lightbeam');
+INSERT INTO "icon_tags" VALUES('lighthouse','light beam');
 INSERT INTO "icon_tags" VALUES('lighthouse','lighthouse');
 INSERT INTO "icon_tags" VALUES('lighthouse','marine');
 INSERT INTO "icon_tags" VALUES('lighthouse','maritime');
@@ -11987,9 +12059,21 @@ INSERT INTO "icon_tags" VALUES('mail-clock','outgoing');
 INSERT INTO "icon_tags" VALUES('mail-clock','pending');
 INSERT INTO "icon_tags" VALUES('mail-clock','reminder');
 INSERT INTO "icon_tags" VALUES('mail-clock','scheduled');
-INSERT INTO "icon_tags" VALUES('mail-clock','sendlater');
+INSERT INTO "icon_tags" VALUES('mail-clock','send later');
 INSERT INTO "icon_tags" VALUES('mail-clock','timer');
 INSERT INTO "icon_tags" VALUES('mail-clock','unread');
+INSERT INTO "icon_tags" VALUES('mail-dot','address');
+INSERT INTO "icon_tags" VALUES('mail-dot','communication');
+INSERT INTO "icon_tags" VALUES('mail-dot','dot');
+INSERT INTO "icon_tags" VALUES('mail-dot','email');
+INSERT INTO "icon_tags" VALUES('mail-dot','envelope');
+INSERT INTO "icon_tags" VALUES('mail-dot','letter');
+INSERT INTO "icon_tags" VALUES('mail-dot','mail');
+INSERT INTO "icon_tags" VALUES('mail-dot','message');
+INSERT INTO "icon_tags" VALUES('mail-dot','notification');
+INSERT INTO "icon_tags" VALUES('mail-dot','post');
+INSERT INTO "icon_tags" VALUES('mail-dot','send');
+INSERT INTO "icon_tags" VALUES('mail-dot','unread');
 INSERT INTO "icon_tags" VALUES('mail-minus','delete');
 INSERT INTO "icon_tags" VALUES('mail-minus','email');
 INSERT INTO "icon_tags" VALUES('mail-minus','letter');
@@ -12556,7 +12640,7 @@ INSERT INTO "icon_tags" VALUES('messages-circle','dialog');
 INSERT INTO "icon_tags" VALUES('messages-circle','discussion');
 INSERT INTO "icon_tags" VALUES('messages-circle','feedback');
 INSERT INTO "icon_tags" VALUES('messages-circle','group');
-INSERT INTO "icon_tags" VALUES('messages-circle','groupchat');
+INSERT INTO "icon_tags" VALUES('messages-circle','group chat');
 INSERT INTO "icon_tags" VALUES('messages-circle','interview');
 INSERT INTO "icon_tags" VALUES('messages-circle','messaging');
 INSERT INTO "icon_tags" VALUES('messages-circle','multiple');
@@ -13609,7 +13693,7 @@ INSERT INTO "icon_tags" VALUES('panels-top-left','projects');
 INSERT INTO "icon_tags" VALUES('panels-top-left','sidebar');
 INSERT INTO "icon_tags" VALUES('panels-top-left','webpage');
 INSERT INTO "icon_tags" VALUES('panels-top-left','window');
-INSERT INTO "icon_tags" VALUES('paper-bag','doggybag');
+INSERT INTO "icon_tags" VALUES('paper-bag','doggy bag');
 INSERT INTO "icon_tags" VALUES('paper-bag','eco-friendly');
 INSERT INTO "icon_tags" VALUES('paper-bag','kraft');
 INSERT INTO "icon_tags" VALUES('paper-bag','lunch');
@@ -13855,6 +13939,15 @@ INSERT INTO "icon_tags" VALUES('phone','call');
 INSERT INTO "icon_tags" VALUES('phone-call','ring');
 INSERT INTO "icon_tags" VALUES('phone-forwarded','call');
 INSERT INTO "icon_tags" VALUES('phone-incoming','call');
+INSERT INTO "icon_tags" VALUES('phone-log','call');
+INSERT INTO "icon_tags" VALUES('phone-log','communication');
+INSERT INTO "icon_tags" VALUES('phone-log','contact');
+INSERT INTO "icon_tags" VALUES('phone-log','data');
+INSERT INTO "icon_tags" VALUES('phone-log','device');
+INSERT INTO "icon_tags" VALUES('phone-log','history');
+INSERT INTO "icon_tags" VALUES('phone-log','information');
+INSERT INTO "icon_tags" VALUES('phone-log','mobile');
+INSERT INTO "icon_tags" VALUES('phone-log','telephone');
 INSERT INTO "icon_tags" VALUES('phone-missed','call');
 INSERT INTO "icon_tags" VALUES('phone-off','call');
 INSERT INTO "icon_tags" VALUES('phone-off','mute');
@@ -14558,7 +14651,6 @@ INSERT INTO "icon_tags" VALUES('refrigerator','cold storage');
 INSERT INTO "icon_tags" VALUES('refrigerator','cooler');
 INSERT INTO "icon_tags" VALUES('refrigerator','freezer');
 INSERT INTO "icon_tags" VALUES('refrigerator','fridge');
-INSERT INTO "icon_tags" VALUES('refrigerator','frigerator');
 INSERT INTO "icon_tags" VALUES('refrigerator','icebox');
 INSERT INTO "icon_tags" VALUES('regex','code');
 INSERT INTO "icon_tags" VALUES('regex','search');
@@ -14635,7 +14727,6 @@ INSERT INTO "icon_tags" VALUES('robot-vacuum','maintenance');
 INSERT INTO "icon_tags" VALUES('robot-vacuum','navigation');
 INSERT INTO "icon_tags" VALUES('robot-vacuum','sensor');
 INSERT INTO "icon_tags" VALUES('robot-vacuum','smart home');
-INSERT INTO "icon_tags" VALUES('robot-vacuum','smarthome');
 INSERT INTO "icon_tags" VALUES('robot-vacuum','sweeping');
 INSERT INTO "icon_tags" VALUES('robot-vacuum','tool');
 INSERT INTO "icon_tags" VALUES('rocket','boost');
@@ -15063,7 +15154,7 @@ INSERT INTO "icon_tags" VALUES('scan-line','transaction');
 INSERT INTO "icon_tags" VALUES('scan-qr-code','barcode');
 INSERT INTO "icon_tags" VALUES('scan-qr-code','digital');
 INSERT INTO "icon_tags" VALUES('scan-qr-code','information');
-INSERT INTO "icon_tags" VALUES('scan-qr-code','qrcode');
+INSERT INTO "icon_tags" VALUES('scan-qr-code','qr code');
 INSERT INTO "icon_tags" VALUES('scan-qr-code','scan');
 INSERT INTO "icon_tags" VALUES('scan-qr-code','scanner');
 INSERT INTO "icon_tags" VALUES('scan-qr-code','url');
@@ -15143,12 +15234,34 @@ INSERT INTO "icon_tags" VALUES('scooter','transport');
 INSERT INTO "icon_tags" VALUES('scooter','trip');
 INSERT INTO "icon_tags" VALUES('scooter','urban');
 INSERT INTO "icon_tags" VALUES('scooter','vehicle');
+INSERT INTO "icon_tags" VALUES('scratch-blocks','block-based');
+INSERT INTO "icon_tags" VALUES('scratch-blocks','blocks');
+INSERT INTO "icon_tags" VALUES('scratch-blocks','code');
+INSERT INTO "icon_tags" VALUES('scratch-blocks','drag-and-drop');
+INSERT INTO "icon_tags" VALUES('scratch-blocks','editor');
+INSERT INTO "icon_tags" VALUES('scratch-blocks','education');
+INSERT INTO "icon_tags" VALUES('scratch-blocks','integration');
+INSERT INTO "icon_tags" VALUES('scratch-blocks','kids');
+INSERT INTO "icon_tags" VALUES('scratch-blocks','learning');
+INSERT INTO "icon_tags" VALUES('scratch-blocks','mistwarp');
+INSERT INTO "icon_tags" VALUES('scratch-blocks','programming');
+INSERT INTO "icon_tags" VALUES('scratch-blocks','scratch');
+INSERT INTO "icon_tags" VALUES('scratch-blocks','turbowarp');
+INSERT INTO "icon_tags" VALUES('scratch-blocks','visual programming');
 INSERT INTO "icon_tags" VALUES('screen-share','desktop');
 INSERT INTO "icon_tags" VALUES('screen-share','host');
 INSERT INTO "icon_tags" VALUES('screen-share','monitor');
 INSERT INTO "icon_tags" VALUES('screen-share-off','desktop');
 INSERT INTO "icon_tags" VALUES('screen-share-off','disconnect');
 INSERT INTO "icon_tags" VALUES('screen-share-off','monitor');
+INSERT INTO "icon_tags" VALUES('screw','assembly');
+INSERT INTO "icon_tags" VALUES('screw','bolt');
+INSERT INTO "icon_tags" VALUES('screw','diy');
+INSERT INTO "icon_tags" VALUES('screw','fastener');
+INSERT INTO "icon_tags" VALUES('screw','flathead');
+INSERT INTO "icon_tags" VALUES('screw','hardware');
+INSERT INTO "icon_tags" VALUES('screw','repair');
+INSERT INTO "icon_tags" VALUES('screw','screwdriver');
 INSERT INTO "icon_tags" VALUES('scroll','code');
 INSERT INTO "icon_tags" VALUES('scroll','coding');
 INSERT INTO "icon_tags" VALUES('scroll','document');
@@ -15348,7 +15461,7 @@ INSERT INTO "icon_tags" VALUES('shell','hypnotise');
 INSERT INTO "icon_tags" VALUES('shell','ocean');
 INSERT INTO "icon_tags" VALUES('shell','roll');
 INSERT INTO "icon_tags" VALUES('shell','sand');
-INSERT INTO "icon_tags" VALUES('shell','sealife');
+INSERT INTO "icon_tags" VALUES('shell','sea life');
 INSERT INTO "icon_tags" VALUES('shell','session');
 INSERT INTO "icon_tags" VALUES('shell','spinner');
 INSERT INTO "icon_tags" VALUES('shell','spiral');
@@ -15666,7 +15779,7 @@ INSERT INTO "icon_tags" VALUES('shield-cog-corner','safety');
 INSERT INTO "icon_tags" VALUES('shield-cog-corner','scan');
 INSERT INTO "icon_tags" VALUES('shield-cog-corner','scout');
 INSERT INTO "icon_tags" VALUES('shield-cog-corner','secure');
-INSERT INTO "icon_tags" VALUES('shield-cog-corner','shieldcog');
+INSERT INTO "icon_tags" VALUES('shield-cog-corner','shield cog');
 INSERT INTO "icon_tags" VALUES('shield-cog-corner','strength');
 INSERT INTO "icon_tags" VALUES('shield-cog-corner','strong');
 INSERT INTO "icon_tags" VALUES('shield-cog-corner','threat');
@@ -15758,6 +15871,38 @@ INSERT INTO "icon_tags" VALUES('shield-half','verification');
 INSERT INTO "icon_tags" VALUES('shield-half','vigilance');
 INSERT INTO "icon_tags" VALUES('shield-half','vigilant');
 INSERT INTO "icon_tags" VALUES('shield-half','war');
+INSERT INTO "icon_tags" VALUES('shield-house','admin');
+INSERT INTO "icon_tags" VALUES('shield-house','antivirus');
+INSERT INTO "icon_tags" VALUES('shield-house','armored');
+INSERT INTO "icon_tags" VALUES('shield-house','armoured');
+INSERT INTO "icon_tags" VALUES('shield-house','audit');
+INSERT INTO "icon_tags" VALUES('shield-house','block');
+INSERT INTO "icon_tags" VALUES('shield-house','building');
+INSERT INTO "icon_tags" VALUES('shield-house','connectivity');
+INSERT INTO "icon_tags" VALUES('shield-house','cybersecurity');
+INSERT INTO "icon_tags" VALUES('shield-house','defence');
+INSERT INTO "icon_tags" VALUES('shield-house','defender');
+INSERT INTO "icon_tags" VALUES('shield-house','defense');
+INSERT INTO "icon_tags" VALUES('shield-house','detection');
+INSERT INTO "icon_tags" VALUES('shield-house','guardian');
+INSERT INTO "icon_tags" VALUES('shield-house','household');
+INSERT INTO "icon_tags" VALUES('shield-house','invincibility');
+INSERT INTO "icon_tags" VALUES('shield-house','invincible');
+INSERT INTO "icon_tags" VALUES('shield-house','invulnerable');
+INSERT INTO "icon_tags" VALUES('shield-house','prevention');
+INSERT INTO "icon_tags" VALUES('shield-house','property');
+INSERT INTO "icon_tags" VALUES('shield-house','protection');
+INSERT INTO "icon_tags" VALUES('shield-house','residence');
+INSERT INTO "icon_tags" VALUES('shield-house','safety');
+INSERT INTO "icon_tags" VALUES('shield-house','scan');
+INSERT INTO "icon_tags" VALUES('shield-house','secure');
+INSERT INTO "icon_tags" VALUES('shield-house','strength');
+INSERT INTO "icon_tags" VALUES('shield-house','strong');
+INSERT INTO "icon_tags" VALUES('shield-house','threat');
+INSERT INTO "icon_tags" VALUES('shield-house','tough');
+INSERT INTO "icon_tags" VALUES('shield-house','undamaged');
+INSERT INTO "icon_tags" VALUES('shield-house','vigilance');
+INSERT INTO "icon_tags" VALUES('shield-house','vigilant');
 INSERT INTO "icon_tags" VALUES('shield-keyhole','admin');
 INSERT INTO "icon_tags" VALUES('shield-keyhole','antivirus');
 INSERT INTO "icon_tags" VALUES('shield-keyhole','audit');
@@ -16485,7 +16630,7 @@ INSERT INTO "icon_tags" VALUES('spotlight','concert');
 INSERT INTO "icon_tags" VALUES('spotlight','drama');
 INSERT INTO "icon_tags" VALUES('spotlight','entertainment');
 INSERT INTO "icon_tags" VALUES('spotlight','focus');
-INSERT INTO "icon_tags" VALUES('spotlight','followspot');
+INSERT INTO "icon_tags" VALUES('spotlight','follow spot');
 INSERT INTO "icon_tags" VALUES('spotlight','highlight');
 INSERT INTO "icon_tags" VALUES('spotlight','leaderboard');
 INSERT INTO "icon_tags" VALUES('spotlight','lens');
@@ -18114,7 +18259,7 @@ INSERT INTO "icon_tags" VALUES('toothbrush','handle');
 INSERT INTO "icon_tags" VALUES('toothbrush','oral hygiene');
 INSERT INTO "icon_tags" VALUES('toothbrush','personal care');
 INSERT INTO "icon_tags" VALUES('toothbrush','plaque');
-INSERT INTO "icon_tags" VALUES('toothbrush','selfcare');
+INSERT INTO "icon_tags" VALUES('toothbrush','self care');
 INSERT INTO "icon_tags" VALUES('toothbrush','teeth');
 INSERT INTO "icon_tags" VALUES('toothbrush','toiletries');
 INSERT INTO "icon_tags" VALUES('toothbrush','toothpaste');
@@ -18131,7 +18276,7 @@ INSERT INTO "icon_tags" VALUES('toothbrush-sparkles','handle');
 INSERT INTO "icon_tags" VALUES('toothbrush-sparkles','oral hygiene');
 INSERT INTO "icon_tags" VALUES('toothbrush-sparkles','personal care');
 INSERT INTO "icon_tags" VALUES('toothbrush-sparkles','plaque');
-INSERT INTO "icon_tags" VALUES('toothbrush-sparkles','selfcare');
+INSERT INTO "icon_tags" VALUES('toothbrush-sparkles','self care');
 INSERT INTO "icon_tags" VALUES('toothbrush-sparkles','teeth');
 INSERT INTO "icon_tags" VALUES('toothbrush-sparkles','toiletries');
 INSERT INTO "icon_tags" VALUES('toothbrush-sparkles','toothpaste');
@@ -18425,7 +18570,7 @@ INSERT INTO "icon_tags" VALUES('tv-minimal','channels');
 INSERT INTO "icon_tags" VALUES('tv-minimal','digital');
 INSERT INTO "icon_tags" VALUES('tv-minimal','display');
 INSERT INTO "icon_tags" VALUES('tv-minimal','entertainment');
-INSERT INTO "icon_tags" VALUES('tv-minimal','flatscreen');
+INSERT INTO "icon_tags" VALUES('tv-minimal','flat screen');
 INSERT INTO "icon_tags" VALUES('tv-minimal','hd');
 INSERT INTO "icon_tags" VALUES('tv-minimal','high-definition');
 INSERT INTO "icon_tags" VALUES('tv-minimal','home cinema');
@@ -18444,7 +18589,7 @@ INSERT INTO "icon_tags" VALUES('tv-minimal-play','digital');
 INSERT INTO "icon_tags" VALUES('tv-minimal-play','display');
 INSERT INTO "icon_tags" VALUES('tv-minimal-play','entertainment');
 INSERT INTO "icon_tags" VALUES('tv-minimal-play','film');
-INSERT INTO "icon_tags" VALUES('tv-minimal-play','flatscreen');
+INSERT INTO "icon_tags" VALUES('tv-minimal-play','flat screen');
 INSERT INTO "icon_tags" VALUES('tv-minimal-play','hd');
 INSERT INTO "icon_tags" VALUES('tv-minimal-play','high-definition');
 INSERT INTO "icon_tags" VALUES('tv-minimal-play','home cinema');
@@ -18692,6 +18837,23 @@ INSERT INTO "icon_tags" VALUES('user-round-search','magnifier');
 INSERT INTO "icon_tags" VALUES('user-round-search','magnifying glass');
 INSERT INTO "icon_tags" VALUES('user-round-search','person');
 INSERT INTO "icon_tags" VALUES('user-round-search','scan');
+INSERT INTO "icon_tags" VALUES('user-round-star','account');
+INSERT INTO "icon_tags" VALUES('user-round-star','admin');
+INSERT INTO "icon_tags" VALUES('user-round-star','avatar');
+INSERT INTO "icon_tags" VALUES('user-round-star','award');
+INSERT INTO "icon_tags" VALUES('user-round-star','badge');
+INSERT INTO "icon_tags" VALUES('user-round-star','champion');
+INSERT INTO "icon_tags" VALUES('user-round-star','contact');
+INSERT INTO "icon_tags" VALUES('user-round-star','favorite');
+INSERT INTO "icon_tags" VALUES('user-round-star','featured');
+INSERT INTO "icon_tags" VALUES('user-round-star','like');
+INSERT INTO "icon_tags" VALUES('user-round-star','moderator');
+INSERT INTO "icon_tags" VALUES('user-round-star','person');
+INSERT INTO "icon_tags" VALUES('user-round-star','profile');
+INSERT INTO "icon_tags" VALUES('user-round-star','rating');
+INSERT INTO "icon_tags" VALUES('user-round-star','review');
+INSERT INTO "icon_tags" VALUES('user-round-star','starred');
+INSERT INTO "icon_tags" VALUES('user-round-star','verified');
 INSERT INTO "icon_tags" VALUES('user-round-x','delete');
 INSERT INTO "icon_tags" VALUES('user-round-x','remove');
 INSERT INTO "icon_tags" VALUES('user-round-x','unavailable');
@@ -19182,6 +19344,24 @@ INSERT INTO "icon_tags" VALUES('wifi-cog','wireless');
 INSERT INTO "icon_tags" VALUES('wifi-high','connection');
 INSERT INTO "icon_tags" VALUES('wifi-high','signal');
 INSERT INTO "icon_tags" VALUES('wifi-high','wireless');
+INSERT INTO "icon_tags" VALUES('wifi-lock','access');
+INSERT INTO "icon_tags" VALUES('wifi-lock','admin');
+INSERT INTO "icon_tags" VALUES('wifi-lock','authentication');
+INSERT INTO "icon_tags" VALUES('wifi-lock','connection');
+INSERT INTO "icon_tags" VALUES('wifi-lock','encrypted');
+INSERT INTO "icon_tags" VALUES('wifi-lock','guest');
+INSERT INTO "icon_tags" VALUES('wifi-lock','hotspot');
+INSERT INTO "icon_tags" VALUES('wifi-lock','locked');
+INSERT INTO "icon_tags" VALUES('wifi-lock','network');
+INSERT INTO "icon_tags" VALUES('wifi-lock','password');
+INSERT INTO "icon_tags" VALUES('wifi-lock','private');
+INSERT INTO "icon_tags" VALUES('wifi-lock','protected');
+INSERT INTO "icon_tags" VALUES('wifi-lock','router');
+INSERT INTO "icon_tags" VALUES('wifi-lock','secure');
+INSERT INTO "icon_tags" VALUES('wifi-lock','security');
+INSERT INTO "icon_tags" VALUES('wifi-lock','signal');
+INSERT INTO "icon_tags" VALUES('wifi-lock','ssid');
+INSERT INTO "icon_tags" VALUES('wifi-lock','wireless');
 INSERT INTO "icon_tags" VALUES('wifi-low','connection');
 INSERT INTO "icon_tags" VALUES('wifi-low','signal');
 INSERT INTO "icon_tags" VALUES('wifi-low','wireless');
@@ -33412,6 +33592,23 @@ INSERT INTO "icons" VALUES('grip-vertical','<svg
   <circle cx="15" cy="19" r="1" />
 </svg>
 ');
+INSERT INTO "icons" VALUES('groceries','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M10 15h4" />
+  <path d="M19.424 11.095a2.5 2.5 0 00.471-2.309 2 2 0 00.424-3.286 2 2 0 00-2.143-3.322 2 2 0 00-.676.502 2 2 0 00-3.287.424 2.5 2.5 0 00-3.189 2.06A3 3 0 0012 11l4-4" />
+  <path d="M4 12.006A1 1 0 014.994 11H19a1 1 0 011 1v7a2 2 0 01-2 2H6a2 2 0 01-2-2z" />
+  <path d="M7 11a4 4 0 01-4-4V5a1 1 0 011-1h2a4 4 0 013.584 2.222" />
+</svg>
+');
 INSERT INTO "icons" VALUES('group','<svg
   xmlns="http://www.w3.org/2000/svg"
   width="24"
@@ -33650,6 +33847,21 @@ INSERT INTO "icons" VALUES('handbag','<svg
 >
   <path d="M2.048 18.566A2 2 0 0 0 4 21h16a2 2 0 0 0 1.952-2.434l-2-9A2 2 0 0 0 18 8H6a2 2 0 0 0-1.952 1.566z" />
   <path d="M8 11V6a4 4 0 0 1 8 0v5" />
+</svg>
+');
+INSERT INTO "icons" VALUES('handle-bottom-right','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M21 8 8 21" />
+  <path d="m21 15-6 6" />
 </svg>
 ');
 INSERT INTO "icons" VALUES('handshake','<svg
@@ -34190,6 +34402,22 @@ INSERT INTO "icons" VALUES('highlighter','<svg
 >
   <path d="m9 11-6 6v3h9l3-3" />
   <path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" />
+</svg>
+');
+INSERT INTO "icons" VALUES('hiking-stick','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M13.5 10.5 2 22" />
+  <path d="M16.352 11.648a1.205 1.205 0 01-1.704 0l-2.296-2.296a1.205 1.205 0 010-1.704l.72-.72a2 2 0 011.022-.546l.599-.12a2 2 0 001.569-1.57l.12-.598a2 2 0 01.546-1.022l.72-.72a1.205 1.205 0 011.704 0l2.296 2.296a1.205 1.205 0 010 1.704l-6.02 6.02a1 1 0 103 3l.201-.201A7.4 7.4 0 0021 9.93V7" />
+  <path d="m6 21-3-3" />
 </svg>
 ');
 INSERT INTO "icons" VALUES('hop','<svg
@@ -35619,6 +35847,22 @@ INSERT INTO "icons" VALUES('lectern','<svg
   <path d="M18 6V3a1 1 0 00-1-1h-3" />
 </svg>
 ');
+INSERT INTO "icons" VALUES('lens','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M15.725 7.296h.01" />
+  <path d="M6 12a6 6 0 016-6" />
+  <circle cx="12" cy="12" r="10" />
+</svg>
+');
 INSERT INTO "icons" VALUES('lens-concave','<svg
   xmlns="http://www.w3.org/2000/svg"
   width="24"
@@ -36696,6 +36940,22 @@ INSERT INTO "icons" VALUES('mail-clock','<svg
   <path d="M6.835 20H4a2 2 0 01-2-2V6a2 2 0 012-2h16a2 2 0 012 2v2" />
   <path d="M7.605 10.567 2 7" />
   <circle cx="16" cy="16" r="6" />
+</svg>
+');
+INSERT INTO "icons" VALUES('mail-dot','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12.674 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4.675" />
+  <path d="m2 7 9 5.701a2 2 0 0 0 2 0l1.084-.686" />
+  <circle cx="19" cy="7" r="3" />
 </svg>
 ');
 INSERT INTO "icons" VALUES('mail-minus','<svg
@@ -40335,9 +40595,9 @@ INSERT INTO "icons" VALUES('pen-tool','<svg
   stroke-linecap="round"
   stroke-linejoin="round"
 >
-  <path d="M15.707 21.293a1 1 0 0 1-1.414 0l-1.586-1.586a1 1 0 0 1 0-1.414l5.586-5.586a1 1 0 0 1 1.414 0l1.586 1.586a1 1 0 0 1 0 1.414z" />
-  <path d="m18 13-1.375-6.874a1 1 0 0 0-.746-.776L3.235 2.028a1 1 0 0 0-1.207 1.207L5.35 15.879a1 1 0 0 0 .776.746L13 18" />
-  <path d="m2.3 2.3 7.286 7.286" />
+  <path d="m18 13-.654-4.736a4 4 0 00-2.756-3.266l-9.163-2.9a2 2 0 00-2.017.493l-.82.819a2 2 0 00-.492 2.017l2.9 9.163a4 4 0 003.266 2.756L13 18" />
+  <path d="M18.648 12.352a1.205 1.205 0 011.704 0l1.296 1.296a1.205 1.205 0 010 1.704l-6.296 6.296a1.205 1.205 0 01-1.704 0l-1.296-1.296a1.205 1.205 0 010-1.704z" />
+  <path d="m3 3 6.586 6.586" />
   <circle cx="11" cy="11" r="2" />
 </svg>
 ');
@@ -40567,6 +40827,22 @@ INSERT INTO "icons" VALUES('phone-incoming','<svg
   <path d="M16 2v6h6" />
   <path d="m22 2-6 6" />
   <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" />
+</svg>
+');
+INSERT INTO "icons" VALUES('phone-log','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M13.832 16.568a1 1 0 001.213-.303l.355-.465A2 2 0 0117 15h3a2 2 0 012 2v3a2 2 0 01-2 2A18 18 0 012 4a2 2 0 012-2h3a2 2 0 012 2v3a2 2 0 01-.8 1.6l-.468.351a1 1 0 00-.292 1.233 14 14 0 006.392 6.384" />
+  <path d="M14.396 4.171h7.171" />
+  <path d="M17.343 8.17h4.224" />
 </svg>
 ');
 INSERT INTO "icons" VALUES('phone-missed','<svg
@@ -42729,11 +43005,10 @@ INSERT INTO "icons" VALUES('salad','<svg
   stroke-linecap="round"
   stroke-linejoin="round"
 >
+  <path d="M19.496 12a2.5 2.5 0 00.399-2.214A2 2 0 0020.32 6.5 2 2 0 0019 3a2 2 0 00-1.5.68 2 2 0 00-3.287.424 2.5 2.5 0 00-3.189 2.06A3 3 0 0012 12l4-4" />
+  <path d="M4 12a1 1 0 00-.99 1.133A9 9 0 0012 21a9 9 0 008.99-7.867A1 1 0 0020 12z" />
   <path d="M7 21h10" />
-  <path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z" />
-  <path d="M11.38 12a2.4 2.4 0 0 1-.4-4.77 2.4 2.4 0 0 1 3.2-2.77 2.4 2.4 0 0 1 3.47-.63 2.4 2.4 0 0 1 3.37 3.37 2.4 2.4 0 0 1-1.1 3.7 2.51 2.51 0 0 1 .03 1.1" />
-  <path d="m13 12 4-4" />
-  <path d="M10.9 7.25A3.99 3.99 0 0 0 4 10c0 .73.2 1.41.54 2" />
+  <path d="M9.85 6.907A3.5 3.5 0 005.05 12" />
 </svg>
 ');
 INSERT INTO "icons" VALUES('sandwich','<svg
@@ -43246,6 +43521,21 @@ INSERT INTO "icons" VALUES('scooter','<svg
   <circle cx="4.5" cy="17.5" r="2.5" />
 </svg>
 ');
+INSERT INTO "icons" VALUES('scratch-blocks','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M19 5a2 2 0 012 2v11a2 2 0 01-2 2h-5.586a1 1 0 00-.707.293l-1.414 1.414a1 1 0 01-.707.293H8.414a1 1 0 01-.707-.293l-1.414-1.414A1 1 0 005.586 20H5a2 2 0 01-2-2V5.286c0-.394.11-.785.36-1.09a6 6 0 019.168-.133C12.996 4.6 13.637 5 14.35 5z" />
+  <path d="M21 12h-7.586a1 1 0 00-.707.293l-1.414 1.414a1 1 0 01-.707.293H8.414a1 1 0 01-.707-.293l-1.414-1.414A1 1 0 005.586 12H3" />
+</svg>
+');
 INSERT INTO "icons" VALUES('screen-share','<svg
   xmlns="http://www.w3.org/2000/svg"
   width="24"
@@ -43280,6 +43570,24 @@ INSERT INTO "icons" VALUES('screen-share-off','<svg
   <path d="M12 17v4" />
   <path d="m22 3-5 5" />
   <path d="m17 3 5 5" />
+</svg>
+');
+INSERT INTO "icons" VALUES('screw','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M10 9v10" />
+  <path d="M14 13v2" />
+  <path d="M16.5 10.5 5.706 21.294A2.4 2.4 0 014.002 22H2.5a.5.5 0 01-.5-.5v-1.502a2.4 2.4 0 01.706-1.704L13.5 7.5" />
+  <path d="M20.819 11.575a6 6 0 00.969-5.162.6.6 0 00-.981-.219l-.455.454a1.2 1.2 0 01-1.704 0l-1.296-1.296a1.2 1.2 0 010-1.704l.454-.453a.595.595 0 00-.219-.98 6 6 0 00-5.162.967 2 2 0 00-.222 3.019l5.596 5.597a2 2 0 003.02-.222" />
+  <path d="M6 13v8" />
 </svg>
 ');
 INSERT INTO "icons" VALUES('scroll','<svg
@@ -43874,6 +44182,22 @@ INSERT INTO "icons" VALUES('shield-half','<svg
 >
   <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
   <path d="M12 22V2" />
+</svg>
+');
+INSERT INTO "icons" VALUES('shield-house','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M15 22a1 1 0 01-1-1v-4a1 1 0 01.445-.832l3-2a1 1 0 011.11 0l3 2A1 1 0 0122 17v4a1 1 0 01-1 1z" />
+  <path d="M18 22v-3" />
+  <path d="M20 10.418V6a1 1 0 00-1-1c-2 0-4.49-1.19-6.24-2.72a1.17 1.17 0 00-1.52 0C9.5 3.8 7 5 5 5a1 1 0 00-1 1v7c0 4.602 2.67 7.1 6.037 8.603" />
 </svg>
 ');
 INSERT INTO "icons" VALUES('shield-keyhole','<svg
@@ -44754,12 +45078,12 @@ INSERT INTO "icons" VALUES('soup','<svg
   stroke-linecap="round"
   stroke-linejoin="round"
 >
-  <path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z" />
-  <path d="M7 21h10" />
+  <path d="M11.248 3c.273.1.808.53.747 1.36-.05.83-.938 1.2-.989 2.02-.06.78.333 1.24.727 1.62" />
+  <path d="M16.252 3c.268.1.794.53.745 1.36-.06.83-.923 1.2-.993 2.02-.05.78.338 1.24.725 1.62" />
   <path d="M19.5 12 22 6" />
-  <path d="M16.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.73 1.62" />
-  <path d="M11.25 3c.27.1.8.53.74 1.36-.05.83-.93 1.2-.98 2.02-.06.78.33 1.24.72 1.62" />
-  <path d="M6.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.74 1.62" />
+  <path d="M4 12a1 1 0 00-.99 1.133A9 9 0 0012 21a9 9 0 008.99-7.867A1 1 0 0020 12z" />
+  <path d="M6.252 3c.268.1.794.53.745 1.36-.06.83-.923 1.2-.993 2.02-.05.78.338 1.24.735 1.62" />
+  <path d="M7 21h10" />
 </svg>
 ');
 INSERT INTO "icons" VALUES('space','<svg
@@ -48305,9 +48629,9 @@ INSERT INTO "icons" VALUES('tool-case','<svg
   stroke-linejoin="round"
 >
   <path d="M10 15h4" />
-  <path d="m14.817 10.995-.971-1.45 1.034-1.232a2 2 0 0 0-2.025-3.238l-1.82.364L9.91 3.885a2 2 0 0 0-3.625.748L6.141 6.55l-1.725.426a2 2 0 0 0-.19 3.756l.657.27" />
-  <path d="m18.822 10.995 2.26-5.38a1 1 0 0 0-.557-1.318L16.954 2.9a1 1 0 0 0-1.281.533l-.924 2.122" />
-  <path d="M4 12.006A1 1 0 0 1 4.994 11H19a1 1 0 0 1 1 1v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" />
+  <path d="m14.5 4.058.571-1.429a1 1 0 011.3-.558l5 2a1 1 0 01.549.534.88.88 0 01.01.765l-2.332 5.83" />
+  <path d="M15.634 11a2 2 0 00-.186-.34l-1.17-1.757 1.31-1.656a2 2 0 00-2.109-3.165l-2.032.57-1.17-1.758a2 2 0 00-3.664 1.028l-.086 2.11-2.032.568a2 2 0 00-.155 3.8l1.617.6" />
+  <path d="M4 12.006A1 1 0 014.994 11H19a1 1 0 011 1v7a2 2 0 01-2 2H6a2 2 0 01-2-2z" />
 </svg>
 ');
 INSERT INTO "icons" VALUES('toolbox','<svg
@@ -49704,6 +50028,22 @@ INSERT INTO "icons" VALUES('user-round-search','<svg
   <path d="m22 22-1.9-1.9" />
 </svg>
 ');
+INSERT INTO "icons" VALUES('user-round-star','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M16.051 12.616a1 1 0 0 1 1.909.024l.737 1.452a1 1 0 0 0 .737.535l1.634.256a1 1 0 0 1 .588 1.806l-1.172 1.168a1 1 0 0 0-.282.866l.259 1.613a1 1 0 0 1-1.541 1.134l-1.465-.75a1 1 0 0 0-.912 0l-1.465.75a1 1 0 0 1-1.539-1.133l.258-1.613a1 1 0 0 0-.282-.867l-1.156-1.152a1 1 0 0 1 .572-1.822l1.633-.256a1 1 0 0 0 .737-.535z" />
+  <path d="M2 21a8 8 0 0 1 6.778-7.905" />
+  <path d="M8.927 12.885a5 5 0 1 1 6.061-4.535" />
+</svg>
+');
 INSERT INTO "icons" VALUES('user-round-x','<svg
   xmlns="http://www.w3.org/2000/svg"
   width="24"
@@ -50837,6 +51177,24 @@ INSERT INTO "icons" VALUES('wifi-high','<svg
   <path d="M8.5 16.429a5 5 0 0 1 7 0" />
 </svg>
 ');
+INSERT INTO "icons" VALUES('wifi-lock','<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M2 8.82a15 15 0 0120 0" />
+  <path d="M20 16v-2a2 2 0 00-4 0v2" />
+  <path d="M5 12.859a10 10 0 018.436-2.756" />
+  <path d="M8.5 16.429a5 5 0 011.794-1.13" />
+  <rect x="14" y="16" width="8" height="5" rx="1" />
+</svg>
+');
 INSERT INTO "icons" VALUES('wifi-low','<svg
   xmlns="http://www.w3.org/2000/svg"
   width="24"
@@ -51372,7 +51730,7 @@ INSERT INTO "icons" VALUES('zoom-out','<svg
 </svg>
 ');
 CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
-INSERT INTO "metadata" VALUES('version','1.52.0');
+INSERT INTO "metadata" VALUES('version','1.55.0');
 CREATE UNIQUE INDEX idx_alias ON icon_aliases(alias);
 CREATE INDEX idx_category ON icon_categories(category, name);
 CREATE INDEX idx_tag ON icon_tags(tag, name);
