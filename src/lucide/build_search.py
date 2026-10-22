@@ -26,7 +26,7 @@ import sqlite3
 import subprocess
 import threading
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TypedDict
 
 from .config import (
@@ -444,7 +444,7 @@ def generate_descriptions(  # noqa: PLR0913, PLR0915
             "lucide_version": lucide_version,
             "tags": meta["tags"],
             "categories": meta["categories"],
-            "timestamp": datetime.now(tz=timezone.utc).isoformat(),
+            "timestamp": datetime.now(tz=UTC).isoformat(),
         }
         with write_lock:
             _append_jsonl(jsonl_path, record)
@@ -598,7 +598,7 @@ def _write_search_db(  # noqa: PLR0913
         # Metadata
         first = records[ordered_names[0]]
         resolved_version = version or first.get("lucide_version", "unknown")
-        now = datetime.now(tz=timezone.utc).isoformat()
+        now = datetime.now(tz=UTC).isoformat()
         model_dims = json.dumps({mid: EMBEDDING_MODELS[mid].dim for mid in embeddings})
         for key, value in [
             ("version", resolved_version),
