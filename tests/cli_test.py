@@ -1,3 +1,4 @@
+import contextlib
 import json
 import pathlib
 import sqlite3
@@ -43,7 +44,7 @@ def test_database_build_preserves_upstream_alias_metadata(tmp_path, included):
     )
     output = tmp_path / "icons.db"
     assert cli._create_database(output, icons_dir, included, tag="test")
-    with sqlite3.connect(output) as conn:
+    with contextlib.closing(sqlite3.connect(output)) as conn, conn:
         rows = conn.execute(
             "SELECT name, alias, deprecated, deprecation_reason "
             "FROM icon_aliases ORDER BY alias"

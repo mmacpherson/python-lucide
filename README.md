@@ -30,12 +30,12 @@ pip install python-lucide
 ```
 This installs the package with a pre-built database of all Lucide icons, ready to use immediately.
 
-Python 3.10–3.14 are supported. **Python 3.15 support is experimental:** core
+Python 3.11–3.14 are supported. **Python 3.15 support is experimental:** core
 rendering, aliases, and SQL-backed package builds pass tests on 3.15 RC2 and have
 a dedicated CI job, but semantic search is currently unsupported because ONNX
 Runtime does not yet provide compatible wheels. Core installation remains
 available on 3.15; full support will be advertised once search is validated too.
-Use Python 3.10–3.14 for search and full development tooling. HDBSCAN and UMAP's
+Use Python 3.11–3.14 for search and full development tooling. HDBSCAN and UMAP's
 dependencies affect cluster generation during development, not ordinary searches.
 
 To run the core tests on Python 3.15 from a source checkout:
@@ -419,13 +419,17 @@ This project follows a manual release process:
 
 2. **Create and merge PR** for the version bump
 
-3. **Trigger publishing workflow**:
-   - Go to [Actions](../../actions/workflows/publish.yml)
-   - Click "Run workflow"
-   - Select the main branch
-   - Click "Run workflow"
+3. **Tag the merged commit on main** with the same version:
+   ```bash
+   git checkout main && git pull
+   git tag v0.2.0
+   git push origin v0.2.0
+   ```
 
-4. **Automatic publishing**: The `publish.yml` workflow builds and publishes the package to PyPI using trusted publishing.
+4. **Automatic publishing**: The `release.yml` workflow checks that the tag
+   matches `pyproject.toml` and is on main, runs CI on the tagged commit,
+   publishes that build to PyPI using trusted publishing, creates the GitHub
+   Release, and attaches the rebuilt search database to its `search-v*` release.
 
 ## How It Works
 The package comes with a pre-built SQLite database containing all Lucide icons. When you call `lucide_icon()`, it fetches the icon's SVG from the database and applies your customizations. This approach means:

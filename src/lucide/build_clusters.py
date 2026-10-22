@@ -13,7 +13,7 @@ import logging
 import os
 import pathlib
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from pydantic import BaseModel, field_validator
 from pydantic_ai import Agent
@@ -229,7 +229,7 @@ def save_clusters_json(
         "coords": {
             name: [round(c[0], 5), round(c[1], 5)] for name, c in data["coords"].items()
         },
-        "generated_at": datetime.now(tz=timezone.utc).isoformat(),
+        "generated_at": datetime.now(tz=UTC).isoformat(),
         "naming_model": CLUSTER_NAMING_MODEL,
     }
     output_path.write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n")
