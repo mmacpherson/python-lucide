@@ -419,13 +419,17 @@ This project follows a manual release process:
 
 2. **Create and merge PR** for the version bump
 
-3. **Trigger publishing workflow**:
-   - Go to [Actions](../../actions/workflows/publish.yml)
-   - Click "Run workflow"
-   - Select the main branch
-   - Click "Run workflow"
+3. **Tag the merged commit on main** with the same version:
+   ```bash
+   git checkout main && git pull
+   git tag v0.2.0
+   git push origin v0.2.0
+   ```
 
-4. **Automatic publishing**: The `publish.yml` workflow builds and publishes the package to PyPI using trusted publishing.
+4. **Automatic publishing**: The `release.yml` workflow checks that the tag
+   matches `pyproject.toml` and is on main, runs CI on the tagged commit,
+   publishes that build to PyPI using trusted publishing, creates the GitHub
+   Release, and attaches the rebuilt search database to its `search-v*` release.
 
 ## How It Works
 The package comes with a pre-built SQLite database containing all Lucide icons. When you call `lucide_icon()`, it fetches the icon's SVG from the database and applies your customizations. This approach means:
