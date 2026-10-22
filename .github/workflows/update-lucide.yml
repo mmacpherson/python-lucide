@@ -104,6 +104,8 @@ jobs:
 
         sed -i "s/^version = \".*\"/version = \"$NEW_PKG_VERSION\"/" pyproject.toml
         echo "✅ Bumped package version from $CURRENT_PKG_VERSION to $NEW_PKG_VERSION"
+        # -- uv.lock records the project's version; CI runs with UV_LOCKED=1
+        uv lock
 
         echo "new-pkg-version=$NEW_PKG_VERSION" >> $GITHUB_OUTPUT
 
@@ -179,7 +181,7 @@ jobs:
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
 
-        git add src/lucide/config.py src/lucide/data/lucide-icons.sql pyproject.toml .github/lucide-version.json
+        git add src/lucide/config.py src/lucide/data/lucide-icons.sql pyproject.toml uv.lock .github/lucide-version.json
         # Include descriptions JSONL and refreshed clusters if generated
         # (search DB is built at publish time)
         [ -f src/lucide/data/gemini-icon-descriptions.jsonl ] && git add src/lucide/data/gemini-icon-descriptions.jsonl

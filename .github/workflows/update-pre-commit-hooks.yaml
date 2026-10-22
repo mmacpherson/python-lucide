@@ -86,6 +86,9 @@ jobs:
 
     - name: Validate hook updates
       if: env.HOOKS_UPDATED == 'true'
+      # bash explicitly: GitHub's default shell has no pipefail, so `make | tee`
+      # would report tee's success even when hooks fail
+      shell: bash
       run: |
         echo "Running pre-commit hooks to validate updates..."
 
