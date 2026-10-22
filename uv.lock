@@ -2112,7 +2112,7 @@ wheels = [
 
 [[package]]
 name = "python-lucide"
-version = "0.5.10"
+version = "0.5.11"
 source = { editable = "." }
 
 [package.optional-dependencies]
