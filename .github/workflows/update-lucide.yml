@@ -237,7 +237,7 @@ jobs:
         fi
 
         # Create PR with detailed description
-        gh pr create \
+        gh pr create --head "update/lucide-${{ steps.version-check.outputs.latest-version }}" \
           --title "feat(icons): Update Lucide to v${{ steps.version-check.outputs.latest-version }} and bump version" \
           --body "## 📦 Lucide Icon and Version Update
 
