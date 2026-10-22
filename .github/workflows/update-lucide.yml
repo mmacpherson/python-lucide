@@ -19,6 +19,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v7
       with:
+        persist-credentials: false
         # Need full history to create branches
         fetch-depth: 0
 
@@ -193,17 +194,30 @@ jobs:
 
         🤖 Automated update via GitHub Actions"
 
+    - name: Mint the CI bot's token
+      # Pushes and PRs made with the built-in token don't trigger workflows, so
+      # the PR would get no CI; ones made with this GitHub App's token do.
+      # Minted just before use: App tokens last an hour.
+      if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
+      id: bot
+      uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510  # v3.3.0
+      with:
+        client-id: ${{ vars.CI_BOT_CLIENT_ID }}
+        private-key: ${{ secrets.CI_BOT_PRIVATE_KEY }}
+
     - name: Push branch
       if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
+      env:
+        BOT_TOKEN: ${{ steps.bot.outputs.token }}
       run: |
         BRANCH_NAME="update/lucide-${{ steps.version-check.outputs.latest-version }}"
-        git push origin $BRANCH_NAME
+        git push "https://x-access-token:${BOT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" $BRANCH_NAME
         echo "✅ Pushed branch: $BRANCH_NAME"
 
     - name: Create Pull Request
       if: steps.version-check.outputs.needs-update == 'true' && steps.check-pr.outputs.pr-exists == 'false'
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ steps.bot.outputs.token }}
       run: |
         # Gather information for PR description
         RELEASE_URL="https://github.com/lucide-icons/lucide/releases/tag/${{ steps.version-check.outputs.latest-version }}"
