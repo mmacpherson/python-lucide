@@ -109,7 +109,7 @@ def test_renamed_icons_render_from_bundled_database(alias, canonical, monkeypatc
 
 
 def test_canonical_icon_wins_over_conflicting_alias(mock_db_path_fixture):
-    with contextlib.closing(sqlite3.connect(mock_db_path_fixture)) as conn, conn:
+    with sqlite3.connect(mock_db_path_fixture) as conn:
         conn.execute("CREATE TABLE icon_aliases (name TEXT, alias TEXT)")
         conn.execute("INSERT INTO icon_aliases VALUES ('square', 'circle')")
     core.lucide_icon.cache_clear()
@@ -120,7 +120,7 @@ def test_canonical_icon_wins_over_conflicting_alias(mock_db_path_fixture):
 
 @pytest.mark.parametrize("icon_name", ["missing-alias", "dangling-alias"])
 def test_unresolved_alias_uses_normal_placeholder(mock_db_path_fixture, icon_name):
-    with contextlib.closing(sqlite3.connect(mock_db_path_fixture)) as conn, conn:
+    with sqlite3.connect(mock_db_path_fixture) as conn:
         conn.execute("CREATE TABLE icon_aliases (name TEXT, alias TEXT)")
         conn.execute("INSERT INTO icon_aliases VALUES ('absent', 'dangling-alias')")
     core.lucide_icon.cache_clear()
@@ -135,7 +135,7 @@ def test_unresolved_alias_uses_normal_placeholder(mock_db_path_fixture, icon_nam
 def test_non_deprecated_and_legacy_aliases_render_quietly(
     mock_db_path_fixture, with_deprecation_metadata
 ):
-    with contextlib.closing(sqlite3.connect(mock_db_path_fixture)) as conn, conn:
+    with sqlite3.connect(mock_db_path_fixture) as conn:
         conn.execute("CREATE TABLE icon_aliases (name TEXT, alias TEXT)")
         conn.execute("INSERT INTO icon_aliases VALUES ('circle', 'round')")
         if with_deprecation_metadata:
@@ -152,7 +152,7 @@ def test_non_deprecated_and_legacy_aliases_render_quietly(
 
 
 def test_deprecated_alias_warning_can_be_promoted_to_error(mock_db_path_fixture):
-    with contextlib.closing(sqlite3.connect(mock_db_path_fixture)) as conn, conn:
+    with sqlite3.connect(mock_db_path_fixture) as conn:
         conn.execute(
             "CREATE TABLE icon_aliases (name TEXT, alias TEXT, deprecated INTEGER)"
         )
