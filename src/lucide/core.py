@@ -58,7 +58,7 @@ def _process_classes(root: ET.Element, cls: str | None, icon_name: str) -> None:
         del root.attrib["class"]
 
 
-def _apply_attributes(  # noqa: D417
+def _apply_attributes(  # noqa: D417, PLR0917
     root: ET.Element,
     width: str | int | None = None,
     height: str | int | None = None,
@@ -98,7 +98,7 @@ def _apply_attributes(  # noqa: D417
             root.set(svg_attr_name, str(value))
 
 
-def _modify_svg(  # noqa: D417
+def _modify_svg(  # noqa: D417, PLR0917
     original_svg_content: str,
     icon_name: str,
     cls: str | None,
@@ -158,7 +158,7 @@ def _modify_svg(  # noqa: D417
 
 
 @functools.lru_cache(maxsize=DEFAULT_ICON_CACHE_SIZE)
-def lucide_icon(
+def lucide_icon(  # noqa: PLR0917 -- public API; positional arguments are supported
     icon_name: str,
     cls: str = "",
     fallback_text: str | None = None,
