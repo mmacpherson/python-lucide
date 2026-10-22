@@ -24,6 +24,8 @@ repos:
   hooks:
   - id: pretty-format-toml
     args: [--autofix, --indent, '2']
+    # Lockfiles are machine-written; reformatting them only makes churn.
+    exclude: ^uv\.lock$
   - id: pretty-format-yaml
     args: [--autofix, --indent, '2']
 - repo: https://github.com/pre-commit/mirrors-mypy
