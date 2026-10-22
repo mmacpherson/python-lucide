@@ -69,9 +69,9 @@ svg = lucide_icon("chart-line", stroke_width="3", stroke_linecap="round")
 All Lucide icons use `stroke` for their outline color and `fill` for their interior color:
 ```python
 # Looking for how to change colors? Use stroke and fill:
-lucide_icon("user", stroke="blue")  # Blue outline
+lucide_icon("user", stroke="blue")        # Blue outline
 lucide_icon("user", fill="currentColor")  # Inherit color from CSS
-lucide_icon("user", stroke="#ff6b6b")  # Hex colors work too
+lucide_icon("user", stroke="#ff6b6b")     # Hex colors work too
 ```
 
 ### Renamed icons and aliases
@@ -85,7 +85,7 @@ Prefer the current canonical name in new code:
 
 ```python
 lucide_icon("square-bookmark")  # Preferred name
-lucide_icon("album")  # Still works; deprecated upstream alias
+lucide_icon("album")            # Still works; deprecated upstream alias
 ```
 
 Aliases marked deprecated by Lucide emit a standard Python `DeprecationWarning`
@@ -191,12 +191,10 @@ from starlette.responses import Response
 from starlette.routing import Route
 from lucide import lucide_icon
 
-
 def icon(request):
     icon_name = request.path_params["icon_name"]
     svg = lucide_icon(icon_name, cls="icon", stroke="currentColor")
     return Response(svg, media_type="image/svg+xml")
-
 
 app = Starlette(routes=[Route("/icons/{icon_name}", icon)])
 ```
@@ -208,7 +206,6 @@ from fastapi.responses import Response
 from lucide import lucide_icon
 
 app = FastAPI()
-
 
 @app.get("/icons/{icon_name}")
 def get_icon(icon_name: str, size: int = 24, color: str = "currentColor"):
@@ -223,17 +220,14 @@ from lucide import lucide_icon
 
 app, rt = fast_app()
 
-
-@rt("/")
+@rt('/')
 def get():
-    return Titled(
-        "Hello Icons",
+    return Titled("Hello Icons",
         H1("Welcome"),
         # Wrap icon output in NotStr to prevent HTML escaping
         NotStr(lucide_icon("house", cls="icon")),
-        P("This is a simple FastHTML app with Lucide icons."),
+        P("This is a simple FastHTML app with Lucide icons.")
     )
-
 
 serve()
 ```
@@ -245,11 +239,10 @@ from lucide import lucide_icon
 
 app = Flask(__name__)
 
-
-@app.route("/icons/<icon_name>")
+@app.route('/icons/<icon_name>')
 def serve_icon(icon_name):
     svg = lucide_icon(icon_name, cls="icon", stroke="currentColor")
-    return svg, 200, {"Content-Type": "image/svg+xml"}
+    return svg, 200, {'Content-Type': 'image/svg+xml'}
 ```
 
 ### Django
@@ -258,11 +251,9 @@ def serve_icon(icon_name):
 from django.http import HttpResponse
 from lucide import lucide_icon
 
-
 def icon_view(request, icon_name):
     svg = lucide_icon(icon_name, cls="icon-lg", width="32", height="32")
-    return HttpResponse(svg, content_type="image/svg+xml")
-
+    return HttpResponse(svg, content_type='image/svg+xml')
 
 # In your templates (as a template tag)
 from django import template
@@ -270,7 +261,6 @@ from django.utils.safestring import mark_safe
 from lucide import lucide_icon
 
 register = template.Library()
-
 
 @register.simple_tag
 def icon(name, **kwargs):
@@ -320,7 +310,7 @@ icon = lucide_icon(
     stroke="rgb(59, 130, 246)",
     stroke_width=2.5,
     stroke_linecap="round",
-    stroke_linejoin="round",
+    stroke_linejoin="round"
 )
 ```
 
@@ -359,8 +349,7 @@ python your-app.py
 Or configure it in your Python code:
 ```python
 import os
-
-os.environ["LUCIDE_DB_PATH"] = "/path/to/custom-icons.db"
+os.environ['LUCIDE_DB_PATH'] = '/path/to/custom-icons.db'
 
 from lucide import lucide_icon
 # Will now use your custom database
